@@ -6,7 +6,7 @@ AI RESEARCH · NOTES IN PROGRESS
 
 I’m Yingjie Tan. I study the mechanisms that let language models retrieve, route, compress, and transform information—and how to make those mechanisms more interpretable and efficient.
 
-[Explore the writing](blog.llms.md) [More about me](about.llms.md)
+[Explore the writing](blog.llms.md)
 
 ![](./assets/tan-solar-system.svg)
 

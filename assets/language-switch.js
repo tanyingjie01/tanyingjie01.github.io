@@ -47,15 +47,11 @@ document.addEventListener("DOMContentLoaded", () => {
     else enLink.removeAttribute("aria-current");
   }
 
-  const navLabels = ["首页", "博客", "关于"];
+  const navLabels = ["首页", "博客"];
   const primaryLinks = [...document.querySelectorAll(".navbar .navbar-nav.me-auto .nav-link")];
-  const sectionIndex = /\/blog(?:\.html|\/|$)/.test(sitePath)
-    ? 1
-    : /\/about(?:\.html|\/|$)/.test(sitePath)
-      ? 2
-      : 0;
+  const sectionIndex = /\/blog(?:\.html|\/|$)/.test(sitePath) ? 1 : 0;
 
-  primaryLinks.slice(0, 3).forEach((link, index) => {
+  primaryLinks.slice(0, navLabels.length).forEach((link, index) => {
     link.classList.toggle("active", index === sectionIndex);
     if (index === sectionIndex) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
@@ -261,8 +257,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.documentElement.lang = "zh-CN";
 
-  const chineseNavPaths = ["/zh/", "/zh/blog.html", "/zh/about.html"];
-  primaryLinks.slice(0, 3).forEach((link, index) => {
+  const chineseNavPaths = ["/zh/", "/zh/blog.html"];
+  primaryLinks.slice(0, navLabels.length).forEach((link, index) => {
     const label = link.querySelector(".menu-text") || link;
     if (navLabels[index]) label.textContent = navLabels[index];
     if (chineseNavPaths[index]) link.href = `${filePrefix}${chineseNavPaths[index]}`;

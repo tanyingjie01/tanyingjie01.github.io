@@ -35,11 +35,53 @@
     "text": "个人简介\n我是清华大学求真书院的博士生。我的研究兴趣在于理解机器学习模型与神经网络。 我从观察到的现象出发，分析模型行为的根本原因，并致力于开发高效且具有泛化能力的实用学习方法。 近期，我主要研究 DeepSeek 稀疏注意力（DSA）架构的上下文压缩，以及训练稳定性。 欢迎阅读我的个人博客。\n\n\n\n\n 返回顶部"
   },
   {
-    "objectID": "zh/about.html#记录研究也记录思考过程",
-    "href": "zh/about.html#记录研究也记录思考过程",
-    "title": "关于",
-    "section": "记录研究，也记录思考过程",
-    "text": "记录研究，也记录思考过程\n我目前的研究集中在机制可解释性、稀疏注意力、长上下文推理、 上下文压缩和深度搜索智能体等方向。\n我会在这里发布研究笔记、实验报告、论文讨论、工程记录，以及尚未成熟到 可以写成论文的想法。这个网站希望呈现的不只是结论，也包括通向结论的证据、 判断和仍然存在的不确定性。\n\n“一篇有用的研究笔记，应当同时保留问题、证据，以及两者之间的不确定性。”"
+    "objectID": "posts/welcome/index.html",
+    "href": "posts/welcome/index.html",
+    "title": "Welcome to My Research Notes",
+    "section": "",
+    "text": "This is a placeholder article: its job is to demonstrate the reading experience before the first real research note arrives."
+  },
+  {
+    "objectID": "posts/welcome/index.html#a-layout-for-technical-thinking",
+    "href": "posts/welcome/index.html#a-layout-for-technical-thinking",
+    "title": "Welcome to My Research Notes",
+    "section": "A layout for technical thinking",
+    "text": "A layout for technical thinking\nResearch writing asks a page to do several things at once. The central argument must remain easy to follow, while code, equations, figures, qualifications, and cross-references stay close enough to be useful. This template gives each kind of information a deliberate place.\nThe page has three layers on wide screens: a navigable outline on the left, the primary narrative in the center, and authored annotations on the right. On a narrow screen, those layers become one continuous reading flow.\nMargin notes are written explicitly in the source. They are not comments from readers, and they remain part of the article.\n\nEquations stay in the reading flow\nFor example, a schematic residual update can be written as\n\nx_{\\ell + 1} = x_\\ell + \\mathcal{A}_\\ell(x_\\ell) +\n\\mathcal{M}_\\ell(x_\\ell).\n\nThe typesetting is intentionally quiet: the equation is prominent enough to inspect without turning the page into a slide deck.\n\n\nNotation\n\\mathcal{A}_\\ell and \\mathcal{M}_\\ell stand in for attention and MLP updates. The example is illustrative rather than a claim about a particular model."
+  },
+  {
+    "objectID": "posts/welcome/index.html#code-and-evidence",
+    "href": "posts/welcome/index.html#code-and-evidence",
+    "title": "Welcome to My Research Notes",
+    "section": "Code and evidence",
+    "text": "Code and evidence\nCode blocks include syntax highlighting, sensible line spacing, horizontal overflow protection, and a copy button.\ndef residual_update(x, attention_out, mlp_out):\n    \"\"\"A small display-only example.\"\"\"\n    return x + attention_out + mlp_out\n\n\nReproducibility\nExpensive computation will be frozen after an explicit render, so rebuilding the navigation will not silently rerun old experiments.\n\nRoom for wide results\nSome evidence needs more horizontal space than prose. A wide region can extend beyond the text column for an ablation table, an attention map, or a systems diagram.\n\n\nWIDE FIGURE · PLACEHOLDER\n\n\n     \n\n\nA future figure, table, or information-flow diagram can occupy this space."
+  },
+  {
+    "objectID": "posts/welcome/index.html#designed-to-get-out-of-the-way",
+    "href": "posts/welcome/index.html#designed-to-get-out-of-the-way",
+    "title": "Welcome to My Research Notes",
+    "section": "Designed to get out of the way",
+    "text": "Designed to get out of the way\nThe visual system uses a warm paper-like background, strong but restrained typography, and a single blue-violet accent. Navigation and metadata are easy to find; the article itself remains the loudest object on the page.\nThe template is now ready to be replaced by real notes one post at a time."
+  },
+  {
+    "objectID": "index.html#current-questions",
+    "href": "index.html#current-questions",
+    "title": "Yingjie Tan",
+    "section": "Current questions",
+    "text": "Current questions\n\nThe themes that organize my experiments, essays, and reading notes."
+  },
+  {
+    "objectID": "index.html#recent-writing",
+    "href": "index.html#recent-writing",
+    "title": "Yingjie Tan",
+    "section": "Recent writing",
+    "text": "Recent writing"
+  },
+  {
+    "objectID": "blog.html",
+    "href": "blog.html",
+    "title": "Blog",
+    "section": "",
+    "text": "Blog\n\n\n  Blog\n  \n    \n      Research\n      Technical articles and experiment reports that share research results, methods, and the evidence behind them.\n    \n    \n      Thinking\n      Reflections on AI phenomena and questions, together with the understanding I form through reading and practice.\n    \n    \n      Observation\n      Patterns that emerge from experiments, along with my hypotheses about the mechanisms that may produce them.\n    \n  \n\n\n\n\n\n\n\n\n    \n      \n      \n    \n\n\n\n\n\nInside a Model’s Random-Number Fingerprint: A Special Circuit in LLMs\n\n\n\nResearch\n\n\n\n\n\n\n\n\n\nAug 30, 2026\n\n30 min\n\n\n\n\n\n\nWelcome to My Research Notes\n\n\n\nThinking\n\n\n\nA visual tour of the layout I will use for future technical essays and experiment reports.\n\n\n\n\n\nAug 29, 2026\n\n2 min\n\n\n\n\nNo matching items\n Back to top"
   },
   {
     "objectID": "posts/random-number-fingerprint-circuit/index.html",
@@ -75,62 +117,6 @@
     "title": "Inside a Model’s Random-Number Fingerprint: A Special Circuit in LLMs",
     "section": "4 Further Tests of the Candidate-Competition Circuit",
     "text": "4 Further Tests of the Candidate-Competition Circuit\nThe experiments in Section 3 allow us to form a preliminary account of L82.H18. When the answer has not been successfully inferred and the model is forced to guess among several valid candidates, L82.H18 writes candidate information carrying the model’s fingerprint preference into the answer position. This role is not restricted to the original 1–300 random-number task: it generalizes across different list types, candidate ranges, and active candidate sets defined by additional constraints.\nThis section tests that account more closely. Does the candidate-competition pathway become causally important whenever the model cannot directly infer the answer, even when that failure has different causes? We first remove decisive evidence from the problem so that the answer is objectively underdetermined. We then keep the evidence intact but ablate the attention heads responsible for retrieving it, asking whether the candidate pathway gains causal weight in tasks that the intact model can solve correctly.\n\n4.1 Candidate Betting Under Insufficient Evidence\nTo make “the model is guessing” behaviorally testable, we construct four types of temporary three-hop archives. The model must follow one of four relation chains—person→badge→room→key, supplier→container→warehouse→seal, researcher→project→server→access code, or courier→route→station→package—and select the unique answer from candidates A–H. Each random mapping has four core conditions: decisive evidence repeated near the question, decisive evidence available only in the distant context, the key records for two candidates removed simultaneously, and the answer stated directly before the question. The experiment covers 16 independent mappings, 176 prompts, and 1,040 forward passes.\nHere, “guessing” is not defined by the model’s self-reported confidence. We additionally permute the candidate list and restore the missing relation chain. When decisive evidence is absent, changing only the list order changes the preferred answer in 81.25% of cases; after the key chain is restored, 93.75% of cases return to the correct answer. The model is therefore genuinely influenced by the remaining candidates under missing evidence rather than having reached a fixed answer through another route. Notably, 7 of the 16 ambiguous cases still assign at least 90% top-1 probability to one candidate, so a high-confidence output does not imply sufficient evidence.\n\n\n\n\nCondition\nL82.H18 whole-head TV\nL82.H29 whole-head TV\n\n\n\n\nNear, determined\n0.105%\n0.120%\n\n\nDistant, determined\n1.172%\n2.895%\n\n\nObjectively ambiguous\n10.470%\n11.607%\n\n\nAnswer stated directly\n0.028%\n0.028%\n\n\n\n\nBoth heads become much more causally important in the objectively ambiguous condition. L82.H18 and L82.H29 assign an average of 66.7% and 65.1% attention to the candidate list, respectively; deleting only their attention edges to that list produces mean TV values of 10.95% and 5.45%. By contrast, when the answer is stated directly, L82.H18 still assigns 58.8% attention to the list, yet its whole-head TV is only 0.028%. Reading the candidate list and having that write actually influence the answer are therefore distinct: downstream computation uses the candidate write strongly only while the answer remains unresolved.\nThis conclusion also has a clear boundary. On cases where the evidence is complete but the model naturally fails at distant retrieval, L82.H18 TV is almost unable to distinguish reliable from unreliable retrieval, and L82.H29 has only moderate predictive power. These heads are therefore good markers of the specific state in which decisive evidence is missing and the model must still bet among explicit candidates, but they are not universal detectors of every reasoning failure or uncertain state.\n\n\n4.2 Conditional Takeover After Removing Retrieval Heads\nThe preceding experiment removes evidence from the input itself, so it establishes only that insufficient evidence and high candidate-head TV co-occur. To test for a causal transfer between circuits, we keep both the task and the decisive evidence intact and use 20 retrieval heads identified in an independent experiment as the determined-retrieval pathway R. We denote the candidate-competition pathway by C: for the canonical sequence A–H, C consists of L82.H18/H29; for randomized lists of Chinese single-token nouns, it consists of L80.H42/L82.H21/L85.H49/L88.H13, identified through a new full-head scan. Every prompt is answered correctly and stably by the intact model.\nEach prompt is run under four conditions: clean, retrieval pathway removed (−R), candidate pathway removed (−C), and both removed (−R−C). The key quantity is not the natural effect of removing C, \\operatorname{TV}(clean,-C), but its conditional effect after damaging R, \\operatorname{TV}(-R,-R-C). A large increase in the latter means that the candidate write has gained causal weight after the retrieval pathway was damaged.\nThe initial factorial experiment provides conditional support. In the strongest unordered-candidate example, removing C in the natural state produces only 0.016% TV; after removing R, the conditional TV of the same candidate pathway rises to 42.315%. The probability of the correct token falls from 99.97% under clean to 49.87% under −R, then recovers to 92.10% when C is also removed. Thus, once retrieval is damaged, the candidate pathway enters the final competition and, in this example, introduces a competing candidate rather than continuing to transport the original correct answer.\nThis behavior is not a universal hard switch. Three of the four candidate-by-retrieval combinations contain strong conditional increases, but the canonical-sequence-by-retrieval-head combination does not show a stable effect; there are also counterexamples in which retrieval is materially damaged while conditional candidate TV remains below 1%. In a broader sweep over 226 distinct prompts, only eight satisfy the strict criteria of natural candidate TV no greater than 0.5%, retrieval TV at least 5%, and conditional candidate TV at least 5%, with most positives concentrated in four- or five-hop tasks. The current results are therefore better explained by a mixture of parallel writes from determined retrieval, candidate competition, and other backup pathways. Removing retrieval heads can shift causal weight toward candidate writes along some solution paths, but whether takeover occurs—and which candidate head takes over—still depends on the particular prompt and downstream residual state."
-  },
-  {
-    "objectID": "blog.html",
-    "href": "blog.html",
-    "title": "Blog",
-    "section": "",
-    "text": "Blog\n\n\n  Blog\n  \n    \n      Research\n      Technical articles and experiment reports that share research results, methods, and the evidence behind them.\n    \n    \n      Thinking\n      Reflections on AI phenomena and questions, together with the understanding I form through reading and practice.\n    \n    \n      Observation\n      Patterns that emerge from experiments, along with my hypotheses about the mechanisms that may produce them.\n    \n  \n\n\n\n\n\n\n\n\n    \n      \n      \n    \n\n\n\n\n\nInside a Model’s Random-Number Fingerprint: A Special Circuit in LLMs\n\n\n\nResearch\n\n\n\n\n\n\n\n\n\nAug 30, 2026\n\n30 min\n\n\n\n\n\n\nWelcome to My Research Notes\n\n\n\nThinking\n\n\n\nA visual tour of the layout I will use for future technical essays and experiment reports.\n\n\n\n\n\nAug 29, 2026\n\n2 min\n\n\n\n\nNo matching items\n Back to top"
-  },
-  {
-    "objectID": "about.html#research-documented-in-the-open",
-    "href": "about.html#research-documented-in-the-open",
-    "title": "About",
-    "section": "Research, documented in the open",
-    "text": "Research, documented in the open\nMy current work focuses on mechanistic interpretability, sparse attention, long-context inference, context compression, and deep-search agents.\nI use this site for research notes, experiment reports, paper discussions, engineering write-ups, and ideas that are still taking shape. The goal is to make the reasoning—not only the final result—clear enough to inspect.\n\n“A useful research note should preserve the question, the evidence, and the uncertainty between them.”"
-  },
-  {
-    "objectID": "index.html#current-questions",
-    "href": "index.html#current-questions",
-    "title": "Yingjie Tan",
-    "section": "Current questions",
-    "text": "Current questions\n\nThe themes that organize my experiments, essays, and reading notes."
-  },
-  {
-    "objectID": "index.html#recent-writing",
-    "href": "index.html#recent-writing",
-    "title": "Yingjie Tan",
-    "section": "Recent writing",
-    "text": "Recent writing"
-  },
-  {
-    "objectID": "posts/welcome/index.html",
-    "href": "posts/welcome/index.html",
-    "title": "Welcome to My Research Notes",
-    "section": "",
-    "text": "This is a placeholder article: its job is to demonstrate the reading experience before the first real research note arrives."
-  },
-  {
-    "objectID": "posts/welcome/index.html#a-layout-for-technical-thinking",
-    "href": "posts/welcome/index.html#a-layout-for-technical-thinking",
-    "title": "Welcome to My Research Notes",
-    "section": "A layout for technical thinking",
-    "text": "A layout for technical thinking\nResearch writing asks a page to do several things at once. The central argument must remain easy to follow, while code, equations, figures, qualifications, and cross-references stay close enough to be useful. This template gives each kind of information a deliberate place.\nThe page has three layers on wide screens: a navigable outline on the left, the primary narrative in the center, and authored annotations on the right. On a narrow screen, those layers become one continuous reading flow.\nMargin notes are written explicitly in the source. They are not comments from readers, and they remain part of the article.\n\nEquations stay in the reading flow\nFor example, a schematic residual update can be written as\n\nx_{\\ell + 1} = x_\\ell + \\mathcal{A}_\\ell(x_\\ell) +\n\\mathcal{M}_\\ell(x_\\ell).\n\nThe typesetting is intentionally quiet: the equation is prominent enough to inspect without turning the page into a slide deck.\n\n\nNotation\n\\mathcal{A}_\\ell and \\mathcal{M}_\\ell stand in for attention and MLP updates. The example is illustrative rather than a claim about a particular model."
-  },
-  {
-    "objectID": "posts/welcome/index.html#code-and-evidence",
-    "href": "posts/welcome/index.html#code-and-evidence",
-    "title": "Welcome to My Research Notes",
-    "section": "Code and evidence",
-    "text": "Code and evidence\nCode blocks include syntax highlighting, sensible line spacing, horizontal overflow protection, and a copy button.\ndef residual_update(x, attention_out, mlp_out):\n    \"\"\"A small display-only example.\"\"\"\n    return x + attention_out + mlp_out\n\n\nReproducibility\nExpensive computation will be frozen after an explicit render, so rebuilding the navigation will not silently rerun old experiments.\n\nRoom for wide results\nSome evidence needs more horizontal space than prose. A wide region can extend beyond the text column for an ablation table, an attention map, or a systems diagram.\n\n\nWIDE FIGURE · PLACEHOLDER\n\n\n     \n\n\nA future figure, table, or information-flow diagram can occupy this space."
-  },
-  {
-    "objectID": "posts/welcome/index.html#designed-to-get-out-of-the-way",
-    "href": "posts/welcome/index.html#designed-to-get-out-of-the-way",
-    "title": "Welcome to My Research Notes",
-    "section": "Designed to get out of the way",
-    "text": "Designed to get out of the way\nThe visual system uses a warm paper-like background, strong but restrained typography, and a single blue-violet accent. Navigation and metadata are easy to find; the article itself remains the loudest object on the page.\nThe template is now ready to be replaced by real notes one post at a time."
   },
   {
     "objectID": "zh/blog.html",
