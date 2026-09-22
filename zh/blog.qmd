@@ -18,7 +18,7 @@ listing:
     - title
     - description
     - categories
-    - reading-time
+    - reading-time-label
   categories: true
   sort-ui: false
   filter-ui:
