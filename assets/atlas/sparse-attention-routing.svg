@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">Sparse attention routing</title>
+  <desc id="desc">Across three layers, small index heads select tokens before larger main heads integrate the routed evidence.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#071820"/><stop offset=".5" stop-color="#080d16"/><stop offset="1" stop-color="#171027"/></linearGradient>
+    <linearGradient id="cyan" x2="1"><stop stop-color="#7ef4ff"/><stop offset="1" stop-color="#4b9dff"/></linearGradient>
+    <linearGradient id="pink" x2="1"><stop stop-color="#ff8bd8"/><stop offset="1" stop-color="#956cff"/></linearGradient>
+    <radialGradient id="halo"><stop stop-color="#33d9ff" stop-opacity=".2"/><stop offset="1" stop-color="#33d9ff" stop-opacity="0"/></radialGradient>
+    <pattern id="grid" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="#90eeff" stroke-opacity=".045"/></pattern>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <clipPath id="clip"><rect x="1" y="1" width="1198" height="678" rx="34"/></clipPath>
+  </defs>
+  <style>
+    .route{stroke-dasharray:9 13;animation:route 5.8s linear infinite}.r2{animation-delay:-1.9s}.r3{animation-delay:-3.8s}.pulse{transform-box:fill-box;transform-origin:center;animation:pulse 2.5s ease-in-out infinite}.d1{animation-delay:-.6s}.d2{animation-delay:-1.2s}.d3{animation-delay:-1.8s}.select{animation:select 4.2s ease-in-out infinite}.s2{animation-delay:-1.4s}.s3{animation-delay:-2.8s}.spin{transform-box:fill-box;transform-origin:center;animation:spin 13s linear infinite}
+    @keyframes route{to{stroke-dashoffset:-210}}@keyframes pulse{50%{transform:scale(1.38);opacity:1}0%,100%{transform:scale(.82);opacity:.5}}@keyframes select{0%,100%{opacity:.2}45%,65%{opacity:1}}@keyframes spin{to{transform:rotate(360deg)}}
+    @media(prefers-reduced-motion:reduce){.route,.pulse,.select,.spin{animation:none}}
+  </style>
+  <g clip-path="url(#clip)">
+    <rect width="1200" height="680" rx="34" fill="url(#bg)"/><rect width="1200" height="680" fill="url(#grid)"/><circle cx="510" cy="190" r="360" fill="url(#halo)"/><circle cx="1040" cy="590" r="320" fill="url(#halo)" opacity=".55"/>
+    <path d="M0 560C190 480 330 638 520 535S900 410 1200 510" fill="none" stroke="#b272ff" stroke-opacity=".05" stroke-width="90"/>
+    <g fill="none" stroke-linecap="round"><path d="M76 340H1120" stroke="#83e9ff" stroke-opacity=".15" stroke-width="2"/><path d="M76 340H1120" stroke="url(#cyan)" stroke-width="3" class="route"/></g>
+
+    <g transform="translate(100 0)">
+      <rect x="0" y="105" width="280" height="470" rx="28" fill="#e7fbff" fill-opacity=".035" stroke="#79e9ff" stroke-opacity=".2"/>
+      <path d="M140 128L188 176 140 224 92 176Z" fill="#63e8ff" fill-opacity=".12" stroke="#79efff" stroke-opacity=".55"/><circle cx="140" cy="176" r="15" fill="url(#cyan)" filter="url(#glow)" class="pulse"/><path d="M140 128L188 176 140 224 92 176Z" fill="none" stroke="#93f3ff" stroke-dasharray="5 8" class="spin"/>
+      <g fill="#60717c"><circle cx="52" cy="286" r="7"/><circle cx="87" cy="286" r="7"/><circle cx="122" cy="286" r="7"/><circle cx="157" cy="286" r="7"/><circle cx="192" cy="286" r="7"/><circle cx="227" cy="286" r="7"/></g>
+      <g fill="#7ef4ff" filter="url(#glow)"><circle cx="87" cy="286" r="8" class="select"/><circle cx="157" cy="286" r="8" class="select s2"/><circle cx="227" cy="286" r="8" class="select s3"/></g>
+      <g fill="none" stroke="#7ef4ff" stroke-opacity=".55"><path d="M140 224L87 278" class="route"/><path d="M140 224L157 278" class="route r2"/><path d="M140 224L227 278" class="route r3"/></g>
+      <circle cx="140" cy="415" r="72" fill="#07151e" stroke="#ff83d5" stroke-opacity=".42" stroke-width="2"/><circle cx="140" cy="415" r="42" fill="url(#pink)" fill-opacity=".75" filter="url(#glow)"/><ellipse cx="140" cy="415" rx="91" ry="33" fill="none" stroke="#b68dff" stroke-opacity=".34" stroke-dasharray="8 9" class="spin"/>
+      <g fill="none" stroke="url(#pink)" stroke-width="2"><path d="M87 294L113 354"/><path d="M157 294L148 344"/><path d="M227 294L178 364"/></g>
+      <path d="M140 487V542" stroke="#ff8bd8" stroke-width="3" stroke-dasharray="8 10" class="route"/>
+    </g>
+
+    <g transform="translate(460 0)">
+      <rect x="0" y="82" width="280" height="516" rx="28" fill="#e7fbff" fill-opacity=".04" stroke="#79e9ff" stroke-opacity=".24"/>
+      <path d="M140 111L190 161 140 211 90 161Z" fill="#63e8ff" fill-opacity=".14" stroke="#79efff" stroke-opacity=".62"/><circle cx="140" cy="161" r="16" fill="url(#cyan)" filter="url(#glow)" class="pulse d2"/><path d="M140 111L190 161 140 211 90 161Z" fill="none" stroke="#93f3ff" stroke-dasharray="5 8" class="spin"/>
+      <g fill="#60717c"><circle cx="52" cy="278" r="7"/><circle cx="87" cy="278" r="7"/><circle cx="122" cy="278" r="7"/><circle cx="157" cy="278" r="7"/><circle cx="192" cy="278" r="7"/><circle cx="227" cy="278" r="7"/></g>
+      <g fill="#7ef4ff" filter="url(#glow)"><circle cx="52" cy="278" r="8" class="select s2"/><circle cx="122" cy="278" r="8" class="select s3"/><circle cx="192" cy="278" r="8" class="select"/></g>
+      <g fill="none" stroke="#7ef4ff" stroke-opacity=".55"><path d="M140 211L52 270" class="route r2"/><path d="M140 211L122 270" class="route r3"/><path d="M140 211L192 270" class="route"/></g>
+      <circle cx="140" cy="415" r="78" fill="#07151e" stroke="#ff83d5" stroke-opacity=".48" stroke-width="2"/><circle cx="140" cy="415" r="46" fill="url(#pink)" fill-opacity=".82" filter="url(#glow)"/><ellipse cx="140" cy="415" rx="99" ry="37" fill="none" stroke="#b68dff" stroke-opacity=".38" stroke-dasharray="8 9" class="spin"/>
+      <g fill="none" stroke="url(#pink)" stroke-width="2"><path d="M52 286L103 358"/><path d="M122 286L132 340"/><path d="M192 286L169 350"/></g>
+      <path d="M140 493V562" stroke="#ff8bd8" stroke-width="3" stroke-dasharray="8 10" class="route r2"/>
+    </g>
+
+    <g transform="translate(820 0)">
+      <rect x="0" y="105" width="280" height="470" rx="28" fill="#e7fbff" fill-opacity=".035" stroke="#79e9ff" stroke-opacity=".2"/>
+      <path d="M140 128L188 176 140 224 92 176Z" fill="#63e8ff" fill-opacity=".12" stroke="#79efff" stroke-opacity=".55"/><circle cx="140" cy="176" r="15" fill="url(#cyan)" filter="url(#glow)" class="pulse d3"/><path d="M140 128L188 176 140 224 92 176Z" fill="none" stroke="#93f3ff" stroke-dasharray="5 8" class="spin"/>
+      <g fill="#60717c"><circle cx="52" cy="286" r="7"/><circle cx="87" cy="286" r="7"/><circle cx="122" cy="286" r="7"/><circle cx="157" cy="286" r="7"/><circle cx="192" cy="286" r="7"/><circle cx="227" cy="286" r="7"/></g>
+      <g fill="#7ef4ff" filter="url(#glow)"><circle cx="87" cy="286" r="8" class="select s3"/><circle cx="122" cy="286" r="8" class="select"/><circle cx="227" cy="286" r="8" class="select s2"/></g>
+      <g fill="none" stroke="#7ef4ff" stroke-opacity=".55"><path d="M140 224L87 278" class="route r3"/><path d="M140 224L122 278" class="route"/><path d="M140 224L227 278" class="route r2"/></g>
+      <circle cx="140" cy="415" r="72" fill="#07151e" stroke="#ff83d5" stroke-opacity=".42" stroke-width="2"/><circle cx="140" cy="415" r="42" fill="url(#pink)" fill-opacity=".75" filter="url(#glow)"/><ellipse cx="140" cy="415" rx="91" ry="33" fill="none" stroke="#b68dff" stroke-opacity=".34" stroke-dasharray="8 9" class="spin"/>
+      <g fill="none" stroke="url(#pink)" stroke-width="2"><path d="M87 294L113 354"/><path d="M122 294L132 344"/><path d="M227 294L178 364"/></g>
+    </g>
+    <g fill="#bcf8ff" opacity=".35"><circle cx="45" cy="67" r="2"/><circle cx="307" cy="51" r="2"/><circle cx="765" cy="54" r="2"/><circle cx="1150" cy="88" r="2"/><circle cx="1113" cy="620" r="2"/><circle cx="653" cy="638" r="2"/><circle cx="202" cy="619" r="2"/></g>
+  </g>
+  <rect x="1" y="1" width="1198" height="678" rx="34" fill="none" stroke="#77eaff" stroke-opacity=".2"/>
+</svg>

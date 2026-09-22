@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-08-30">
+
+<title>Inside a Model’s Random-Number Fingerprint: A Special Circuit in LLMs – Yingjie Tan</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<link href="../../assets/favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-52aa7558b31972c3b5df7143b6aadf4f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-7fb4c90608183e5246ef4aa778c8cdd8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script defer="" src="../../assets/katex/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <link rel="stylesheet" href="../../assets/katex/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Inside a Model’s Random-Number Fingerprint: A Special Circuit in LLMs – Yingjie Tan">
+<meta property="og:description" content="Research notes on language models, interpretability, long-context reasoning, and efficient inference.">
+<meta property="og:image" content="https://tanyingjie01.github.io/assets/figures/random-number/all_head_tv_heatmap.png">
+<meta property="og:site_name" content="Yingjie Tan">
+<meta property="og:image:alt" content="Local heatmap of mean full-vocabulary total variation around L82.H18.">
+<meta property="og:image:height" content="1728">
+<meta property="og:image:width" content="1728">
+<meta name="twitter:title" content="Inside a Model’s Random-Number Fingerprint: A Special Circuit in LLMs – Yingjie Tan">
+<meta name="twitter:description" content="Research notes on language models, interpretability, long-context reasoning, and efficient inference.">
+<meta name="twitter:image" content="https://tanyingjie01.github.io/assets/figures/random-number/all_head_tv_heatmap.png">
+<meta name="twitter:image:alt" content="Local heatmap of mean full-vocabulary total variation around L82.H18.">
+<meta name="twitter:image-height" content="1728">
+<meta name="twitter:image-width" content="1728">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="floating nav-fixed post-research title-date-only slimcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Yingjie Tan</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../zh/index.html"> 
+<span class="menu-text">中文</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">English</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#background-non-random-outputs-from-llms" id="toc-background-non-random-outputs-from-llms" class="nav-link active" data-scroll-target="#background-non-random-outputs-from-llms"><span class="header-section-number">1</span> Background: Non-random Outputs from LLMs</a></li>
+  <li><a href="#the-head-that-writes-the-random-number-fingerprint" id="toc-the-head-that-writes-the-random-number-fingerprint" class="nav-link" data-scroll-target="#the-head-that-writes-the-random-number-fingerprint"><span class="header-section-number">2</span> The Head That Writes the Random-Number Fingerprint</a>
+  <ul class="collapse">
+  <li><a href="#head-localization" id="toc-head-localization" class="nav-link" data-scroll-target="#head-localization"><span class="header-section-number">2.1</span> Head localization</a></li>
+  <li><a href="#head-attention-distribution" id="toc-head-attention-distribution" class="nav-link" data-scroll-target="#head-attention-distribution"><span class="header-section-number">2.2</span> Head attention distribution</a></li>
+  <li><a href="#head-attention-intervention" id="toc-head-attention-intervention" class="nav-link" data-scroll-target="#head-attention-intervention"><span class="header-section-number">2.3</span> Head attention intervention</a></li>
+  </ul></li>
+  <li><a href="#head-generalization-experiments" id="toc-head-generalization-experiments" class="nav-link" data-scroll-target="#head-generalization-experiments"><span class="header-section-number">3</span> Head Generalization Experiments</a>
+  <ul class="collapse">
+  <li><a href="#candidate-type-generalization-experiments" id="toc-candidate-type-generalization-experiments" class="nav-link" data-scroll-target="#candidate-type-generalization-experiments"><span class="header-section-number">3.1</span> Candidate-Type Generalization Experiments</a></li>
+  <li><a href="#candidate-constraint-generalization-experiments" id="toc-candidate-constraint-generalization-experiments" class="nav-link" data-scroll-target="#candidate-constraint-generalization-experiments"><span class="header-section-number">3.2</span> Candidate-Constraint Generalization Experiments</a></li>
+  <li><a href="#sec-task-type-generalization" id="toc-sec-task-type-generalization" class="nav-link" data-scroll-target="#sec-task-type-generalization"><span class="header-section-number">3.3</span> Task-Type Generalization Experiments</a></li>
+  <li><a href="#generalization-to-long-form-reasoning" id="toc-generalization-to-long-form-reasoning" class="nav-link" data-scroll-target="#generalization-to-long-form-reasoning"><span class="header-section-number">3.4</span> Generalization to Long-Form Reasoning</a></li>
+  <li><a href="#cross-head-functional-generalization-experiments" id="toc-cross-head-functional-generalization-experiments" class="nav-link" data-scroll-target="#cross-head-functional-generalization-experiments"><span class="header-section-number">3.5</span> Cross-Head Functional Generalization Experiments</a></li>
+  </ul></li>
+  <li><a href="#further-tests-of-the-candidate-competition-circuit" id="toc-further-tests-of-the-candidate-competition-circuit" class="nav-link" data-scroll-target="#further-tests-of-the-candidate-competition-circuit"><span class="header-section-number">4</span> Further Tests of the Candidate-Competition Circuit</a>
+  <ul class="collapse">
+  <li><a href="#candidate-betting-under-insufficient-evidence" id="toc-candidate-betting-under-insufficient-evidence" class="nav-link" data-scroll-target="#candidate-betting-under-insufficient-evidence"><span class="header-section-number">4.1</span> Candidate Betting Under Insufficient Evidence</a></li>
+  <li><a href="#conditional-takeover-after-removing-retrieval-heads" id="toc-conditional-takeover-after-removing-retrieval-heads" class="nav-link" data-scroll-target="#conditional-takeover-after-removing-retrieval-heads"><span class="header-section-number">4.2</span> Conditional Takeover After Removing Retrieval Heads</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Inside a Model’s Random-Number Fingerprint: A Special Circuit in LLMs</h1>
+  </div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p> </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">August 30, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Discussions about GPT “getting worse” and third-party APIs quietly substituting other models never really stop<sup class="margin-note-ref" aria-label="See Note 1 in the right margin">1</sup>. A <a href="https://linux.do/t/topic/2472419">LINUX DO post</a> proposed a simple test: repeatedly ask a model to choose a random number from a fixed range, estimate the output distribution, and use that distribution as a statistical fingerprint of the model.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 1</span></p>
+<p>One workaround for requests being routed to mini is described in this <a href="https://linux.do/t/topic/2745544">LINUX DO post</a>. It worked well in my tests with a Pro account. My current guess is that retained conversations may each be subject to an IP check, so keeping more conversations may require a cleaner IP.</p>
+</div></div><p>It is easy to see why this method works and why it is useful. But it also suggests a more interesting research question:</p>
+<div class="research-question">
+<p><strong>How is this random-number fingerprint written or generated inside the model?</strong></p>
+</div>
+<p>To investigate this question, we began with a family of prompts asking the model to “choose a random number from 1 to 300” and intervened on its attention heads. This led to a group of heads that strongly read the numerical upper bound <code>300</code>. As we varied the task, their more general role began to emerge: they read the candidate set for the current task. Their writes to the residual stream strongly affect the output only when the answer remains unresolved and downstream computation still needs to arbitrate among candidates.</p>
+<p>More surprisingly, in reasoning tasks where the context provides the information needed for the correct answer, manually blocking the retrieval heads that carry that answer markedly amplifies the causal effect of these candidate heads. This suggests that two circuits compete inside the model. When the model can use contextual evidence to infer the answer, the reasoning circuit represented by the retrieval heads is active and the candidate-head circuit is suppressed. Once essential information is masked, the reasoning circuit is severed and the candidate-head circuit begins to dominate the model’s behavior.</p>
+<div class="article-deck">
+<p><strong>If this question interests you, read on. The complete post will take about 15 minutes.</strong></p>
+</div>
+<section id="background-non-random-outputs-from-llms" class="level2 page-columns page-full" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="background-non-random-outputs-from-llms"><span class="header-section-number">1</span> Background: Non-random Outputs from LLMs</h2>
+<p>Suppose we give a language model the following prompt:</p>
+<div class="prompt-example">
+<p>Choose a random number from 1 to 300. Output only the number.</p>
+</div>
+<p>The model does not literally draw a random number during its forward pass. More precisely, a language model’s forward pass is a deterministic function from the input text to the logits for the next token. The decoder then uses a temperature <span class="math inline">T</span> to turn those logits into a probability distribution:</p>
+<p><span class="math display">
+p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
+</span></p>
+<p>With both the prompt and decoding configuration fixed, the model’s next-token probability distribution is therefore fixed as well.</p>
+<p>Under sampling, a pseudorandom number generator selects a token from the distribution <span class="math inline">p</span>. Individual outputs can vary, while the long-run statistical distribution should remain stable. This is why random-number choice can serve as a model fingerprint: different parameter sets assign different but stable probabilities to number tokens, and repeated sampling turns those preferences into a recognizable output distribution.</p>
+<p>Under greedy decoding, the decoder simply selects the token with the largest logit. Under ideal deterministic computation, the entire generated sequence should therefore be fixed<sup class="margin-note-ref" aria-label="See Note 2 in the right margin">2</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 2</span></p>
+<p>Real inference services are not necessarily reproducible bit for bit. Batching and parallel reductions in backends such as vLLM and SGLang can change the order of floating-point operations and introduce numerical differences. See Thinking Machines Lab’s <a href="https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/">Defeating Nondeterminism in LLM Inference</a>.</p>
+</div></div><p>The question we care about is therefore this: for a fixed family of random-number prompts, what numerical probability distribution forms inside the model, and how is that preference generated over the course of the forward pass?</p>
+</section>
+<section id="the-head-that-writes-the-random-number-fingerprint" class="level2 page-columns page-full" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="the-head-that-writes-the-random-number-fingerprint"><span class="header-section-number">2</span> The Head That Writes the Random-Number Fingerprint</h2>
+<p>During an LLM forward pass, QK determines where attention reads from, while OV determines what is written into the residual stream. That information is then read and processed by FFN or MoE layers before the output layer turns the resulting state into a logit distribution.</p>
+<p>Under this simple picture, a reasonable hypothesis for random-number generation is that some middle-to-late-layer heads aggregate global information about <code>1–300</code>, allowing downstream computation to understand the range from which it should select. These heads write that information into the residual stream; the range constraint shapes the final output, and the model’s fingerprint preference is encoded somewhere along this path.</p>
+<p>To test this hypothesis, we ran experiments on Qwen3-235B-A22B. We constructed nine Chinese prompts similar to <span class="inline-prompt-example">“请从1-300随机选择一个数，只输出这个数字”</span>. All ask the model to select a random number from <code>1–300</code>, but use different semantic phrasings. Every prompt has a length of 28 tokens.</p>
+<p>The exact probabilities vary across prompts, but their overall structure remains stable: almost all next-token probability mass is assigned to digits, and <code>1</code> and <code>2</code> consistently form the dominant competition.</p>
+<div class="fingerprint-baseline">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;"><span class="math inline">P(1)</span></th>
+<th style="text-align: center;"><span class="math inline">P(2)</span></th>
+<th style="text-align: center;"><span class="math inline">P(3\text{–}9)</span></th>
+<th style="text-align: center;"><span class="math inline">P(\text{digit})</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">49.39%</td>
+<td style="text-align: center;">49.74%</td>
+<td style="text-align: center;">0.73%</td>
+<td style="text-align: center;">99.86%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>We therefore use “which head most strongly disrupts this generation preference?” as the criterion for locating the key head.</p>
+<section id="head-localization" class="level3 page-columns page-full" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="head-localization"><span class="header-section-number">2.1</span> Head localization</h3>
+<p>Qwen3-235B-A22B has 94 layers and 64 query heads per layer<sup class="margin-note-ref" aria-label="See Note 3 in the right margin">3</sup>. We examined each head through ablation: immediately before the layer’s attention <code>o_proj</code>, we zeroed the target head’s 128-dimensional output slice at every prefill position while leaving all other computation unchanged.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 3</span></p>
+<p><code>Qwen3-235B-A22B</code> is a distinctly depth-heavy architecture. This design introduces additional computational overhead, including a longer serial path through depth and expert communication repeated across layers. Later model designs have tended to add capacity through width—especially by increasing the number of experts—to obtain better parallelism and performance.</p>
+</div></div><p>We measured the change between the original and ablated full-vocabulary distributions with total variation distance:</p>
+<p><span class="math display">
+\operatorname{TV}(h,l)
+=\operatorname{TV}\!\left(p,p^{(h,l)}\right)
+=\frac{1}{2}\sum_{v\in\mathcal V}
+\left|p(v)-p^{(h,l)}(v)\right|.
+</span></p>
+<p>Here, <span class="math inline">p</span> is the original next-token distribution, while <span class="math inline">p^{(h,l)}</span> is the distribution after ablating head (h,l). A larger TV means that the head has a stronger causal effect on the current output distribution.</p>
+<p>Through a full screen followed by independent validation, we identified <code>L82.H18</code> as the most significant head. Its full-vocabulary TV reached <code>0.34</code>, the strongest effect among all heads and clearly separated from the runner-up<sup class="margin-note-ref" aria-label="See Note 4 in the right margin">4</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="metric-note">
+<p><span class="margin-label">Note 4</span></p>
+<p><code>L82.H18</code> also ranks first by centered full-vocabulary logit <span class="math inline">\operatorname{RMS}_{c}(h,l)</span>, defined as:</p>
+<p><span class="math display">
+\operatorname{RMS}_{c}(h,l)=
+\sqrt{\frac{1}{|\mathcal V|}\sum_{v\in\mathcal V}
+\left(\Delta z_v^{(h,l)}-\overline{\Delta z}^{(h,l)}\right)^2}.
+</span></p>
+<p>Here, <span class="math inline">\Delta z_v^{(h,l)}</span> is the change in token <span class="math inline">v</span>’s logit after ablating head (h,l), and <span class="math inline">\overline{\Delta z}^{(h,l)}</span> is its full-vocabulary mean. <span class="math inline">\operatorname{RMS}_{c}(h,l)</span> represents the overall effect of ablating that head on the full-vocabulary logit structure.</p>
+</div></div><div class="analysis-figure-grid">
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/all_head_tv_heatmap.png" class="img-fluid figure-img" alt="Local heatmap of mean full-vocabulary total variation around L82.H18."></p>
+<figcaption>Figure 1(a): Local TV landscape around <code>L82.H18</code>.</figcaption>
+</figure>
+</div>
+</div>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/l82_h18_probability_shift.png" class="img-fluid figure-img" alt="Grouped bar chart comparing probabilities for tokens 1 and 2 in the full model and after ablating L82.H18."></p>
+<figcaption>Figure 1(b): <span class="math inline">P(1)</span> and <span class="math inline">P(2)</span> in the full model and after ablating <code>L82.H18</code>.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>After ablating <code>L82.H18</code>, <span class="math inline">P(1)</span> decreased for every prompt, with a mean change of <code>−33.80</code> percentage points; meanwhile, <span class="math inline">P(2)</span> changed by an average of <code>+33.54</code> percentage points, while the remaining output probabilities were nearly unchanged.</p>
+<p>This shows that the identified <code>L82.H18</code> does indeed write a strong preference within the set of numerical candidates.</p>
+</section>
+<section id="head-attention-distribution" class="level3 page-columns page-full" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="head-attention-distribution"><span class="header-section-number">2.2</span> Head attention distribution</h3>
+<p>We next examine the attention distribution of <code>L82.H18</code>. All prompts used here contain 28 tokens and share a similar structure: <code>300</code> is split across t7–t9, the model-side <code>assistant</code> token is at t22, and the final <code>\n\n</code> before the answer is at t27.</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/h18_prompt_token_map.png" class="img-fluid figure-img" alt="Twenty-eight token prompt map arranged in two rows, highlighting 300 at t7 through t9, assistant at t22, think-mode tokens, and the final double-newline answer boundary at t27."></p>
+<figcaption>Figure 2: The 28-token prompt after applying the chat template.</figcaption>
+</figure>
+</div>
+</div>
+<p>The most concentrated attention connection of <code>L82.H18</code> runs from token <code>\n\n</code> at t27 to token <code>300</code> at t7–t9, with an average attention mass of 99.56%. Figure 3 shows the attention distributions for five representative prompts.</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/h18_q27_attention_heatmap.png" class="img-fluid figure-img" alt="L82.H18 attention across five representative prompts; each row is one prompt and 300 always occupies t7 through t9"></p>
+<figcaption>Figure 3: <code>L82.H18@q27</code> attention across five representative prompts. Each row represents one prompt, each column represents a source-token position, and token <code>300</code> always occupies t7–t9<sup class="margin-note-ref" aria-label="See Note 5 in the right margin">5</sup>.</figcaption>
+</figure>
+</div>
+</div>
+
+<div class="no-row-height column-margin column-container"><div class="figure-caption-note">
+<p><span class="margin-label">Note 5</span></p>
+<p>Most of the attention falls on the final token of <code>300</code>. This matches our intuition: because the forward pass proceeds token by token, only the final token’s representation can aggregate the complete information before downstream computation attends to and uses it.</p>
+</div></div><p>In other words, just before producing the answer, <code>L82.H18</code> reads almost exclusively from the numerical upper bound <code>300</code> and writes the resulting vector into the residual stream at the answer position.</p>
+</section>
+<section id="head-attention-intervention" class="level3" data-number="2.3">
+<h3 data-number="2.3" class="anchored" data-anchor-id="head-attention-intervention"><span class="header-section-number">2.3</span> Head attention intervention</h3>
+<p>To determine whether the prominent attention edge actually dominates the output shift, we performed the following <code>L82.H18</code> attention interventions on the same prompts:</p>
+<div class="intervention-conditions">
+<ul>
+<li><strong>Full model</strong>: no intervention; this is the baseline.</li>
+<li><strong>Remove <code>L82.H18</code></strong>: zero the head’s 128-dimensional output at every position.</li>
+<li><strong>Remove the <code>q27→300</code> attention edges</strong>: zero only the three edges from q27 to t7–t9.</li>
+<li><strong>Remove <code>L82.H18</code>, then restore the <code>q27→300</code> write</strong>: first remove <code>L82.H18</code>, then add back at t27 the original residual-write vector contributed predominantly by t7–t9; the other token positions remain ablated.</li>
+</ul>
+</div>
+<p>The first three experiments test whether the <code>q27→300</code> attention edges dominate the behavior of <code>L82.H18</code>. The fourth reverses the intervention by restoring the information these edges write into the residual stream, testing whether this can recover the effect of the complete head.</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/h18_q27_attention_intervention.png" class="img-fluid figure-img" alt="Grouped vertical bar chart showing mean next-token probabilities and full-vocabulary TV under four L82.H18 intervention conditions."></p>
+<figcaption>Figure 4: Mean next-token probabilities and full-vocabulary TV under four conditions.</figcaption>
+</figure>
+</div>
+</div>
+<p>The results show that removing the <code>q27→300</code> attention edges reaches <strong>96.95%</strong> of the effect of removing the complete <code>L82.H18</code> head. In other words, <code>q27→300</code> reproduces nearly the entire head-level causal effect. After removing the complete <code>L82.H18</code>, restoring only the residual write dominated by <code>q27→300</code> recovers <strong>97.33%</strong> of the original deletion effect.</p>
+<p>This shows that <code>L82.H18</code> carries candidate-range information to the final answer position and, in doing so, writes a preference into the residual stream that ultimately appears as the model’s output fingerprint.</p>
+</section>
+</section>
+<section id="head-generalization-experiments" class="level2 page-columns page-full" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="head-generalization-experiments"><span class="header-section-number">3</span> Head Generalization Experiments</h2>
+<p>So far, we have demonstrated important properties of <code>L82.H18</code> in the task of choosing a random number from 1 to 300. A natural question is how well these properties generalize: can <code>L82.H18</code> exhibit a similar ability in other tasks—aggregating and transporting candidate information to support the model’s output—and can it implement more general functions?</p>
+<p>To answer this question, we conducted generalization experiments that varied the candidate type, candidate constraints, and downstream task in turn, investigating the head’s role under a range of scenario settings.</p>
+<section id="candidate-type-generalization-experiments" class="level3 page-columns page-full" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="candidate-type-generalization-experiments"><span class="header-section-number">3.1</span> Candidate-Type Generalization Experiments</h3>
+<p>We began with the most direct generalization: if numerical candidates are replaced by another type of candidate, does <code>L82.H18</code> exhibit the same properties? We replaced the original <code>1–300</code> range with an alphabetic range:</p>
+<div class="prompt-example">
+<p>Choose any letter from A to D and output only that letter.</p>
+</div>
+<p>The result closely mirrors the numerical-range experiment. <code>L82.H18</code> assigns <strong>88.62%</strong> attention to the letter <code>D</code>; deleting this prominent attention edge produces as much as <strong>30.3%</strong> TV.</p>
+<p>We then expanded the candidates into explicit lists to test whether this property extends to general candidate sets. Every experiment used the same template:</p>
+<div class="prompt-example">
+<p>Choose any item from the candidate list 【…】 and output only the selected item.</p>
+</div>
+<p>Only the objects inside 【…】 were changed. We constructed 40 seven-item lists: 20 canonical lists and 20 non-canonical lists.</p>
+<ul>
+<li><strong class="list-type-canonical">Canonical lists</strong>: the elements have a strong intrinsic order and are presented in that order, such as the heavenly-stem list 【甲, 乙, 丙, 丁, …】.</li>
+<li><strong class="list-type-noncanonical">Non-canonical lists</strong>: the elements have no stable intrinsic order and are arranged without a canonical sequence, such as the food list 【dumplings, noodles, rice, buns, …】.</li>
+</ul>
+<div class="fingerprint-baseline">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 26%">
+<col style="width: 26%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>List type</th>
+<th style="text-align: right;">Attention to final list item</th>
+<th style="text-align: right;">Total candidate attention</th>
+<th style="text-align: right;">TV after removing list-attention edges</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong class="list-type-canonical">Canonical lists</strong></td>
+<td style="text-align: right;">24.09%</td>
+<td style="text-align: right;">75.60%</td>
+<td style="text-align: right;">7.2%</td>
+</tr>
+<tr class="even">
+<td><strong class="list-type-noncanonical">Non-canonical lists</strong></td>
+<td style="text-align: right;">6.56%</td>
+<td style="text-align: right;">41.89%</td>
+<td style="text-align: right;">2.7%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The results show that <code>L82.H18</code> is substantially stronger on canonical lists. It assigns more attention both to the candidate set as a whole and to the final list item; removing its attention edges to all list-item tokens also produces substantially greater TV for canonical lists<sup class="margin-note-ref" aria-label="See Note 6 in the right margin">6</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 6</span></p>
+<p>The more salient or familiar a list’s ordering relation is, the stronger the effect of <code>L82.H18</code>. For example, the numerical list <code>[1, 2, 3, 4]</code> produces a stronger effect than the seasonal list <code>[spring, summer, autumn, winter]</code>.</p>
+</div></div><p>We further investigated the effect of list order to determine whether this behavior depends on the intrinsic ordering relation among the elements or requires them to be displayed in that order. We completely reversed each list and constructed several additional shuffled arrangements, then observed the behavior of <code>L82.H18</code>. The experiment contained 280 prompts in total.</p>
+<div class="fingerprint-baseline">
+<div class="table-responsive">
+<table class="table order-comparison-table">
+<thead>
+<tr>
+<th>
+List type
+</th>
+<th>
+Arrangement
+</th>
+<th>
+Attention to final list item
+</th>
+<th>
+Total candidate attention
+</th>
+<th>
+TV after removing list-attention edges
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="2">
+<strong class="list-type-canonical">Canonical lists</strong>
+</td>
+<td>
+Reversed
+</td>
+<td>
+11.27%
+</td>
+<td>
+62.43%
+</td>
+<td>
+4.8%
+</td>
+</tr>
+<tr>
+<td>
+Shuffled
+</td>
+<td>
+17.07%
+</td>
+<td>
+68.90%
+</td>
+<td>
+8.2%
+</td>
+</tr>
+<tr>
+<td rowspan="2">
+<strong class="list-type-noncanonical">Non-canonical lists</strong>
+</td>
+<td>
+Reversed
+</td>
+<td>
+10.65%
+</td>
+<td>
+44.76%
+</td>
+<td>
+2.6%
+</td>
+</tr>
+<tr>
+<td>
+Shuffled
+</td>
+<td>
+7.54%
+</td>
+<td>
+44.40%
+</td>
+<td>
+2.5%
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Overall, list order has little effect. Attention and TV remain essentially unchanged across the original, reversed, and shuffled non-canonical lists. Only fully reversing the canonical lists produces a noticeable decline in TV, which nevertheless remains substantially higher than under every non-canonical condition. Canonical lists retain relatively high attention and TV across multiple arrangements. This suggests that <code>L82.H18</code> can recognize that a candidate set has a strict intrinsic order, rather than relying only on the order in which the list appears in the prompt, and can carry this information into the downstream residual stream to write the model’s preference<sup class="margin-note-ref" aria-label="See Note 7 in the right margin">7</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 7</span></p>
+<p>It remains unclear whether this process arises during pretraining or post-training. My inclination is that, for numerical candidate inputs, the higher probability assigned to <code>1</code> and <code>2</code> than to other digits is determined by the vast distribution of numerical data in the pretraining corpus; however, a model’s pronounced preference between <code>1</code> and <code>2</code> is more likely to be encoded during post-training. This may also explain why all models favor generating <code>1</code> and <code>2</code>, while their exact probabilities form distinct fingerprints.</p>
+</div></div></section>
+<section id="candidate-constraint-generalization-experiments" class="level3 page-columns page-full" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="candidate-constraint-generalization-experiments"><span class="header-section-number">3.2</span> Candidate-Constraint Generalization Experiments</h3>
+<p>Next, we examine generalization across candidate constraints: when we add constraints to the full candidate set and change the set of allowed choices, does <code>L82.H18</code> shift its attention to the constraints defining that set? We first run a simple experiment, retaining the original <code>1–300</code> range while additionally requiring the selected number to be less than <code>150</code>:</p>
+<div class="prompt-example">
+<p>请从1-300中小于150的数里随机选择一个，只输出这个数字</p>
+</div>
+<p>In English: “Randomly choose a number less than 150 from the range 1–300. Output only that number.”</p>
+<p>At the final answer position, <code>L82.H18</code> assigns <strong>83.42%</strong> attention to <code>150</code> in the added constraint “less than 150,” while attention to the original upper bound <code>300</code> falls to <strong>9.07%</strong>. Removing this head’s write at the final answer position produces <strong>44.4%</strong> TV. This shows that its primary reading location shifts to the new candidate boundary, while its write still substantially affects the output probability distribution.</p>
+<p>We then extend the experiment to different types of canonical lists (see <a href="#candidate-type-generalization-experiments" class="no-external" target="_self">Section 3.1</a>), constructing eight active subsets for each list. We explicitly specify the set allowed for the current task using a fixed template, translated here:</p>
+<div class="prompt-example">
+<p>The full candidate set is 【…】. The allowed set for this task is 【…】. Randomly select one item from the allowed set and output only the answer.</p>
+</div>
+<p>For example, given the letter list 【A, B, C, D, E, F, G, H】, we additionally specify 【A, C, E】 as the allowed set. We separately measure the attention that <code>L82.H18</code> assigns at the final answer position to the restated active set and the original full set, and the TV after jointly removing its attention edges to both sets:</p>
+<!-- Active-subset means: code/random_number/results/qwen3_235b_h18_original_active_joint_edge_ablation_48_v1/{universe_summary,per_prompt}.csv. Eight prompts per list; TV is drop_both_list_edges_tv_mean: full-vocabulary TV after dropping the union of original-set and active-set attention edges and renormalizing the remaining attention. -->
+<div class="fingerprint-baseline active-subset-comparison">
+<div class="table-responsive" role="region" tabindex="0" aria-label="Active-subset results; scroll horizontally">
+<table class="table active-subset-table">
+<thead>
+<tr>
+<th scope="col">
+List
+</th>
+<th scope="col">
+List elements
+</th>
+<th scope="col">
+Active-set<br>mean attention
+</th>
+<th scope="col">
+Original-set<br>mean attention
+</th>
+<th scope="col">
+Mean TV after removing<br>attention edges
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">
+Heavenly stems
+</th>
+<td class="active-subset-elements">
+甲、乙、丙、丁、<br>戊、己、庚、辛
+</td>
+<td>
+61.56%
+</td>
+<td>
+15.94%
+</td>
+<td>
+5.3%
+</td>
+</tr>
+<tr>
+<th scope="row">
+Letters
+</th>
+<td class="active-subset-elements">
+A, B, C, D,<br>E, F, G, H
+</td>
+<td>
+53.73%
+</td>
+<td>
+28.25%
+</td>
+<td>
+12.7%
+</td>
+</tr>
+<tr>
+<th scope="row">
+Numbers
+</th>
+<td class="active-subset-elements">
+10, 20, 30, 40,<br>50, 60, 70, 80
+</td>
+<td>
+45.36%
+</td>
+<td>
+31.07%
+</td>
+<td>
+15.5%
+</td>
+</tr>
+<tr>
+<th scope="row">
+Months
+</th>
+<td class="active-subset-elements">
+一月、二月、三月、四月、<br>五月、六月、七月、八月
+</td>
+<td>
+64.38%
+</td>
+<td>
+12.63%
+</td>
+<td>
+8.5%
+</td>
+</tr>
+<tr>
+<th scope="row">
+Scale
+</th>
+<td class="active-subset-elements">
+do, re, mi, fa,<br>sol, la, si, 高音do
+</td>
+<td>
+53.49%
+</td>
+<td>
+9.04%
+</td>
+<td>
+3.5%
+</td>
+</tr>
+<tr>
+<th scope="row">
+Zodiac
+</th>
+<td class="active-subset-elements">
+鼠、牛、虎、兔、<br>龙、蛇、马、羊
+</td>
+<td>
+63.85%
+</td>
+<td>
+6.08%
+</td>
+<td>
+2.8%
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Across list types, <code>L82.H18</code> assigns more attention on average to the active set than to the original full set, with overall means of <strong>57.06%</strong> and <strong>17.17%</strong>, respectively. This shows that additional constraints do redirect its primary attention toward the candidates currently allowed. Jointly removing its attention edges to the original full set and the active set produces an overall mean TV of <strong>8.1%</strong>, showing that reading candidate information from these two locations jointly influences the output probability distribution.</p>
+<p>We further construct more complex rule-based list-selection tasks. Instead of directly listing the active candidate set, we provide the full list and a filtering rule, asking the model to choose any candidate satisfying that rule. The rules include internal interval, midpoint neighborhood, distance shell, closer to the end, compound exclusion, and pair-sum membership. The bar chart below shows mean <code>L82.H18</code> attention to the list and rule, together with the corresponding edge-ablation TV, for each task type.</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/h18_rule_attention_and_tv.png" class="img-fluid figure-img" alt="Six paired bar groups, ordered as internal interval, midpoint neighborhood, distance shell, closer to the end, compound exclusion, and pair-sum membership; solid bars show joint list-and-rule attention, and hatched bars show joint-edge ablation TV."></p>
+<figcaption>Figure 5: Mean attention and joint-edge ablation TV for <code>L82.H18</code> across six rule-based selection tasks. Solid bars show total attention to list and rule tokens (left axis); hatched bars show full-vocabulary TV after removing the corresponding attention edges (right axis).</figcaption>
+</figure>
+</div>
+</div>
+<p>The results are similar to the earlier experiments: <code>L82.H18</code> allocates most of its attention to the list and rule descriptions. Removing its attention edges to these positions and renormalizing attention over the remaining sources produces mean TV values of <strong>3.2%–10.0%</strong> across task types, showing that these reads have a substantial causal effect on the output probability distribution.</p>
+<p>In addition, during these experiments, we also observed functional differentiation between heads. Although the preceding experiments focus on <code>L82.H18</code>, it is not the only head with similar properties. For another head with similar functionality in the same layer, <code>L82.H29</code><sup class="margin-note-ref" aria-label="See Note 8 in the right margin">8</sup>, we find different reading emphases in constrained-choice tasks: <code>L82.H18</code> focuses more on the constraints defining the candidate range, whereas <code>L82.H29</code> focuses more on the final candidate in the original list.</p>
+
+<div class="no-row-height column-margin column-container"><div class="metric-note">
+<p><span class="margin-label">Note 8</span></p>
+<p>This head was localized using a full-head screening and independent-validation approach similar to <a href="#head-localization" class="no-external" target="_self">Section 2.1</a>. On the original <code>1–300</code> random-number task, its mean attention to <code>300</code> ranks first among all 6,016 heads. Its centered full-vocabulary logit <span class="math inline">\operatorname{RMS}_{c}(h,l)</span> ranks second among all heads.</p>
+</div></div><p>The following prompt provides an intuitive example. We retain the original Chinese text to match the token positions in the experiment: <span class="inline-prompt-example">“给定有序字母列表【A，B，C，D，E，F，G】。B、E与F均不可选择；请在其余字母中任选一项。只输出所选字母，不要解释。答案：”</span> The prompt gives the ordered list <code>A–G</code>, excludes <code>B/E/F</code>, and asks for any remaining letter without explanation. At the same final answer position, <code>q61</code>, <code>L82.H18</code> assigns <strong>57.60%</strong> total attention to the constraint tokens (such as <code>B/E/F</code>). In contrast, <code>L82.H29</code> assigns <strong>45.33%</strong> attention to the final list item <code>G</code>. Removing their corresponding high-attention edges produces TV values of <strong>23.9%</strong> and <strong>5.0%</strong>, respectively.</p>
+<!-- Exact example: latin_grid_exclude_bef in code/random_number/results/qwen3_235b_h18_h29_latin_exclusion_grid_v1/{prompt_results,tokenization}.jsonl. Figure: code/random_number/figures/plot_h18_h29_exclusion_attention.py. Cross-prompt limitation: analysis_v1/dynamic_role_audit.md. -->
+<!-- Statistics retain the original intervention scopes: H18 rule-group attention and edge ablation at positions 24,26,28,29,30,31; H29 eligible-list edge ablation at positions 9,13,15,21. Red boxes highlight attention peaks, not the full ablation groups. -->
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/h18_h29_exclusion_attention.png" class="img-fluid figure-img" alt="Two-row, ten-column attention heatmap: H18 focuses on B, E, and F in the constraint, while H29 peaks at G in the original list. Each column labels the letter and its original token position; both heads share a 0%–50% color scale."></p>
+<figcaption>Figure 6: Attention from the final answer position <code>q61</code> for <code>L82.H18</code> (top row) and <code>L82.H29</code> (bottom row) on the same prompt. Each column is an actual source token: <code>A–G</code> from the original list on the left, and the repeated <code>B/E/F</code> from the constraint on the right. Original token positions appear below the letters.</figcaption>
+</figure>
+</div>
+</div>
+<p>This example demonstrates differences between heads in their reading locations and causal contributions. It suggests that the model contains multiple computational circuits carrying different aspects of information, which may converge in subsequent deeper computation to jointly influence the downstream task.</p>
+</section>
+<section id="sec-task-type-generalization" class="level3 page-columns page-full" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="sec-task-type-generalization"><span class="header-section-number">3.3</span> Task-Type Generalization Experiments</h3>
+<p>We next ask whether the behavior of <code>L82.H18</code> generalizes to downstream tasks rather than being limited to random selection. We keep the input range fixed at <code>1–300</code>, construct a variety of downstream tasks, and observe the head’s behavior. Initial experiments suggest that the head’s effectiveness is related to the number of valid candidates allowed by the task. Specifically, we divide the tasks into two groups:</p>
+<ul>
+<li><strong class="task-type-nonunique">Non-unique tasks</strong>: the task admits multiple valid answers, and outputting any one of those candidates satisfies the task requirements.</li>
+<li><strong class="task-type-unique">Unique tasks</strong>: the task has a unique valid answer, and only that candidate satisfies the task requirements.</li>
+</ul>
+<div class="fingerprint-baseline">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Task type</th>
+<th style="text-align: right;">Attention to <code>300</code></th>
+<th style="text-align: right;">TV after removing the <code>L82.H18</code> attention edges</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong class="task-type-nonunique">Non-unique tasks</strong></td>
+<td style="text-align: right;">92.231%</td>
+<td style="text-align: right;">13.7%</td>
+</tr>
+<tr class="even">
+<td><strong class="task-type-unique">Unique tasks</strong></td>
+<td style="text-align: right;">58.862%</td>
+<td style="text-align: right;">0.5%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>In both groups, <code>L82.H18</code> shows substantial attention to <code>300</code>. However, ablating the head produces a substantial TV change only in the non-unique tasks<sup class="margin-note-ref" aria-label="See Note 9 in the right margin">9</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 9</span></p>
+<p>Not every non-unique task produces a substantial TV change. For example, in the task “choose a number greater than 250 from 1–300,” the TV effect is only 0.3%. One plausible explanation is that although the task admits multiple valid candidates, the first output token of every valid candidate must be <code>2</code>, so it is unaffected.</p>
+</div></div><p>Therefore, <code>L82.H18</code> cannot simply be described as a head that operates only in random-selection tasks. It still attends to the candidate boundary in unique-answer tasks, indicating that it transports range information to the answer position. It appears, however, that downstream tasks use this information strongly only when the answer has not yet been fixed and the model must still distribute probability among valid candidates<sup class="margin-note-ref" aria-label="See Note 10 in the right margin">10</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 10</span></p>
+<p>In fact, I did not recognize this distinction at first and mistakenly thought that the head became effective whenever the output required global information. Further experiments ruled out that hypothesis. The mistaken inference arose because many non-unique tasks require global information to determine the valid candidates.</p>
+</div></div><p>We further test this claim with a straightforward intuition: if the substantial effect of <code>L82.H18</code> indeed arises when the model remains uncertain about the answer, then the head should also have a substantial effect on a sufficiently difficult task with a unique answer whenever the model cannot infer that answer effectively on its own.</p>
+<p>We therefore ran a controlled comparison using two classes of unique-answer tasks that both require global information, with one class designed to be <strong class="task-difficulty-simple">simple</strong> and the other <strong class="task-difficulty-difficult">difficult</strong>. We kept their wording and length as similar as possible to reduce confounding from prompt length and presentation. As in the preceding experiments, the model remained in non-thinking mode throughout. We compared accuracy and list attention on ordered and shuffled lists, together with the TV produced by removing the attention edges to the list elements.</p>
+<div class="fingerprint-baseline">
+<div class="table-responsive">
+<table class="table task-difficulty-table">
+<thead>
+<tr>
+<th rowspan="2" scope="col">
+Task difficulty
+</th>
+<th colspan="3" scope="colgroup">
+Ordered
+</th>
+<th colspan="3" scope="colgroup">
+Shuffled
+</th>
+</tr>
+<tr>
+<th scope="col">
+Accuracy
+</th>
+<th scope="col">
+List attention
+</th>
+<th scope="col">
+List-edge TV
+</th>
+<th scope="col">
+Accuracy
+</th>
+<th scope="col">
+List attention
+</th>
+<th scope="col">
+List-edge TV
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">
+<strong class="task-difficulty-simple">Simple tasks</strong>
+</th>
+<td>
+100.0%
+</td>
+<td>
+10.08%
+</td>
+<td>
+0.24%
+</td>
+<td>
+98.0%
+</td>
+<td>
+2.47%
+</td>
+<td>
+0.24%
+</td>
+</tr>
+<tr>
+<th scope="row">
+<strong class="task-difficulty-difficult">Difficult tasks</strong>
+</th>
+<td>
+52.5%
+</td>
+<td>
+66.17%
+</td>
+<td>
+5.39%
+</td>
+<td>
+52.0%
+</td>
+<td>
+60.38%
+</td>
+<td>
+4.40%
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The results are broadly consistent with this prediction. Accuracy on the simple tasks reaches <strong>100%</strong>, indicating that the model has already fixed the answer before responding; attention to the list is low, and list-edge TV is also only about <strong>0.24%</strong>. In contrast, accuracy on the difficult tasks is only about <strong>52%</strong>, indicating that the model cannot reliably infer the unique answer; here, list attention rises to roughly <strong>60%</strong>, while list-edge TV reaches <strong>5.39%</strong>. Thus, when the answer has not been successfully inferred, <code>L82.H18</code> continues to read more information from the original list and has a stronger causal effect: the candidate information it transports substantially alters the output probability distribution.</p>
+<p>To test whether this relationship holds across a broader range of difficulty, we ran additional tasks and summarize each task’s success rate and list-edge TV in the scatter plot below. Each point represents one task. As the plot shows, more difficult tasks do indeed exhibit higher TV. Their correlation coefficient is -0.84.</p>
+<!-- Data sources: code/random_number/results/qwen3_235b_h18_content_vs_structure_v1/main_task_summary.csv and the subsequent task-sweep summary supplied for this section. -->
+<div class="h18-task-scatter" data-lang="en">
+
+</div>
+<script src="../../assets/h18-task-accuracy-tv-scatter.js"></script>
+<p class="h18-task-scatter-caption">
+Figure 7: Task success rate and <code>L82.H18</code> list-edge TV. The x-axis shows task success rate; the y-axis shows full-vocabulary TV after removing the final-position <code>L82.H18</code> attention edges to all list elements.
+</p>
+<p>At this point, our claim about the conditions under which <code>L82.H18</code> becomes effective appears to have preliminary support.</p>
+</section>
+<section id="generalization-to-long-form-reasoning" class="level3 page-columns page-full" data-number="3.4">
+<h3 data-number="3.4" class="anchored" data-anchor-id="generalization-to-long-form-reasoning"><span class="header-section-number">3.4</span> Generalization to Long-Form Reasoning</h3>
+<p>The experiments in <a href="#sec-task-type-generalization" class="no-external" target="_self">Section 3.3</a> all disabled thinking mode. To test whether the claim above about the conditions under which <code>L82.H18</code> becomes effective generalizes to long-form reasoning, we enabled thinking mode, let the model first generate a complete reasoning trace and then output the answer directly when the answer phase began, and finally measured the metrics of <code>L82.H18</code> at the final answer position after <code>&lt;/think&gt;</code>. We selected several representative tasks spanning multiple accuracy levels; the comparison between non-thinking and thinking modes is shown below.</p>
+<div class="fingerprint-baseline">
+<div class="table-responsive">
+<table class="table thinking-comparison-table">
+<thead>
+<tr>
+<th rowspan="2" scope="col">
+Task
+</th>
+<th colspan="3" scope="colgroup">
+no-think
+</th>
+<th colspan="3" scope="colgroup">
+think
+</th>
+</tr>
+<tr>
+<th scope="col">
+Accuracy
+</th>
+<th scope="col">
+List attention
+</th>
+<th scope="col">
+List-edge TV
+</th>
+<th scope="col">
+Accuracy
+</th>
+<th scope="col">
+List attention
+</th>
+<th scope="col">
+List-edge TV
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="closest_geometric_endpoint_mean">
+Closest to endpoint geometric mean
+</th>
+<td>
+2.08%
+</td>
+<td>
+81.41%
+</td>
+<td>
+8.61%
+</td>
+<td>
+95.83%
+</td>
+<td>
+5.38%
+</td>
+<td>
+0.015%
+</td>
+</tr>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="closest_mean_odd_positions">
+Closest odd-position rank mean
+</th>
+<td>
+18.75%
+</td>
+<td>
+68.54%
+</td>
+<td>
+8.06%
+</td>
+<td>
+100%
+</td>
+<td>
+7.30%
+</td>
+<td>
+0.008%
+</td>
+</tr>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="closest_to_rank_mean">
+Closest to mean rank
+</th>
+<td>
+22.92%
+</td>
+<td>
+72.08%
+</td>
+<td>
+6.93%
+</td>
+<td>
+100%
+</td>
+<td>
+6.01%
+</td>
+<td>
+0.007%
+</td>
+</tr>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="after_largest_rank_gap">
+Item after the largest rank gap
+</th>
+<td>
+29.17%
+</td>
+<td>
+71.92%
+</td>
+<td>
+5.79%
+</td>
+<td>
+100%
+</td>
+<td>
+5.28%
+</td>
+<td>
+0.011%
+</td>
+</tr>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="earliest_even_display_positions">
+Earliest canonical even-position item
+</th>
+<td>
+43.75%
+</td>
+<td>
+55.38%
+</td>
+<td>
+3.97%
+</td>
+<td>
+97.92%
+</td>
+<td>
+4.10%
+</td>
+<td>
+0.002%
+</td>
+</tr>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="canonical_second">
+Canonical item 2
+</th>
+<td>
+70.83%
+</td>
+<td>
+54.34%
+</td>
+<td>
+3.15%
+</td>
+<td>
+100%
+</td>
+<td>
+11.24%
+</td>
+<td>
+0.003%
+</td>
+</tr>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="display_fifth">
+Displayed item 5
+</th>
+<td>
+93.75%
+</td>
+<td>
+40.14%
+</td>
+<td>
+1.24%
+</td>
+<td>
+100%
+</td>
+<td>
+4.46%
+</td>
+<td>
+0.003%
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>With thinking enabled, task accuracy rises to nearly 100%, while list-edge TV falls to almost 0% across all tasks; at the same time, attention assigned to the original list drops sharply. This mirrors the earlier observation: once long-form reasoning has inferred the answer, the model’s response relies very little on <code>L82.H18</code> to transport information from the original list<sup class="margin-note-ref" aria-label="See Note 11 in the right margin">11</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 11</span></p>
+<p>Another point worth noting is that the higher a task’s success rate, the less attention <code>L82.H18</code> assigns to the list. It is currently unclear whether reduced attention directly causes the smaller TV, or whether attention and TV changing together with task difficulty reflects a deeper circuit mechanism. I personally favor the latter interpretation.</p>
+</div></div><p>Thinking mode, however, inserts a long reasoning trace between the input list and the final answer. The reduction in TV might therefore be caused merely by the increased distance between the list and the answer position. To rule out this explanation, we ran a controlled experiment that held the input list and task fixed while constructing four strictly length-matched combinations: the Cartesian product of <strong class="condition-mode-nothink">no-think</strong> versus <strong class="condition-mode-think">forced-think</strong> and <strong class="condition-content-correct">correct reasoning</strong> versus a <strong class="condition-content-placeholder">length-matched placeholder</strong>. Here, <strong class="condition-mode-think">forced-think</strong> means enabling model reasoning and filling the reasoning segment with prepared information; <strong class="condition-content-correct">correct reasoning</strong> is a reasoning process that helps derive the answer, whereas the <strong class="condition-content-placeholder">length-matched placeholder</strong> contains task-irrelevant content of exactly the same length. The final answer position has the same sequence length in every condition.</p>
+<div class="fingerprint-baseline">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 26%">
+<col style="width: 26%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Condition</th>
+<th style="text-align: right;">Exact-answer accuracy</th>
+<th style="text-align: right;">Original-list attention</th>
+<th style="text-align: right;">List-edge TV</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong class="condition-mode-nothink">No-think</strong> + <strong class="condition-content-correct">correct information</strong></td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">5.897%</td>
+<td style="text-align: right;">0.140%</td>
+</tr>
+<tr class="even">
+<td><strong class="condition-mode-nothink">No-think</strong> + <strong class="condition-content-placeholder">length-matched placeholder</strong></td>
+<td style="text-align: right;">25.0%</td>
+<td style="text-align: right;">57.133%</td>
+<td style="text-align: right;">8.197%</td>
+</tr>
+<tr class="odd">
+<td><strong class="condition-mode-think">Forced-think</strong> + <strong class="condition-content-correct">correct reasoning</strong></td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">6.358%</td>
+<td style="text-align: right;">0.009%</td>
+</tr>
+<tr class="even">
+<td><strong class="condition-mode-think">Forced-think</strong> + <strong class="condition-content-placeholder">length-matched placeholder</strong></td>
+<td style="text-align: right;">23.6%</td>
+<td style="text-align: right;">61.551%</td>
+<td style="text-align: right;">5.266%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The length of the prompt or reasoning does not disable <code>L82.H18</code>: list-edge TV remains above 5% in both length-matched placeholder conditions. Only when the context includes reasoning sufficient to determine the answer does accuracy rise to 100% while list attention and TV fall sharply together. The change is therefore driven neither by long-range distance nor by whether thinking is enabled, but by whether the answer has already been fixed by the context.</p>
+<p>These results further strengthen the argument in <a href="#sec-task-type-generalization" class="no-external" target="_self">Section 3.3</a>: whenever the answer has not been successfully inferred or otherwise determined, the candidate information transported by <code>L82.H18</code> substantially affects the output distribution.</p>
+<!-- Data sources: code/random_number/results/qwen3_235b_h18_content_tasks_thinking_v1, qwen3_235b_h18_difficulty_spectrum_thinking_v1, qwen3_235b_h18_difficulty_spectrum_thinking_high_attention_v1, and qwen3_235b_h18_information_length_controls_v1. -->
+</section>
+<section id="cross-head-functional-generalization-experiments" class="level3 page-columns page-full" data-number="3.5">
+<h3 data-number="3.5" class="anchored" data-anchor-id="cross-head-functional-generalization-experiments"><span class="header-section-number">3.5</span> Cross-Head Functional Generalization Experiments</h3>
+<p>The preceding experiments focus primarily on <code>L82.H18</code>. As <a href="#candidate-type-generalization-experiments" class="no-external" target="_self">Section 3.1</a> shows, however, these heads have a strong causal effect only when the list has a pronounced internal order, which limits the range of settings in which they operate.</p>
+<p>A natural question is whether lists with weaker order relations still recruit a family of heads with a similar function. From the perspective of head specialization and Transformer circuits, such heads should exist<sup class="margin-note-ref" aria-label="See Note 12 in the right margin">12</sup>. We therefore test whether comparable heads can be found on general lists.</p>
+
+<div class="no-row-height column-margin column-container"><div id="note-head-information-dispersion" class="">
+<p><span class="margin-label">Note 12</span></p>
+<p>At a higher level, I prefer to view this as a form of distributed information, especially as models become larger and more capable. Multiple heads may perform similar functions while differing in the specific settings in which they become active.</p>
+</div></div><p>Following the setup of <a href="#the-head-that-writes-the-random-number-fingerprint" class="no-external" target="_self">Section 2</a>, we construct random unordered lists of Chinese single-token candidates and run both random-choice and deterministic-choice tasks. We then scan all 6,016 query heads, ablating each output slice immediately before the attention <code>o_proj</code>. Based on the preceding observations, we define the selection score as</p>
+<p><span class="math display">
+S(h)=\max\!\left(\Delta \operatorname{TV}_h,0\right)\times A_h,
+</span></p>
+<p>where <span class="math inline">\Delta \operatorname{TV}_h</span> is the head-ablation TV difference between random and deterministic choice, and <span class="math inline">A_h</span> is attention to the candidate list under random choice. The score requires both candidate-list reading and a causal effect concentrated in the unresolved condition, reducing interference from biases such as syntactic or ICL heads.</p>
+<p>The six highest-scoring heads are <code>L80.H42</code>, <code>L82.H21</code>, <code>L85.H49</code>, <code>L89.H53</code>, <code>L87.H14</code>, and <code>L88.H13</code>. They are also the only heads with <span class="math inline">S(h)&gt;1</span> pp.</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/unordered_candidate_head_selection_heatmap.png" class="img-fluid figure-img" alt="A 94-layer by 64-query-head heatmap of selection scores. High scores concentrate in the late layers, and the six highest-scoring strictly revalidated heads are labeled."></p>
+<figcaption>Figure 8: Full-model heatmap of <span class="math inline">S(h)</span>, with the six highest-scoring heads labeled.</figcaption>
+</figure>
+</div>
+</div>
+<p>The higher-scoring heads all lie in deep layers, while shallow and middle-layer heads are almost entirely white. This is consistent with the view that the ability to aggregate information streams and influence downstream computation appears mainly in deep layers. Beyond the selected heads, many late-layer heads also have weaker but visible <span class="math inline">S(h)</span> responses, producing a dispersed functional pattern. This is another instance of the distributed information described in <a href="#note-head-information-dispersion" class="no-external" target="_self">Note 12</a>.</p>
+<!-- Data source: code/random_number/results/qwen3_235b_unordered_candidate_heads_combined_v1/report.md. -->
+</section>
+</section>
+<section id="further-tests-of-the-candidate-competition-circuit" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="further-tests-of-the-candidate-competition-circuit"><span class="header-section-number">4</span> Further Tests of the Candidate-Competition Circuit</h2>
+<p>The experiments in Section 3 allow us to form a preliminary account of <code>L82.H18</code>. When the answer has not been successfully inferred and the model is forced to guess among several valid candidates, <code>L82.H18</code> writes candidate information carrying the model’s fingerprint preference into the answer position. This role is not restricted to the original <code>1–300</code> random-number task: it generalizes across different list types, candidate ranges, and active candidate sets defined by additional constraints.</p>
+<p>This section tests that account more closely. Does the candidate-competition pathway become causally important whenever the model cannot directly infer the answer, even when that failure has different causes? We first remove decisive evidence from the problem so that the answer is objectively underdetermined. We then keep the evidence intact but ablate the attention heads responsible for retrieving it, asking whether the candidate pathway gains causal weight in tasks that the intact model can solve correctly.</p>
+<section id="candidate-betting-under-insufficient-evidence" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="candidate-betting-under-insufficient-evidence"><span class="header-section-number">4.1</span> Candidate Betting Under Insufficient Evidence</h3>
+<p>To make “the model is guessing” behaviorally testable, we construct four types of temporary three-hop archives. The model must follow one of four relation chains—person→badge→room→key, supplier→container→warehouse→seal, researcher→project→server→access code, or courier→route→station→package—and select the unique answer from candidates <code>A–H</code>. Each random mapping has four core conditions: decisive evidence repeated near the question, decisive evidence available only in the distant context, the key records for two candidates removed simultaneously, and the answer stated directly before the question. The experiment covers 16 independent mappings, 176 prompts, and 1,040 forward passes.</p>
+<p>Here, “guessing” is not defined by the model’s self-reported confidence. We additionally permute the candidate list and restore the missing relation chain. When decisive evidence is absent, changing only the list order changes the preferred answer in <strong>81.25%</strong> of cases; after the key chain is restored, <strong>93.75%</strong> of cases return to the correct answer. The model is therefore genuinely influenced by the remaining candidates under missing evidence rather than having reached a fixed answer through another route. Notably, 7 of the 16 ambiguous cases still assign at least <strong>90%</strong> top-1 probability to one candidate, so a high-confidence output does not imply sufficient evidence.</p>
+<div class="fingerprint-baseline">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Condition</th>
+<th style="text-align: right;"><code>L82.H18</code> whole-head TV</th>
+<th style="text-align: right;"><code>L82.H29</code> whole-head TV</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Near, determined</td>
+<td style="text-align: right;">0.105%</td>
+<td style="text-align: right;">0.120%</td>
+</tr>
+<tr class="even">
+<td>Distant, determined</td>
+<td style="text-align: right;">1.172%</td>
+<td style="text-align: right;">2.895%</td>
+</tr>
+<tr class="odd">
+<td><strong>Objectively ambiguous</strong></td>
+<td style="text-align: right;"><strong>10.470%</strong></td>
+<td style="text-align: right;"><strong>11.607%</strong></td>
+</tr>
+<tr class="even">
+<td>Answer stated directly</td>
+<td style="text-align: right;">0.028%</td>
+<td style="text-align: right;">0.028%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Both heads become much more causally important in the objectively ambiguous condition. <code>L82.H18</code> and <code>L82.H29</code> assign an average of <strong>66.7%</strong> and <strong>65.1%</strong> attention to the candidate list, respectively; deleting only their attention edges to that list produces mean TV values of <strong>10.95%</strong> and <strong>5.45%</strong>. By contrast, when the answer is stated directly, <code>L82.H18</code> still assigns <strong>58.8%</strong> attention to the list, yet its whole-head TV is only <strong>0.028%</strong>. Reading the candidate list and having that write actually influence the answer are therefore distinct: downstream computation uses the candidate write strongly only while the answer remains unresolved.</p>
+<p>This conclusion also has a clear boundary. On cases where the evidence is complete but the model naturally fails at distant retrieval, <code>L82.H18</code> TV is almost unable to distinguish reliable from unreliable retrieval, and <code>L82.H29</code> has only moderate predictive power. These heads are therefore good markers of the specific state in which decisive evidence is missing and the model must still bet among explicit candidates, but they are not universal detectors of every reasoning failure or uncertain state.</p>
+</section>
+<section id="conditional-takeover-after-removing-retrieval-heads" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="conditional-takeover-after-removing-retrieval-heads"><span class="header-section-number">4.2</span> Conditional Takeover After Removing Retrieval Heads</h3>
+<p>The preceding experiment removes evidence from the input itself, so it establishes only that insufficient evidence and high candidate-head TV co-occur. To test for a causal transfer between circuits, we keep both the task and the decisive evidence intact and use 20 retrieval heads identified in an independent experiment as the determined-retrieval pathway <span class="math inline">R</span>. We denote the candidate-competition pathway by <span class="math inline">C</span>: for the canonical sequence <code>A–H</code>, <span class="math inline">C</span> consists of <code>L82.H18/H29</code>; for randomized lists of Chinese single-token nouns, it consists of <code>L80.H42/L82.H21/L85.H49/L88.H13</code>, identified through a new full-head scan. Every prompt is answered correctly and stably by the intact model.</p>
+<p>Each prompt is run under four conditions: <code>clean</code>, retrieval pathway removed (<code>−R</code>), candidate pathway removed (<code>−C</code>), and both removed (<code>−R−C</code>). The key quantity is not the natural effect of removing <span class="math inline">C</span>, <span class="math inline">\operatorname{TV}(clean,-C)</span>, but its conditional effect after damaging <span class="math inline">R</span>, <span class="math inline">\operatorname{TV}(-R,-R-C)</span>. A large increase in the latter means that the candidate write has gained causal weight after the retrieval pathway was damaged.</p>
+<p>The initial factorial experiment provides conditional support. In the strongest unordered-candidate example, removing <span class="math inline">C</span> in the natural state produces only <strong>0.016%</strong> TV; after removing <span class="math inline">R</span>, the conditional TV of the same candidate pathway rises to <strong>42.315%</strong>. The probability of the correct token falls from <strong>99.97%</strong> under <code>clean</code> to <strong>49.87%</strong> under <code>−R</code>, then recovers to <strong>92.10%</strong> when <span class="math inline">C</span> is also removed. Thus, once retrieval is damaged, the candidate pathway enters the final competition and, in this example, introduces a competing candidate rather than continuing to transport the original correct answer.</p>
+<p>This behavior is not a universal hard switch. Three of the four candidate-by-retrieval combinations contain strong conditional increases, but the canonical-sequence-by-retrieval-head combination does not show a stable effect; there are also counterexamples in which retrieval is materially damaged while conditional candidate TV remains below 1%. In a broader sweep over 226 distinct prompts, only eight satisfy the strict criteria of natural candidate TV no greater than 0.5%, retrieval TV at least 5%, and conditional candidate TV at least 5%, with most positives concentrated in four- or five-hop tasks. The current results are therefore better explained by a mixture of parallel writes from determined retrieval, candidate competition, and other backup pathways. Removing retrieval heads can shift causal weight toward candidate writes along some solution paths, but whether takeover occurs—and which candidate head takes over—still depends on the particular prompt and downstream residual state.</p>
+<!-- Data sources: code/random_number/results/qwen3_235b_h18_h29_long_context_guessing_combined_v3/report.md, code/random_number/results/qwen3_235b_determined_candidate_circuit_switch_v1/analysis_v1/report.md, and code/random_number/results/qwen3_235b_unordered_retrieval_switch_combined_v1/FINAL_REPORT.md. -->
+
+
+</section>
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script src="../../assets/language-switch.js?v=20260921-margin-notes"></script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/tanyingjie01\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 Yingjie Tan</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p><a href="mailto:tanyj23@mails.tsinghua.edu.cn">Contact me</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

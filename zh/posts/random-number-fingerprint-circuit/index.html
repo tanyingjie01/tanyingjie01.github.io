@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>从模型的随机数指纹出发： 一项关于 LLM 推理回路的研究 – Yingjie Tan</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<link href="../../../assets/favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-52aa7558b31972c3b5df7143b6aadf4f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-7fb4c90608183e5246ef4aa778c8cdd8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "个匹配文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其他匹配项",
+    "search-more-match-text": "本文中的更多匹配项",
+    "search-more-matches-text": "本文中的更多匹配项",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "搜索",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script defer="" src="../../../assets/katex/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <link rel="stylesheet" href="../../../assets/katex/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="从模型的随机数指纹出发：一项关于 LLM 推理回路的研究 – Yingjie Tan">
+<meta property="og:description" content="Research notes on language models, interpretability, long-context reasoning, and efficient inference.">
+<meta property="og:image" content="https://tanyingjie01.github.io/assets/figures/random-number/all_head_tv_heatmap.png">
+<meta property="og:site_name" content="Yingjie Tan">
+<meta property="og:image:alt" content="Local heatmap of mean full-vocabulary total variation around L82.H18.">
+<meta property="og:image:height" content="1728">
+<meta property="og:image:width" content="1728">
+<meta name="twitter:title" content="从模型的随机数指纹出发：一项关于 LLM 推理回路的研究 – Yingjie Tan">
+<meta name="twitter:description" content="Research notes on language models, interpretability, long-context reasoning, and efficient inference.">
+<meta name="twitter:image" content="https://tanyingjie01.github.io/assets/figures/random-number/all_head_tv_heatmap.png">
+<meta name="twitter:image:alt" content="Local heatmap of mean full-vocabulary total variation around L82.H18.">
+<meta name="twitter:image-height" content="1728">
+<meta name="twitter:image-width" content="1728">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="floating nav-fixed post-research title-date-only slimcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">Yingjie Tan</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="展开或收起导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../zh/index.html"> 
+<span class="menu-text">中文</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">English</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">本页目录</h2>
+   
+  <ul>
+  <li><a href="#背景llm-的非随机输出" id="toc-背景llm-的非随机输出" class="nav-link active" data-scroll-target="#背景llm-的非随机输出"><span class="header-section-number">1</span> 背景：LLM 的非随机输出</a></li>
+  <li><a href="#写入随机数指纹的-head" id="toc-写入随机数指纹的-head" class="nav-link" data-scroll-target="#写入随机数指纹的-head"><span class="header-section-number">2</span> 写入随机数指纹的 Head</a>
+  <ul class="collapse">
+  <li><a href="#head-定位" id="toc-head-定位" class="nav-link" data-scroll-target="#head-定位"><span class="header-section-number">2.1</span> Head 定位</a></li>
+  <li><a href="#head-注意力分布" id="toc-head-注意力分布" class="nav-link" data-scroll-target="#head-注意力分布"><span class="header-section-number">2.2</span> Head 注意力分布</a></li>
+  <li><a href="#head-注意力干预" id="toc-head-注意力干预" class="nav-link" data-scroll-target="#head-注意力干预"><span class="header-section-number">2.3</span> Head 注意力干预</a></li>
+  </ul></li>
+  <li><a href="#sec-head-generalization" id="toc-sec-head-generalization" class="nav-link" data-scroll-target="#sec-head-generalization"><span class="header-section-number">3</span> Head 泛化实验</a>
+  <ul class="collapse">
+  <li><a href="#候选类型泛化实验" id="toc-候选类型泛化实验" class="nav-link" data-scroll-target="#候选类型泛化实验"><span class="header-section-number">3.1</span> 候选类型泛化实验</a></li>
+  <li><a href="#候选约束泛化实验" id="toc-候选约束泛化实验" class="nav-link" data-scroll-target="#候选约束泛化实验"><span class="header-section-number">3.2</span> 候选约束泛化实验</a></li>
+  <li><a href="#sec-task-type-generalization" id="toc-sec-task-type-generalization" class="nav-link" data-scroll-target="#sec-task-type-generalization"><span class="header-section-number">3.3</span> 任务类型泛化实验</a></li>
+  <li><a href="#sec-long-thinking-generalization" id="toc-sec-long-thinking-generalization" class="nav-link" data-scroll-target="#sec-long-thinking-generalization"><span class="header-section-number">3.4</span> 长程思考泛化实验</a></li>
+  <li><a href="#sec-cross-head-generalization" id="toc-sec-cross-head-generalization" class="nav-link" data-scroll-target="#sec-cross-head-generalization"><span class="header-section-number">3.5</span> 跨 Head 功能泛化实验</a></li>
+  </ul></li>
+  <li><a href="#候选-head-回路的因果干预实验" id="toc-候选-head-回路的因果干预实验" class="nav-link" data-scroll-target="#候选-head-回路的因果干预实验"><span class="header-section-number">4</span> 候选 Head 回路的因果干预实验</a>
+  <ul class="collapse">
+  <li><a href="#删除输入证据的干预实验" id="toc-删除输入证据的干预实验" class="nav-link" data-scroll-target="#删除输入证据的干预实验"><span class="header-section-number">4.1</span> 删除输入证据的干预实验</a></li>
+  <li><a href="#删除关键推理链的干预实验" id="toc-删除关键推理链的干预实验" class="nav-link" data-scroll-target="#删除关键推理链的干预实验"><span class="header-section-number">4.2</span> 删除关键推理链的干预实验</a></li>
+  <li><a href="#删除检索-head-的干预实验" id="toc-删除检索-head-的干预实验" class="nav-link" data-scroll-target="#删除检索-head-的干预实验"><span class="header-section-number">4.3</span> 删除检索 Head 的干预实验</a></li>
+  </ul></li>
+  <li><a href="#sec-tv-triggered-repair" id="toc-sec-tv-triggered-repair" class="nav-link" data-scroll-target="#sec-tv-triggered-repair"><span class="header-section-number">5</span> 基于检测 Head TV 的性能增强推理</a></li>
+  <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion"><span class="header-section-number">6</span> 总结与展望</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">从模型的随机数指纹出发：<br>一项关于 LLM 推理回路的研究</h1>
+  </div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p> </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">发布日期</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">2026年8月30日</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>一直以来，围绕如何判断 GPT「降智」或者说路由到小模型的讨论层出不穷。一篇 <a href="https://linux.do/t/topic/2472419">LINUX DO 帖子</a> 提出了一种简单的判断方法：让模型从给定范围中随机选择数字，多次采样它的输出分布，并将其当作统计指纹来识别模型<sup class="margin-note-ref" aria-label="参见右侧注 1">1</sup>。</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">注 1</span></p>
+<p>当然，自从 Astra 出来之后，似乎更主流的测试方法是鹈鹕骑自行车，具体可以参见这篇 <a href="https://linux.do/t/topic/2858863">LINUX DO 帖子</a>。</p>
+</div></div><p>这个方法为何能区分不同模型并不难理解，但相比之下，另一个问题似乎更有值得研究：</p>
+<div class="research-question">
+<p><strong>模型内部蕴含的这种随机数指纹，在推理过程中是如何被写入的？</strong></p>
+</div>
+<p>为了研究该问题，我们从提示词<span class="inline-prompt-example">「在 1–300 中随机选择一个数」</span>出发，定位到了一类会强烈读取候选范围 <code>300</code> 的 heads。进一步的实验逐渐揭示出其更一般的作用：读取推理任务的候选集合，<span class="intro-mechanism-blue">当答案尚未被有效推理出来、模型仍需在多个候选之间进行竞争时，</span>这些 heads 写入残差流的信息会显著改变输出。</p>
+<p>而当我们在正常的推理过程中，手动截断模型的推理回路（例如删除关键推理链，或者屏蔽检索 heads），使模型陷入不确定性推理时，这类 head 的因果效应同样会被显著放大。这似乎揭示模型中存在两种相互竞争的回路：<span class="intro-mechanism-green">当模型能正常推理时，推理回路生效，而这类 heads 对应的回路被抑制；</span><span class="intro-mechanism-red">当推理回路被切断后，这种回路则产生因果效应，开始主导模型的行为。</span></p>
+<p>基于这一观察，我们将这类 heads 的表现作为模型推理是否可信的信号，并且在检测到不可信推理时，启动推理增强策略。实验证明，这种策略的确能够检测不可信推理，并增强模型的性能。</p>
+<div class="article-deck">
+<p><strong>如果您对此感兴趣，请继续阅读本文，预计完整阅读时间约 30 分钟。</strong></p>
+</div>
+<section id="背景llm-的非随机输出" class="level2 page-columns page-full" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="背景llm-的非随机输出"><span class="header-section-number">1</span> 背景：LLM 的非随机输出</h2>
+<p>当我们向大语言模型输入下面这段提示词时：</p>
+<div class="prompt-example">
+<p>请从 1–300 随机选择一个数，只输出这个数字。</p>
+</div>
+<p>模型并不会在前向传播中真正「抽取」一个随机数。更准确地说，语言模型的前向传播是一个从输入文本到生成 token logits 的确定性函数。随后，解码器根据温度 <span class="math inline">T</span> 将 logits 转换为概率分布：</p>
+<p><span class="math display">
+p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
+</span></p>
+<p>因此，在输入 prompt 和解码设置均固定的情况下，模型为下一个 token 给出的概率分布 <span class="math inline">p</span> 也是固定的<sup class="margin-note-ref" aria-label="参见右侧注 2">2</sup>。</p>
+<p>在采样解码中，采样器会使用伪随机数从分布 <span class="math inline">p</span> 中选取 token。因此，模型的单次输出可能变化，长期统计分布却应当保持稳定。这解释了随机数选择为什么能够形成模型指纹：不同模型具有不同的架构和参数，会为各个数字 token 分配不同的生成概率，重复采样后，概率则表现为可识别的输出分布。</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">注 2</span></p>
+<p>实际推理服务未必能做到逐 bit 可复现。vLLM、SGLang 等推理后端中的批处理和并行归约可能改变浮点运算顺序，从而产生数值差异。可参见 Thinking Machines Lab 的博客：<a href="https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/">Defeating Nondeterminism in LLM Inference</a>。</p>
+</div></div><p>我们真正关注的问题是：<strong>这种概率分布在模型前向传播过程中，是如何被写入和生成的？</strong></p>
+</section>
+<section id="写入随机数指纹的-head" class="level2 page-columns page-full" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="写入随机数指纹的-head"><span class="header-section-number">2</span> 写入随机数指纹的 Head</h2>
+<p>在 LLM 前向传播的过程中，QK 决定了注意力从哪里读取，OV 决定了向残差流写入什么，这些信息在 MoE 中被读取和处理，最终在输出层形成 logits 分布。</p>
+<p>对于随机数生成任务，按照上述对 LLM 信息流的理解，一个合理的推测是：模型的深层可能存在一些 heads，它们编码了 <code>1–300</code> 这一范围信息，让下游计算可以读取随机数的选取区间。该信息被写入残差流并形成输出，模型的选择偏好也在这一过程中被写入。</p>
+<p>从这一推测出发，我们在 MOE 模型 Qwen3-235B-A22B 上进行实验。我们构造与<span class="inline-prompt-example">「请从1-300随机选择一个数，只输出这个数字」</span>类似的 9 条中文 prompts，其均要求模型从 <code>1–300</code> 中随机选择一个数，但采用了不同的语义表述。</p>
+<p>实验结果表明，不同 prompts 的具体概率分布会有所变化，但整体结构保持稳定：生成 token 的概率质量几乎全部集中在数字上，且数字 <code>1</code> 和 <code>2</code> 始终构成最主要的竞争。</p>
+<div class="fingerprint-baseline">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;"><span class="math inline">P(1)</span></th>
+<th style="text-align: center;"><span class="math inline">P(2)</span></th>
+<th style="text-align: center;"><span class="math inline">P(3\text{–}9)</span></th>
+<th style="text-align: center;"><span class="math inline">P(\text{数字})</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">49.39%</td>
+<td style="text-align: center;">49.74%</td>
+<td style="text-align: center;">0.73%</td>
+<td style="text-align: center;">99.86%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>我们接下来将<strong>「哪个 head 会最大程度破坏这种生成偏好」</strong>作为寻找关键 head 的标准。</p>
+<section id="head-定位" class="level3 page-columns page-full" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="head-定位"><span class="header-section-number">2.1</span> Head 定位</h3>
+<p>Qwen3-235B-A22B 共有 94 层、每层 64 个 query heads。我们对每个 head 进行消融观察，在该层 attention 的 <code>o_proj</code> 之前，将目标 head 在所有输入 token 位置的 128 维输出切片置零，同时保持其他计算不变。</p>
+<p>为了衡量消融前后完整词表概率分布的差异，我们使用总变差距离（total variation distance，TV）：</p>
+<p><span class="math display">
+\operatorname{TV}(h,l)
+=\operatorname{TV}\!\left(p,p^{(h,l)}\right)
+=\frac{1}{2}\sum_{v\in\mathcal V}
+\left|p(v)-p^{(h,l)}(v)\right|.
+</span></p>
+<p>其中 <span class="math inline">p</span> 是原始下一 token 分布，<span class="math inline">p^{(h,l)}</span> 是删除 head (h,l) 后的分布。TV 越大，说明这个 head 对当前输出分布的因果影响越强。</p>
+<p>通过「全量粗筛 + 独立复验」，我们定位到最显著的 head 为 <code>L82.H18</code>；其全词表 TV 达到 <code>0.34</code>，在所有 heads 中最强，并且与第二名拉开了显著差距<sup class="margin-note-ref" aria-label="参见右侧注 4">4</sup>。</p>
+
+<div class="no-row-height column-margin column-container"><div class="metric-note">
+<p><span class="margin-label">注 4</span></p>
+<p><code>L82.H18</code> 在中心化全词表 logit <span class="math inline">\operatorname{RMS}_{c}(h,l)</span> 中同样排名第一，其定义为：</p>
+<p><span class="math display">
+\operatorname{RMS}_{c}(h,l)=
+\sqrt{\frac{1}{|\mathcal V|}\sum_{v\in\mathcal V}
+\left(\Delta z_v^{(h,l)}-\overline{\Delta z}^{(h,l)}\right)^2}.
+</span></p>
+<p>其中 <span class="math inline">\Delta z_v^{(h,l)}</span> 为删除 head (h,l) 后 token <span class="math inline">v</span> 的 logit 变化，<span class="math inline">\overline{\Delta z}^{(h,l)}</span> 为其全词表均值。<span class="math inline">\operatorname{RMS}_{c}(h,l)</span> 表示删除该 head 对全词表 logit 结构的整体影响。</p>
+</div></div><div class="analysis-figure-grid">
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../assets/figures/random-number/all_head_tv_heatmap.png" class="img-fluid figure-img" alt="Local heatmap of mean full-vocabulary total variation around L82.H18."></p>
+<figcaption>图 1(a)：<code>L82.H18</code> 周围的局部 TV 热图。</figcaption>
+</figure>
+</div>
+</div>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../assets/figures/random-number/l82_h18_probability_shift.png" class="img-fluid figure-img" alt="Grouped bar chart comparing probabilities for tokens 1 and 2 in the full model and after ablating L82.H18."></p>
+<figcaption>图 1(b)：完整模型与删除 <code>L82.H18</code> 后的 <span class="math inline">P(1)</span> 和 <span class="math inline">P(2)</span>。</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>删除 <code>L82.H18</code> 后，所有 prompts 的 <span class="math inline">P(1)</span> 均下降，平均变化为 <code>−33.80</code> 个百分点；与此同时，<span class="math inline">P(2)</span> 平均变化为 <code>+33.54</code> 个百分点，其余输出概率几乎不变。</p>
+<p>这说明，我们定位出的 <code>L82.H18</code> 的确在数字候选内部写入了强烈偏好。</p>
+</section>
+<section id="head-注意力分布" class="level3 page-columns page-full" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="head-注意力分布"><span class="header-section-number">2.2</span> Head 注意力分布</h3>
+<p>我们进一步观察 <code>L82.H18</code> 的注意力分布，所使用的 prompts 均包含 28 个 tokens，且具有相似的结构，其中 <code>300</code> 被拆为 t7–t9 三个 tokens，模型侧的 <code>assistant</code> 位于 t22，正式回答前的最后一个 <code>\n\n</code> 位于 t27。</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../assets/figures/random-number/h18_prompt_token_map.png" class="img-fluid figure-img" alt="Twenty-eight token prompt map arranged in two rows, highlighting 300 at t7 through t9, assistant at t22, think-mode tokens, and the final double-newline answer boundary at t27."></p>
+<figcaption>图 2：经 chat template 渲染后的 28-token prompt。</figcaption>
+</figure>
+</div>
+</div>
+<p>实验结果表明，<code>L82.H18</code> 最集中的注意力连接是从 token <code>\n\n</code>（t27）到 token <code>300</code>（t7–t9），注意力质量平均为 99.56%，图 3 展示了其中 5 条代表性 prompts 的注意力分布。</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../assets/figures/random-number/h18_q27_attention_heatmap.png" class="img-fluid figure-img" alt="L82.H18 在五条代表性 prompts 上的注意力热力图；每行是一条 prompt，300 始终位于 t7 至 t9"></p>
+<figcaption>图 3：<code>L82.H18@q27</code> 在 5 条代表性 prompts 上的注意力分布。每行表示一条 prompt，每列表示一个 source token 位置，token <code>300</code> 始终在 t7–t9 位置<sup class="margin-note-ref" aria-label="参见右侧注 5">5</sup>。</figcaption>
+</figure>
+</div>
+</div>
+
+<div class="no-row-height column-margin column-container"><div class="figure-caption-note">
+<p><span class="margin-label">注 5</span></p>
+<p>大部分注意力在 <code>300</code> 的最后一个 token，这符合我们的直觉：因为前向传播是逐 token 的，最后一个 token 的表征才可能汇聚全局信息，而后被下游任务注意并使用。</p>
+</div></div><p>换言之，在模型准备生成答案时，<code>L82.H18</code> 几乎只从数值上界 <code>300</code> 读取信息，再把得到的向量写入回答位置的残差流。</p>
+</section>
+<section id="head-注意力干预" class="level3" data-number="2.3">
+<h3 data-number="2.3" class="anchored" data-anchor-id="head-注意力干预"><span class="header-section-number">2.3</span> Head 注意力干预</h3>
+<p>为了判断上述显著注意力边是否真正主导输出变化，我们在相同的 prompts 上，进一步进行如下几种对 <code>L82.H18</code> 的注意力干预实验：</p>
+<div class="intervention-conditions">
+<ul>
+<li><strong>完整模型</strong>：不进行任何干预，作为基线。</li>
+<li><strong>删除 <code>L82.H18</code></strong>：将 <code>L82.H18</code> 在所有位置的 128 维输出置零。</li>
+<li><strong>删除 <code>q27→300</code> 注意力边</strong>：只将 q27 指向 t7–t9 的三条边置零。</li>
+<li><strong>删除 <code>L82.H18</code> 后补回 <code>q27→300</code> 写入</strong>：先删除 <code>L82.H18</code>，再在 t27 补入主要由 t7–t9 贡献的原始残差写入向量，其余 token 位置仍保持删除。</li>
+</ul>
+</div>
+<p>前三种实验检验 <code>q27→300</code> 注意力边是否主导 <code>L82.H18</code> 的行为；第四种实验反向补回这条边写入残差流的信息，检验能否恢复完整 head 的作用。</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../assets/figures/random-number/h18_q27_attention_intervention.png" class="img-fluid figure-img" alt="Grouped vertical bar chart showing mean next-token probabilities and full-vocabulary TV under four L82.H18 intervention conditions."></p>
+<figcaption>图 4：四种条件下的平均下一 token 概率与全词表 TV。</figcaption>
+</figure>
+</div>
+</div>
+<p>实验结果表明，删除 <code>q27→300</code> 注意力边后，其效应能达到删除完整 <code>L82.H18</code> 效应的 <strong>96.95%</strong>。也就是说，几乎全部 head-level 因果效应都能由 <code>q27→300</code> 复现；在删除完整 <code>L82.H18</code> 后，仅补回 <code>q27→300</code> 主导的残差写入，能恢复原始删除效应的 <strong>97.33%</strong>。</p>
+<p>这说明 <code>L82.H18</code> 的作用确实是将候选范围信息搬运到最终回答位置，并在这个过程中将偏好写入残差流，最终在输出中形成模型指纹。</p>
+</section>
+</section>
+<section id="sec-head-generalization" class="level2 page-columns page-full" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="sec-head-generalization"><span class="header-section-number">3</span> Head 泛化实验</h2>
+<p>目前为止，我们证明了 <code>L82.H18</code> 在「从 1–300 中随机选数」这一任务中的重要特性。一个自然的问题是：这种特性的泛化性如何，<code>L82.H18</code> 能在其它任务中展现出类似的「将候选信息汇总搬运，以支持模型的输出」这一特性么，以及它是否能够实现更一般的功能？</p>
+<p>为此，我们进行了泛化实验，依次改变候选类型、候选约束和下游任务，以探究 head 在各种场景设定下的作用。</p>
+<section id="候选类型泛化实验" class="level3 page-columns page-full" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="候选类型泛化实验"><span class="header-section-number">3.1</span> 候选类型泛化实验</h3>
+<p>我们先检验最直接的泛化：如果把数字候选换成其他类型的候选，<code>L82.H18</code> 是否仍会展现出相同的特性？为此，我们将原任务中的 <code>1–300</code> 替换成字母范围：</p>
+<div class="prompt-example">
+<p>请从 A 到 D 中任选一个，只输出这个字母。</p>
+</div>
+<p>实验结果与数字范围几乎一致。<code>L82.H18</code> 对字母 <code>D</code> 的注意力为 <strong>88.62%</strong>；删除这条显著注意力边后，TV 高达 <strong>30.3%</strong>。</p>
+<p>我们进一步把输入候选扩展为显式列表，以检验该特性能否扩展到一般候选集合。所有实验都使用如下相同模板：</p>
+<div class="prompt-example">
+<p>请从候选列表【……】中任选一个，只输出被选中的候选。</p>
+</div>
+<p>实验只替换列表【……】中的候选对象。我们构建了 40 种七元素列表，其中包括 20 种规范列表和 20 种非规范列表：</p>
+<ul>
+<li><strong class="list-type-canonical">规范列表</strong>：列表内元素本身具有强烈的顺序关系，并且按照该顺序排列，例如天干列表【甲、乙、丙、丁……】。</li>
+<li><strong class="list-type-noncanonical">非规范列表</strong>：列表元素之间不存在稳定的内在顺序，排列顺序杂乱，例如食物列表【饺子、面条、米饭、包子……】。</li>
+</ul>
+<div class="fingerprint-baseline">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 26%">
+<col style="width: 26%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>列表类型</th>
+<th style="text-align: right;">列表末项注意力</th>
+<th style="text-align: right;">候选总注意力</th>
+<th style="text-align: right;">删除列表注意力边后的 TV</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong class="list-type-canonical">规范列表</strong></td>
+<td style="text-align: right;">24.09%</td>
+<td style="text-align: right;">75.60%</td>
+<td style="text-align: right;">7.2%</td>
+</tr>
+<tr class="even">
+<td><strong class="list-type-noncanonical">非规范列表</strong></td>
+<td style="text-align: right;">6.56%</td>
+<td style="text-align: right;">41.89%</td>
+<td style="text-align: right;">2.7%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>实验结果表明，<code>L82.H18</code> 在规范列表上的表现显著更强，其分配给全部候选和列表末项的注意力都更高；删除指向全部列表元素的注意力边后，规范列表的 TV 也明显更高<sup class="margin-note-ref" aria-label="参见右侧注 6">6</sup>。</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">注 6</span></p>
+<p>列表具备的序关系越明显或越常见，<code>L82.H18</code> 的效果越强。例如，数字列表 <code>[1, 2, 3, 4]</code> 强于季节列表 <code>[春，夏，秋，冬]</code>。</p>
+</div></div><p>我们进一步探究列表顺序的影响，以判断这种影响是基于列表元素内蕴的序关系，还是必须按照顺序列出。我们将列表中的元素完全逆序，并额外构造了多种乱序，而后观察 <code>L82.H18</code> 的表现，实验共包含 280 条 prompts。</p>
+<div class="fingerprint-baseline">
+<div class="table-responsive">
+<table class="table order-comparison-table">
+<thead>
+<tr>
+<th>
+列表类型
+</th>
+<th>
+排列
+</th>
+<th>
+列表末项注意力
+</th>
+<th>
+候选总注意力
+</th>
+<th>
+删除列表注意力边后的 TV
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="2">
+<strong class="list-type-canonical">规范列表</strong>
+</td>
+<td>
+逆序
+</td>
+<td>
+11.27%
+</td>
+<td>
+62.43%
+</td>
+<td>
+4.8%
+</td>
+</tr>
+<tr>
+<td>
+乱序
+</td>
+<td>
+17.07%
+</td>
+<td>
+68.90%
+</td>
+<td>
+8.2%
+</td>
+</tr>
+<tr>
+<td rowspan="2">
+<strong class="list-type-noncanonical">非规范列表</strong>
+</td>
+<td>
+逆序
+</td>
+<td>
+10.65%
+</td>
+<td>
+44.76%
+</td>
+<td>
+2.6%
+</td>
+</tr>
+<tr>
+<td>
+乱序
+</td>
+<td>
+7.54%
+</td>
+<td>
+44.40%
+</td>
+<td>
+2.5%
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>总体而言，列表顺序的影响不大。非规范列表在原序、逆序和乱序下的注意力和 TV 基本不变；规范列表中只有完全逆序带来了较明显的 TV 下降，但仍然显著高于所有非规范列表条件。规范列表在多种顺序下仍然保持了较高的注意力和 TV，这说明 <code>L82.H18</code> 能够识别候选集合具有严格内在顺序这一类信息，而不是只基于 prompt 输入中列表的顺序，并将信息移动至下游残差流并写入模型偏好<sup class="margin-note-ref" aria-label="参见右侧注 7">7</sup>。</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">注 7</span></p>
+<p>目前尚不清楚这一过程产生在预训练还是后训练中。我倾向于认为，在数字候选输入中，<code>1</code> 和 <code>2</code> 的概率高于其他数字，是由预训练语料中庞大的数字分布决定的；但是，模型对数字 <code>1</code>、<code>2</code> 之间的明显偏好，更像是在后训练中被编码的。这也能解释为什么所有模型都更喜欢生成 <code>1</code> 和 <code>2</code>，但具体的概率却形成了不同的指纹。</p>
+</div></div></section>
+<section id="候选约束泛化实验" class="level3 page-columns page-full" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="候选约束泛化实验"><span class="header-section-number">3.2</span> 候选约束泛化实验</h3>
+<p>接下来，我们探究候选约束的泛化：当我们在候选全集上增加约束、改变实际允许选择的集合时，<code>L82.H18</code> 是否会转而注意用于界定该集合的约束信息？我们首先进行一个简单的实验，保留原任务中的 <code>1–300</code> 范围，并额外要求所选数字小于 <code>150</code>：</p>
+<div class="prompt-example">
+<p>请从1-300中小于150的数里随机选择一个，只输出这个数字</p>
+</div>
+<p>实验结果显示，在最终回答位置，<code>L82.H18</code> 对新增约束「小于 150」中的 <code>150</code> 分配了 <strong>83.42%</strong> 的注意力，对原始上界 <code>300</code> 的注意力则降至 <strong>9.07%</strong>。删除该 head 在最终回答位置的写入后，TV 高达 <strong>44.4%</strong>。这说明此时 <code>L82.H18</code> 的主要读取位置转向新的候选边界，并且其写入仍然会显著影响输出概率分布。</p>
+<p>我们进一步将实验扩展到不同类型的规范列表（见<a href="#候选类型泛化实验" class="no-external" target="_self">第 3.1 节</a>），并为每个列表构造 8 种活动子集。我们在题干中额外指定本次允许选择的活动集合，固定使用以下句式：</p>
+<div class="prompt-example">
+<p>候选全集为【…】。本次允许集合为【…】。请从允许集合中随机选择一项，只输出答案</p>
+</div>
+<p>例如，对于字母列表【A、B、C、D、E、F、G、H】，额外指定允许集合为【A、C、E】。我们分别统计最终回答位置的 <code>L82.H18</code> 对题干中重述的活动集合和原始全集的注意力，并观察同时删除指向原始全集与活动集合的注意力边后的 TV：</p>
+<!-- Active-subset means: code/random_number/results/qwen3_235b_h18_original_active_joint_edge_ablation_48_v1/{universe_summary,per_prompt}.csv. Eight prompts per list; TV is drop_both_list_edges_tv_mean: full-vocabulary TV after dropping the union of original-set and active-set attention edges and renormalizing the remaining attention. -->
+<div class="fingerprint-baseline active-subset-comparison">
+<div class="table-responsive" role="region" tabindex="0" aria-label="活动集合实验结果，可横向滚动">
+<table class="table active-subset-table">
+<thead>
+<tr>
+<th scope="col">
+列表
+</th>
+<th scope="col">
+列表元素
+</th>
+<th scope="col">
+对活动集合的<br>平均注意力
+</th>
+<th scope="col">
+对原始全集的<br>平均注意力
+</th>
+<th scope="col">
+删除注意力边的<br>平均TV
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">
+天干
+</th>
+<td class="active-subset-elements">
+甲、乙、丙、丁、<br>戊、己、庚、辛
+</td>
+<td>
+61.56%
+</td>
+<td>
+15.94%
+</td>
+<td>
+5.3%
+</td>
+</tr>
+<tr>
+<th scope="row">
+字母
+</th>
+<td class="active-subset-elements">
+A, B, C, D,<br>E, F, G, H
+</td>
+<td>
+53.73%
+</td>
+<td>
+28.25%
+</td>
+<td>
+12.7%
+</td>
+</tr>
+<tr>
+<th scope="row">
+数字
+</th>
+<td class="active-subset-elements">
+10, 20, 30, 40,<br>50, 60, 70, 80
+</td>
+<td>
+45.36%
+</td>
+<td>
+31.07%
+</td>
+<td>
+15.5%
+</td>
+</tr>
+<tr>
+<th scope="row">
+月份
+</th>
+<td class="active-subset-elements">
+一月、二月、三月、四月、<br>五月、六月、七月、八月
+</td>
+<td>
+64.38%
+</td>
+<td>
+12.63%
+</td>
+<td>
+8.5%
+</td>
+</tr>
+<tr>
+<th scope="row">
+音阶
+</th>
+<td class="active-subset-elements">
+do, re, mi, fa,<br>sol, la, si, 高音do
+</td>
+<td>
+53.49%
+</td>
+<td>
+9.04%
+</td>
+<td>
+3.5%
+</td>
+</tr>
+<tr>
+<th scope="row">
+生肖
+</th>
+<td class="active-subset-elements">
+鼠、牛、虎、兔、<br>龙、蛇、马、羊
+</td>
+<td>
+63.85%
+</td>
+<td>
+6.08%
+</td>
+<td>
+2.8%
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>实验结果表明，各类列表中，<code>L82.H18</code> 对活动集合的平均注意力均高于对原始全集的注意力，两者总体均值分别为 <strong>57.06%</strong> 和 <strong>17.17%</strong>。这说明，<code>L82.H18</code> 的确会根据额外约束，将主要注意力转向当前实际允许选择的活动候选。同时删除指向原始全集与活动集合的注意力边后，总体平均 TV 为 <strong>8.1%</strong>，表明对这两处候选信息的联合读取会影响输出概率分布。</p>
+<p>我们进一步进行了实验，构建了更复杂的基于规则的列表筛选任务。这次不再直接列出活动候选集合，而是提供完整列表与筛选规则，要求模型从满足规则的候选中任意选择一项。这里的筛选规则包含内部区间、中点邻域、距离壳层、末端半区、复合排除和配对求和。下方的柱状图展示了每类任务中 <code>L82.H18</code> 对列表与规则的平均注意力，以及对应的删边 TV。</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../assets/figures/random-number/h18_rule_attention_and_tv.png" class="img-fluid figure-img" alt="六组并列柱状图，依次为内部区间、中点邻域、距离壳层、偏末端半区、复合排除和配对求和；实心柱为列表与规则联合注意力，斜线柱为联合删边后的 TV。"></p>
+<figcaption>图 5：<code>L82.H18</code> 在六类规则筛选任务中的平均注意力与联合删边 TV。实心柱表示对列表和规则描述的总注意力（左轴），斜线柱表示删除对应注意力边后的全词表 TV（右轴）。</figcaption>
+</figure>
+</div>
+</div>
+<p>实验结果与之前类似，<code>L82.H18</code> 的主要注意力都分配给了列表和规则描述。删除指向这些位置的注意力边，并对其余 source 重新归一化后，各类任务的平均 TV 达到 <strong>3.2%–10.0%</strong>，表明这些读取对输出概率分布具有明显的因果影响。</p>
+<p>此外，在进行实验的过程中，我们还发现了 head 功能分化的现象。具体来说，尽管先前的实验中我们以 <code>L82.H18</code> 作为实验对象，但具备类似功能的 head 不止这一个。对于同层另一个具有类似功能的 head <code>L82.H29</code><sup class="margin-note-ref" aria-label="参见右侧注 8">8</sup>，我们发现在约束选择任务中，两个 head 的读取侧重会发生分化：<code>L82.H18</code> 更关注用于界定候选范围的约束，而 <code>L82.H29</code> 更关注原始列表中的最后一位候选。</p>
+
+<div class="no-row-height column-margin column-container"><div class="metric-note">
+<p><span class="margin-label">注 8</span></p>
+<p>该 head 通过与<a href="#head-定位" class="no-external" target="_self">第 2.1 节</a>类似的全量筛选与复验方法定位。在原始 <code>1–300</code> 随机选数任务中，其对 <code>300</code> 的平均注意力在全部 6,016 个 heads 中排名第一；中心化全词表 logit <span class="math inline">\operatorname{RMS}_{c}(h,l)</span> 在所有 heads 中排名第二。</p>
+</div></div><p>下面这条 prompt 是一个直观的例子：<span class="inline-prompt-example">「给定有序字母列表【A，B，C，D，E，F，G】。B、E与F均不可选择；请在其余字母中任选一项。只输出所选字母，不要解释。答案：」</span>在相同的最终回答位置 <code>q61</code>，<code>L82.H18</code> 对约束 token（如 <code>B/E/F</code>）的总注意力为 <strong>57.60%</strong>；相比之下，<code>L82.H29</code> 对原始列表中的末项 <code>G</code> 的注意力高达 <strong>45.33%</strong>。删除两者的对应高注意力边的 TV 分别为 <strong>23.9%</strong> 和 <strong>5.0%</strong>。</p>
+<!-- Exact example: latin_grid_exclude_bef in code/random_number/results/qwen3_235b_h18_h29_latin_exclusion_grid_v1/{prompt_results,tokenization}.jsonl. Figure: code/random_number/figures/plot_h18_h29_exclusion_attention.py. Cross-prompt limitation: analysis_v1/dynamic_role_audit.md. -->
+<!-- Statistics retain the original intervention scopes: H18 rule-group attention and edge ablation at positions 24,26,28,29,30,31; H29 eligible-list edge ablation at positions 9,13,15,21. Red boxes highlight attention peaks, not the full ablation groups. -->
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../assets/figures/random-number/h18_h29_exclusion_attention.png" class="img-fluid figure-img" alt="两行十列的注意力热力图：H18 主要关注约束中的 B、E、F，H29 最关注原始列表中的 G；每列标明字母及原始 token 位置，两行使用相同的 0%–50% 色标。"></p>
+<figcaption>图 6：同一条 prompt 上，<code>L82.H18</code>（第一行）与 <code>L82.H29</code>（第二行）在最终回答位置 <code>q61</code> 的注意力分布。每列为一个实际 source token：左侧是原始列表中的 <code>A–G</code>，右侧是约束中再次出现的 <code>B/E/F</code>；字母下方标注原始 token 位置。</figcaption>
+</figure>
+</div>
+</div>
+<p>这个例子展示了不同 heads 在读取位置及其因果作用上的分化。这提示模型中存在多种不同的计算回路，携带不同角度的信息，并可能在后续深层计算中汇合，共同影响下游任务。</p>
+</section>
+<section id="sec-task-type-generalization" class="level3 page-columns page-full" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="sec-task-type-generalization"><span class="header-section-number">3.3</span> 任务类型泛化实验</h3>
+<p>我们接下来探究 <code>L82.H18</code> 的行为是否能泛化到下游任务，而不仅仅局限于随机选择。我们保持输入为 <code>1–300</code> 范围，构建多种下游任务，并观察 head 的行为。初步实验发现，head 的有效性似乎与任务允许的合法候选个数有关。具体来说，我们根据任务类型将其分为两组：</p>
+<ul>
+<li><strong class="task-type-nonunique">非唯一性任务</strong>：任务的答案具备非唯一性，有多个合法候选，模型输出其中任何一个候选可视为满足任务要求。</li>
+<li><strong class="task-type-unique">唯一性任务</strong>：任务的答案具备唯一性，仅有一个合法候选，模型仅输出该候选才可视为满足任务要求。</li>
+</ul>
+<div class="fingerprint-baseline">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>任务类型</th>
+<th style="text-align: right;">对 <code>300</code> 的注意力</th>
+<th style="text-align: right;">删除 <code>L82.H18</code> 注意力边的 TV</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong class="task-type-nonunique">非唯一性任务</strong></td>
+<td style="text-align: right;">92.231%</td>
+<td style="text-align: right;">13.7%</td>
+</tr>
+<tr class="even">
+<td><strong class="task-type-unique">唯一性任务</strong></td>
+<td style="text-align: right;">58.862%</td>
+<td style="text-align: right;">0.5%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>在两组任务中，<code>L82.H18</code> 都展现出了对 <code>300</code> 的显著注意力，但是只有在非唯一性任务中，删除 head 的 TV 才产生显著变化<sup class="margin-note-ref" aria-label="参见右侧注 9">9</sup>。</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">注 9</span></p>
+<p>但是并非所有非唯一性任务都会导致显著的 TV 变化。例如，在「从 1–300 中选出大于 250 的数」这一任务中，TV 影响只有 0.3%。一个合理的猜测是：虽然该任务有多个合法候选，但是这些合法候选的首个输出 token 都必须是 <code>2</code>，因此不受到影响。</p>
+</div></div><p>因此，<code>L82.H18</code> 不能简单地被视为只在随机选择任务中才生效的 head。它在唯一性任务中仍会注意候选边界，这意味着 <code>L82.H18</code> 会把范围信息输送到回答位置；但是似乎只有当答案尚未被锁定、模型仍需要在合法候选之间分配概率时，下游任务才会强烈使用这份信息<sup class="margin-note-ref" aria-label="参见右侧注 10">10</sup>。</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">注 10</span></p>
+<p>事实上，我一开始并没有意识到这一点，而是错误地以为当输出需要全局信息时，head 才会生效，但是更多的实验排除了这一猜测。造成这一错误推论的原因是，许多非唯一性任务需要汇聚全局信息才能推测出合法候选。</p>
+</div></div><p>我们进一步检验上述判断，一个合理的直觉是：如果 <code>L82.H18</code> 的显著作用确实来自「模型尚不确定答案」，那么对于足够困难的任务，即使只有唯一答案，但是模型自身无法有效推理出答案，<code>L82.H18</code> 也应当显著生效。</p>
+<p>我们据此进行了对比实验，构造了两类需要使用全局信息的唯一性任务，任务难度分别为<strong class="task-difficulty-simple">简单</strong>与<strong class="task-difficulty-difficult">困难</strong>。两类任务的措辞和长度尽量保持一致，以排除提示长度和表述形式等因素的影响。和之前的实验配置一样，模型全程不开启 thinking 模式；我们分别比较其在正序列表和乱序列表下的正确率、列表注意力，以及删除指向列表元素的注意力边之后的 TV。</p>
+<div class="fingerprint-baseline">
+<div class="table-responsive">
+<table class="table task-difficulty-table">
+<thead>
+<tr>
+<th rowspan="2" scope="col">
+任务难度
+</th>
+<th colspan="3" scope="colgroup">
+正序
+</th>
+<th colspan="3" scope="colgroup">
+乱序
+</th>
+</tr>
+<tr>
+<th scope="col">
+正确率
+</th>
+<th scope="col">
+列表注意力
+</th>
+<th scope="col">
+列表边 TV
+</th>
+<th scope="col">
+正确率
+</th>
+<th scope="col">
+列表注意力
+</th>
+<th scope="col">
+列表边 TV
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">
+<strong class="task-difficulty-simple">简单任务</strong>
+</th>
+<td>
+100.0%
+</td>
+<td>
+10.08%
+</td>
+<td>
+0.24%
+</td>
+<td>
+98.0%
+</td>
+<td>
+2.47%
+</td>
+<td>
+0.24%
+</td>
+</tr>
+<tr>
+<th scope="row">
+<strong class="task-difficulty-difficult">困难任务</strong>
+</th>
+<td>
+52.5%
+</td>
+<td>
+66.17%
+</td>
+<td>
+5.39%
+</td>
+<td>
+52.0%
+</td>
+<td>
+60.38%
+</td>
+<td>
+4.40%
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>结果与推论大致一致，简单任务正确率达到 <strong>100%</strong>，说明模型在直接作答前已经锁定答案，此时对列表的注意力较低，且列表边 TV 也仅为约 <strong>0.24%</strong>；相比之下，困难任务的正确率只有约 <strong>52%</strong>，模型难以稳定推理出唯一答案，此时注意力上升至约 <strong>60%</strong>，列表边 TV 上升到 <strong>5.39%</strong>。这表明，当答案未被有效推理出来时，<code>L82.H18</code> 会持续从原列表读取更多信息，并具备更强的因果效应，搬运的候选信息会显著影响输出概率分布。</p>
+<p>为了进一步观察这一关系是否成立，我们进行了更多不同难度的任务，并将各任务的成功率与列表边 TV 汇总在如下散点图中。图中每个点对应一个任务，可以看到，较难的任务的确具备更高的 TV，两者的相关系数为 -0.84。</p>
+<!-- Data sources: code/random_number/results/qwen3_235b_h18_content_vs_structure_v1/main_task_summary.csv and the subsequent task-sweep summary supplied for this section. -->
+<div class="h18-task-scatter" data-lang="zh">
+
+</div>
+<script src="../../../assets/h18-task-accuracy-tv-scatter.js"></script>
+<p class="h18-task-scatter-caption">
+图 7：不同任务的成功率与 <code>L82.H18</code> 列表边 TV。横轴为任务成功率，纵轴为删除回答位置上 <code>L82.H18</code> 指向全部列表元素的注意力边之后的全词表 TV。
+</p>
+<p>至此，我们关于 <code>L82.H18</code> 生效条件的断言似乎初步成立。</p>
+</section>
+<section id="sec-long-thinking-generalization" class="level3 page-columns page-full" data-number="3.4">
+<h3 data-number="3.4" class="anchored" data-anchor-id="sec-long-thinking-generalization"><span class="header-section-number">3.4</span> 长程思考泛化实验</h3>
+<p><a href="#sec-task-type-generalization" class="no-external" target="_self">第 3.3 节</a>的实验始终关闭 thinking 模式，因此为了判断上述关于 <code>L82.H18</code> 生效条件的断言能否泛化到长程思考，我们开启 thinking 模式进行实验，让模型先生成完整 reasoning，而后在回答开始时直接输出答案，最后在 <code>&lt;/think&gt;</code> 之后的最终回答位置测量 <code>L82.H18</code> 的各项指标。我们选取了一些典型任务，覆盖多个正确率梯度，将非 thinking 模式和 thinking 模式的对比结果列于下表：</p>
+<div class="fingerprint-baseline">
+<div class="table-responsive">
+<table class="table thinking-comparison-table">
+<thead>
+<tr>
+<th rowspan="2" scope="col">
+任务
+</th>
+<th colspan="3" scope="colgroup">
+no-think
+</th>
+<th colspan="3" scope="colgroup">
+think
+</th>
+</tr>
+<tr>
+<th scope="col">
+成功率
+</th>
+<th scope="col">
+列表注意力
+</th>
+<th scope="col">
+列表边 TV
+</th>
+<th scope="col">
+成功率
+</th>
+<th scope="col">
+列表注意力
+</th>
+<th scope="col">
+列表边 TV
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="closest_geometric_endpoint_mean">
+最接近首尾几何平均
+</th>
+<td>
+2.08%
+</td>
+<td>
+81.41%
+</td>
+<td>
+8.61%
+</td>
+<td>
+95.83%
+</td>
+<td>
+5.38%
+</td>
+<td>
+0.015%
+</td>
+</tr>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="closest_mean_odd_positions">
+最近奇数位序号均值
+</th>
+<td>
+18.75%
+</td>
+<td>
+68.54%
+</td>
+<td>
+8.06%
+</td>
+<td>
+100%
+</td>
+<td>
+7.30%
+</td>
+<td>
+0.008%
+</td>
+</tr>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="closest_to_rank_mean">
+最接近序号均值
+</th>
+<td>
+22.92%
+</td>
+<td>
+72.08%
+</td>
+<td>
+6.93%
+</td>
+<td>
+100%
+</td>
+<td>
+6.01%
+</td>
+<td>
+0.007%
+</td>
+</tr>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="after_largest_rank_gap">
+最大序号间隔后项
+</th>
+<td>
+29.17%
+</td>
+<td>
+71.92%
+</td>
+<td>
+5.79%
+</td>
+<td>
+100%
+</td>
+<td>
+5.28%
+</td>
+<td>
+0.011%
+</td>
+</tr>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="earliest_even_display_positions">
+偶数展示位规范最早
+</th>
+<td>
+43.75%
+</td>
+<td>
+55.38%
+</td>
+<td>
+3.97%
+</td>
+<td>
+97.92%
+</td>
+<td>
+4.10%
+</td>
+<td>
+0.002%
+</td>
+</tr>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="canonical_second">
+规范第 2 项
+</th>
+<td>
+70.83%
+</td>
+<td>
+54.34%
+</td>
+<td>
+3.15%
+</td>
+<td>
+100%
+</td>
+<td>
+11.24%
+</td>
+<td>
+0.003%
+</td>
+</tr>
+<tr>
+<th scope="row" class="h18-task-color" data-h18-task-id="display_fifth">
+展示第 5 项
+</th>
+<td>
+93.75%
+</td>
+<td>
+40.14%
+</td>
+<td>
+1.24%
+</td>
+<td>
+100%
+</td>
+<td>
+4.46%
+</td>
+<td>
+0.003%
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>开启 thinking 后，任务正确率上升到将近 100%，列表边 TV 则全部下降到几乎 0%；与此同时，分配给原列表的注意力也急剧降低。这一观察与之前类似，说明当长程思考已经推理出答案时，模型的回答几乎不再依赖 <code>L82.H18</code> 搬运原列表信息<sup class="margin-note-ref" aria-label="参见右侧注 11">11</sup>。</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">注 11</span></p>
+<p>另一个值得注意的点是，任务成功率越高，<code>L82.H18</code> 对列表的注意力就越小。目前尚不确定是较少的注意力直接导致了较小的 TV，还是注意力与 TV 随任务难度共同变化的表现反映了某种更深层的回路机制。我个人更倾向于后一种解释。</p>
+</div></div><p>不过，thinking 模式会在输入列表与最终回答之间加入较长的 reasoning，因此 TV 下降也可能只是由回答位置与列表位置之间的距离增加造成的。为了排除这一解释，我们进行了对比实验：在保持输入列表和任务不变的基础上，分别构造了严格等长的四种组合，即 <strong class="condition-mode-nothink">no-think</strong>／<strong class="condition-mode-think">forced-think</strong> 与 <strong class="condition-content-correct">正确推理</strong>／<strong class="condition-content-placeholder">等长占位</strong> 的排列组合。这里，<strong class="condition-mode-think">forced-think</strong> 是指开启模型思考，并且在思考中填入预先准备的信息；<strong class="condition-content-correct">正确推理</strong>是能够帮助得出答案的推理过程，而<strong class="condition-content-placeholder">等长占位</strong>则是与任务无关的相同长度占位符。所有设置下最终回答位置的长度一致。</p>
+<div class="fingerprint-baseline">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 26%">
+<col style="width: 26%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>条件</th>
+<th style="text-align: right;">完整答案正确率</th>
+<th style="text-align: right;">原列表注意力</th>
+<th style="text-align: right;">列表边 TV</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong class="condition-mode-nothink">no-think</strong> + <strong class="condition-content-correct">正确信息</strong></td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">5.897%</td>
+<td style="text-align: right;">0.140%</td>
+</tr>
+<tr class="even">
+<td><strong class="condition-mode-nothink">no-think</strong> + <strong class="condition-content-placeholder">等长占位</strong></td>
+<td style="text-align: right;">25.0%</td>
+<td style="text-align: right;">57.133%</td>
+<td style="text-align: right;">8.197%</td>
+</tr>
+<tr class="odd">
+<td><strong class="condition-mode-think">forced-think</strong> + <strong class="condition-content-correct">正确推理</strong></td>
+<td style="text-align: right;">100%</td>
+<td style="text-align: right;">6.358%</td>
+<td style="text-align: right;">0.009%</td>
+</tr>
+<tr class="even">
+<td><strong class="condition-mode-think">forced-think</strong> + <strong class="condition-content-placeholder">等长占位</strong></td>
+<td style="text-align: right;">23.6%</td>
+<td style="text-align: right;">61.551%</td>
+<td style="text-align: right;">5.266%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>结果表明，prompt 或 reasoning 的长度并不会让 <code>L82.H18</code> 失效：两个等长占位条件下列表边 TV 仍然大于 5%，只有当加入足以确定答案的推理过程后，正确率上升到 100%，列表注意力和 TV 才同时大幅下降。因此，造成变化的主要因素并不是长程距离，也和是否开启 thinking 无关，而是答案是否已经被上下文锁定。</p>
+<p>上述结果进一步加强了<a href="#sec-task-type-generalization" class="no-external" target="_self">第 3.3 节</a>的论述：只要答案未被有效推理或者确定，<code>L82.H18</code> 搬运的候选信息就会显著影响输出分布。</p>
+<!-- Data sources: code/random_number/results/qwen3_235b_h18_content_tasks_thinking_v1, qwen3_235b_h18_difficulty_spectrum_thinking_v1, qwen3_235b_h18_difficulty_spectrum_thinking_high_attention_v1, and qwen3_235b_h18_information_length_controls_v1. -->
+</section>
+<section id="sec-cross-head-generalization" class="level3 page-columns page-full" data-number="3.5">
+<h3 data-number="3.5" class="anchored" data-anchor-id="sec-cross-head-generalization"><span class="header-section-number">3.5</span> 跨 Head 功能泛化实验</h3>
+<p>在之前的实验中，我们主要以 <code>L82.H18</code> 为研究对象。但正如<a href="#候选类型泛化实验" class="no-external" target="_self">第 3.1 节</a>中所指出的，这组 heads 只有在列表内部具备强烈的顺序关系时，才会展现出较强的因果效应，这使得其生效范围较为狭窄。</p>
+<p>一个自然的问题是：对于顺序关系不那么强的列表，是否仍然存在一族 heads，展现出类似的功能？事实上，从 head 功能分化和 Transformer circuit 的角度来看，类似的 heads 时应当存在的<sup class="margin-note-ref" aria-label="参见右侧注 12">12</sup>。基于这一理念，我们进一步进行实验，观察对于一般列表，是否还有类似功能的 heads。</p>
+
+<div class="no-row-height column-margin column-container"><div id="note-head-information-dispersion" class="">
+<p><span class="margin-label">注 12</span></p>
+<p>从更顶层的视角来看，我更愿意将其称为信息分散的一种体现，尤其是模型越大、能力越强时越是如此。多个 heads 可能负责类似的功能，但其生效的具体场景可能有所差异。</p>
+</div></div><p>类似<a href="#写入随机数指纹的-head" class="no-external" target="_self">第 2 节</a>的设定，我们构建了多个随机中文单 token 无序候选列表，并分别执行随机选择和确定性选择任务，而后扫描全部 6,016 个 query heads，同样执行消融观察，在 attention 的 <code>o_proj</code> 之前将输出切片置零。基于之前的观察，我们将筛选分数定义为</p>
+<p><span class="math display">
+S(h,l)=\max\!\left(\Delta \operatorname{TV}(h,l),0\right)\times A(h,l),
+</span></p>
+<p>其中 <span class="math inline">\Delta \operatorname{TV}(h,l)</span> 是随机选择与确定性选择之间，删除 head 后的 <span class="math inline">\operatorname{TV}</span> 之差，<span class="math inline">A(h,l)</span> 是随机选择下 head 对候选列表的总注意力。该指标同时要求 head 读取候选列表，且其因果效应主要出现在答案尚未确定时，以排除类似语法 head 或 ICL head 等偏置的干扰。</p>
+<p>最终我们选出了得分最高的六个 heads：<code>L80.H42</code>、<code>L82.H21</code>、<code>L85.H49</code>、<code>L89.H53</code>、<code>L87.H14</code> 和 <code>L88.H13</code>。它们也是仅有的 <span class="math inline">S(h,l)</span> 得分高于 1 pp 的 heads。</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../assets/figures/random-number/unordered_candidate_head_selection_heatmap.png" class="img-fluid figure-img" alt="94 层乘 64 个 query heads 的筛选得分热力图，高分区域集中在模型晚层，图中标出了严格复验得分最高的六个 heads。"></p>
+<figcaption>图 8：全模型 heads 的 <span class="math inline">S(h,l)</span> 热力图，其中得分最高的六个 heads 已经被标出。</figcaption>
+</figure>
+</div>
+</div>
+<p>从图中可以看到，得分较高的 heads 均位于深层，浅层和中层 heads 几乎都呈现出纯白色。这符合认知：这类能汇聚信息流并影响下游任务的能力主要只会出现在深层 heads 中。同时，除选出的 heads 外，许多深层 heads 也表现出较弱但可见的 <span class="math inline">S(h,l)</span> 响应，整体功能响应呈现出零散分布，这也是<a href="#note-head-information-dispersion" class="no-external" target="_self">注 12</a>中所说的信息分散的一种表现。</p>
+<p>更多的实验表明，这些 heads 与 <code>L82.H18</code> 展现出相似作用：答案未决时，它们集中读取候选列表，删除后会明显改变输出分布；答案已经确定时，其因果效应则接近消失。为了保持博客的可读性，我们不再赘述这些实验，在下一节中，我们会使用定位出来的更一般性的head进行干预实验，进一步揭示其工作机制和信息回路。</p>
+<!-- Data source: code/random_number/results/qwen3_235b_unordered_candidate_heads_combined_v1/report.md. -->
+</section>
+</section>
+<section id="候选-head-回路的因果干预实验" class="level2 page-columns page-full" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="候选-head-回路的因果干预实验"><span class="header-section-number">4</span> 候选 Head 回路的因果干预实验</h2>
+<p>经过<a href="#sec-head-generalization" class="no-external" target="_self">第 3 节</a>的一系列实验，我们定位出了一族具有相似功能的 heads，并对其作用形成了一个初步判断</p>
+<div class="research-question circuit-claim">
+<p><strong>当答案未被有效推理出来、模型仍需在多个候选之间进行竞争时，下游任务会强烈使用这族 heads 搬运的候选信息</strong></p>
+</div>
+<p>这一现象可以泛化到不同的候选列表、不同的候选约束、不同的任务类型，以及包含长程 thinking 的回答过程。</p>
+<p>进一步思考，我们从 Transformer circuit 的角度重新审视这一结果。我们知道，模型的前向传播过程并不是由单一信号决定的，相反，不同回路会将等多种信号写入残差流，并最终共同觉醒输出。按照我的理解，一个很重要的洞见是：</p>
+<div class="prompt-example circuit-principle">
+<p>通常情况下，最强的信号会主导模型行为，其他信号虽然仍然存在，但会在竞争中被压制；但是当原本占主导地位的回路变弱甚至截断时，次强回路便可能获得更大的相对权重，并对缺失的信息进行的补偿。在规模更大、信息表示更加分散的模型中，这种回路之间的竞争机制尤其明显。</p>
+</div>
+<p>从这一视角来看，我们定位出的 heads 共同参与了一大类候选竞争回路：当模型能够正常完成推理时，确定答案的信号占据主导，这类回路的写入难以影响最终输出，删除这些 heads 产生的 TV 很小；当正常推理信号较弱，或者相应回路被截断时，这类回路的写入便会获得更大的因果效应，表现为删除 heads 后的 TV 显著上升。</p>
+<p><a href="#sec-long-thinking-generalization" class="no-external" target="_self">第 3.4 节</a>和<a href="#sec-cross-head-generalization" class="no-external" target="_self">第 3.5 节</a>的实验已经初步支持了这一观点。我们进一步采用主动的干预实验进行检验，我们采用多种方法破坏模型正常推理的回路，而后观察在这些干预下，候选 heads 的因果效应是否会如预期般增强，以及是否会稳定出现。</p>
+<section id="删除输入证据的干预实验" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="删除输入证据的干预实验"><span class="header-section-number">4.1</span> 删除输入证据的干预实验</h3>
+<p>为了破坏模型正常推理的回路，一个直接的想法是从输入侧删除关键证据，这可以视为破坏推理路径的起始点。</p>
+<p>为此，我们选取 DROP、BrowseComp-Plus、2WikiMultiHopQA 和 MuSiQue 这四个数据集，构造反事实的问答基例：每个问题都被改写，正确答案及其他候选均被替换为随机生成的临时代号，代号的拼写和数字不包含任何可供推断的规律，以防止模型利用参数化记忆回答问题。</p>
+<p>每个基例分别包含<strong class="evidence-complete">完整证据</strong>和<strong class="evidence-missing">缺乏证据</strong>两个版本，其问题、候选列表和正确代号完全相同，唯一的区别是：<strong class="evidence-missing">缺乏证据</strong>版本删除了输入中推理所需要的关键证据，使模型无法再从给定资料中唯一确定正确候选；<strong class="evidence-complete">完整证据</strong>版本则予以保留。我们在每个输入 prompt 的 thinking 结束、第一个正式回答开始的位置，联合删除<a href="#sec-cross-head-generalization">第 3.5 节</a>中定位出的 heads 的写入，而后计算干预前后完整词表概率分布的 TV。</p>
+<div class="fingerprint-baseline evidence-ablation-table">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>数据集</th>
+<th style="text-align: right;"><span class="evidence-metric-header"><strong>成功率</strong><strong>（<span class="evidence-complete">完整证据</span> → <span class="evidence-missing">缺乏证据</span>）</strong></span></th>
+<th style="text-align: right;"><span class="evidence-metric-header"><strong>删除 head 的 TV</strong><strong>（<span class="evidence-complete">完整证据</span> → <span class="evidence-missing">缺乏证据</span>）</strong></span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DROP</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.69%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.639%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.129%</strong></span></td>
+</tr>
+<tr class="even">
+<td>BrowseComp-Plus</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">90%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">3.33%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.797%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.153%</strong></span></td>
+</tr>
+<tr class="odd">
+<td>2WikiMultiHopQA</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">90.48%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">2.006%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.732%</strong></span></td>
+</tr>
+<tr class="even">
+<td>MuSiQue</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">94.44%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.130%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.466%</strong></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>所有数据集都呈现出一致的结果：完整证据下的成功率近乎 <strong>100%</strong>，此时删除 heads 后的 TV 较小；删除关键证据后，成功率急剧下降，模型几乎无法推理，此时 TV 则显著上升。实验结果符合我们的预期：当推理回路的起始输入被截断时，heads 搬运的候选信息获得了显著更高的权重。</p>
+<!-- Data source: code/random_number/results/qwen3_235b_all_four_counterfactual_missing_path_fourhead_v1/counterfactual_report.md. -->
+</section>
+<section id="删除关键推理链的干预实验" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="删除关键推理链的干预实验"><span class="header-section-number">4.2</span> 删除关键推理链的干预实验</h3>
+<p>我们进一步从模型的推理过程入手，删除 reasoning 中用于识别正确答案的推理链路，并观察 heads 的因果效应变化，这一干预可以视为破坏推理回路的中段。</p>
+<p>我们仍然使用<a href="#删除输入证据的干预实验" class="no-external" target="_self">第 4.1 节</a>中的反事实数据集以及<a href="#sec-cross-head-generalization" class="no-external" target="_self">第 3.5 节</a>定位的 heads，并分别构造<strong class="evidence-complete">完整推理链</strong>和<strong class="evidence-missing">缺失推理链</strong>两个版本。两者区别是：<strong class="evidence-complete">完整推理链</strong>版本注入了模型在完整证据条件下生成的多段 Agent 式 reasoning；<strong class="evidence-missing">缺失推理链</strong>版本则在同一条 reasoning 中，删除从首次提及到最后一次提及正确代号的连续推理段落。两者最后都以“我已经完成推理并且已经知道答案”结束，而后让模型生成正式答案。我们还是在第一个正式回答 token 的位置观察 heads 的效应。</p>
+<div class="fingerprint-baseline evidence-ablation-table">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>数据集</th>
+<th style="text-align: right;"><span class="evidence-metric-header"><strong>成功率</strong><strong>（<span class="evidence-complete">完整推理链</span> → <span class="evidence-missing">缺失推理链</span>）</strong></span></th>
+<th style="text-align: right;"><span class="evidence-metric-header"><strong>删除 head 的 TV</strong><strong>（<span class="evidence-complete">完整推理链</span> → <span class="evidence-missing">缺失推理链</span>）</strong></span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DROP</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.133%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.428%</strong></span></td>
+</tr>
+<tr class="even">
+<td>BrowseComp-Plus</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.098%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">5.304%</strong></span></td>
+</tr>
+<tr class="odd">
+<td>2WikiMultiHopQA</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.910%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.956%</strong></span></td>
+</tr>
+<tr class="even">
+<td>MuSiQue</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.454%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.282%</strong></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>可以看到，在删除部分推理链路后，模型在所有轨迹上的成功推理均变成失败推理，删除候选 heads 的平均 TV 也从 <strong>1.133%</strong> 上升至 <strong>7.277%</strong>。实验结果同样符合我们的预期，证明了当推理回路的中段被截断时，heads 搬运的信息同样获得了更高的权重。</p>
+<!-- Data source: code/random_number/results/qwen3_235b_real_four_dataset_cot_gap_fourhead_v1/{report.md,paired_summary.csv,completion_audit.json}. -->
+</section>
+<section id="删除检索-head-的干预实验" class="level3 page-columns page-full" data-number="4.3">
+<h3 data-number="4.3" class="anchored" data-anchor-id="删除检索-head-的干预实验"><span class="header-section-number">4.3</span> 删除检索 Head 的干预实验</h3>
+<p>之前我们分别从输入侧和推理链破坏了正常推理路径，现在我们考虑截断推理回路的末端：保持问题和输入证据完整，只屏蔽从上下文中搬运答案的 retrieval heads<sup class="margin-note-ref" aria-label="参见右侧注 13">13</sup>。此时虽然原始证据仍然存在于上下文，但是模型失去了利用证据的能力，我们观察这种情况下，候选 heads 的 TV 是否也显著上升。</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">注 13</span></p>
+<p>关于 retrieval heads 的定义和作用，请参考原始论文：<a href="https://arxiv.org/abs/2404.15574">Retrieval Head Mechanistically Explains Long-Context Factuality</a>。近期我的一些实验观察表明，retrieval heads 的作用是在推理回路的末端、模型已经知道答案时，将其从上下文中搬运到 decode 输出位置。</p>
+</div></div><p>为此，首先我们参照原始论文的方法，定位出 top-20 的 retrieval heads（约占所有 heads 的 0.3%），最终结果如下：</p>
+<div class="retrieval-head-list">
+<p><code>L81.H53</code>、<code>L81.H61</code>、<code>L79.H52</code>、<code>L81.H34</code>、<code>L85.H29</code>、<code>L79.H59</code>、<code>L81.H51</code>、<code>L83.H08</code>、<code>L61.H51</code>、<code>L61.H61</code>、<code>L81.H54</code>、<code>L76.H39</code>、<code>L81.H45</code>、<code>L06.H16</code>、<code>L79.H63</code>、<code>L59.H59</code>、<code>L61.H54</code>、<code>L82.H25</code>、<code>L83.H05</code>、<code>L83.H10</code>。</p>
+</div>
+<p>并将其记作 <span class="math inline">R</span>；将先前定位出来的搬运候选信息的 heads 记作 <span class="math inline">C</span>。我们考虑如下四种条件：完整模型 <code>clean</code>、只删除检索回路 <code>−R</code>、只删除候选回路 <code>−C</code>、同时删除两者 <code>−R−C</code>。</p>
+<p>我们还是在先前使用的反事实数据集上进行实验，并且进行筛选，仅在那些 <code>clean</code> 下回答正确、<code>−R</code> 下回答错误的轨迹上进行实验。在每个轨迹上，我们均观察如下三种 TV：</p>
+<div class="intervention-conditions retrieval-tv-conditions">
+<ul>
+<li><span class="math inline">\operatorname{TV}(\mathit{clean},-R)</span>：衡量删除检索 heads 的效应，由于删除后模型由回答正确切换为错误，这一数值将会极度高；</li>
+<li><span class="math inline">\operatorname{TV}(\mathit{clean},-C)</span>：衡量删除候选 heads 的效应，由于推理回路完整时模型能确定答案，我们预期这一数值将较小；</li>
+<li><span class="math inline">\operatorname{TV}(-R,-R-C)</span>：衡量推理回路被切断后，删除候选 heads 的效应，我们预期这一数值会显著高于 <span class="math inline">\operatorname{TV}(\mathit{clean},-C)</span>。</li>
+</ul>
+</div>
+<div class="fingerprint-baseline evidence-ablation-table retrieval-ablation-table">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 26%">
+<col style="width: 26%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>数据集</th>
+<th style="text-align: right;"><span class="math inline">\operatorname{TV}(\mathit{clean},-R)</span></th>
+<th style="text-align: right;"><span class="math inline">\operatorname{TV}(\mathit{clean},-C)</span></th>
+<th style="text-align: right;"><span class="math inline">\operatorname{TV}(-R,-R-C)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DROP</td>
+<td style="text-align: right;"><strong>65.507%</strong></td>
+<td style="text-align: right;"><strong>2.442%</strong></td>
+<td style="text-align: right;"><strong>7.459%</strong></td>
+</tr>
+<tr class="even">
+<td>BrowseComp-Plus</td>
+<td style="text-align: right;"><strong>41.133%</strong></td>
+<td style="text-align: right;"><strong>2.376%</strong></td>
+<td style="text-align: right;"><strong>17.158%</strong></td>
+</tr>
+<tr class="odd">
+<td>2WikiMultiHopQA</td>
+<td style="text-align: right;"><strong>54.411%</strong></td>
+<td style="text-align: right;"><strong>1.868%</strong></td>
+<td style="text-align: right;"><strong>10.483%</strong></td>
+</tr>
+<tr class="even">
+<td>MuSiQue</td>
+<td style="text-align: right;"><strong>34.428%</strong></td>
+<td style="text-align: right;"><strong>2.713%</strong></td>
+<td style="text-align: right;"><strong>5.042%</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>实验结果与预期一致，所有数据集上的 <span class="math inline">\operatorname{TV}(\mathit{clean},-R)</span> 均极度高，说明推理回路的确被有效截断。而在屏蔽掉检索 heads 后，候选 heads 的 TV 均显著上升，提升从 <strong>2.329%</strong> 到 <strong>14.782%</strong> 不等。这些结果表明，推理回路中主导搬运答案的末端功能被截断后，候选 heads 搬运的信息如预期般获得更高的权重。</p>
+<p>总体而言，上述实验进一步支持了不同回路之间存在竞争的解释：正常推理回路较强时，候选回路的作用会被压制；当推理回路失效时，候选回路则更显著地影响最终的输出。</p>
+<!-- Data sources: code/mix_head/outputs/qwen_context_head_analysis_v1/retrieval_heads.csv; code/random_number/results/qwen3_235b_old_r_hard_flip_cgain_min3_v1/{selected_factorial_all.jsonl,dataset_summary.json,experiment_manifest.json,completion_audit.json}. -->
+</section>
+</section>
+<section id="sec-tv-triggered-repair" class="level2 page-columns page-full" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="sec-tv-triggered-repair"><span class="header-section-number">5</span> 基于检测 Head TV 的性能增强推理</h2>
+<p>经过先前的实验与观察，我们对定位出的 heads 的机制已经有了较为清晰的认识：当答案尚未被有效推理出来时，它们对输出分布的因果效应会显著增强。那么，一个自然的想法是：能否利用这一机制增强模型的推理性能？具体来说，我们能否采用如下性能增强方式：</p>
+<div class="research-question circuit-claim">
+<p><strong>在正常推理输出答案后，检测候选 heads 的 TV 值；当 TV 超过阈值时，投入额外的开销继续加强推理。</strong></p>
+</div>
+<p>我们还是在 DROP、BrowseComp-Plus、2WikiMultiHopQA 和 MuSiQue 数据集上进行测试，并构造 Agent 式工作流，让模型基于 Search 返回的非完整信息进行推理。在推理结束并输出答案后，我们在最后一轮输出正式开始的位置，删除候选 heads 的写入，并计算删除前后完整词表分布的 TV<sup class="margin-note-ref" aria-label="参见右侧注 14">14</sup>。</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">注 14</span></p>
+<p>由于只需要在正式回答前的最后一个 <code>\n\n</code> 位置进行干预，因此前段所有 tokens 均可以复用 prefix cache，这确保了干预检测的低开销。具体实现中，通过 vLLM 的 <code>llm.collective_rpc</code> 切换为干预状态。</p>
+</div></div><p>根据<a href="#候选-head-回路的因果干预实验" class="no-external" target="_self">第 4 节</a>的实验结果，我们经验性地将 TV 阈值固定为 <strong>6%</strong>。当干预前后的 TV 超过该阈值时，Agent 框架将继续执行工作流，通过 Search 将更多信息输入给模型，并追加一条新的用户 prompt，提示模型之前的输出可能缺乏证据，要求模型继续推理并修正答案。</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../assets/figures/random-number/head_tv_gated_reasoning_improvement.png" class="img-fluid figure-img" alt="四组并列柱状图，展示 2WikiMultiHopQA、BrowseComp-Plus、DROP 和 MuSiQue 上的原始推理成功率、TV 超过阈值的频率与推理增强后的成功率。"></p>
+<figcaption>图 9：基于 Head TV 检测的推理增强结果，展示了每个数据集上原始推理成功率、TV 超过阈值的频率、推理增强后的成功率。</figcaption>
+</figure>
+</div>
+</div>
+<p>可以看到，四个数据集上，TV 均能检测出尚未被有效推理的轨迹，并且使用增强策略后能带来的成功率收益。这说明我们定位出来的 head TV 可以作检测不可信推理的指标，并且提供一定程度的修复。</p>
+<p>需要说明的是，方法只能检测出模型自身也未能形成稳定回路的不可信推理；对于模型自身认为可信、但实际上错误的推理，Head TV 仍然较低，无法被检测出来。</p>
+<div class="tv-detection-examples" aria-label="Head TV 检测成功与漏检案例对照">
+<article class="tv-detection-case tv-detection-hit">
+<header class="tv-detection-case-header">
+<span>轨迹 A</span> <strong>成功检出</strong>
+</header>
+<dl class="tv-detection-case-fields">
+<dt>
+<strong>数据集</strong> · <strong>ID</strong>
+</dt>
+<dd class="tv-detection-source">
+MuSiQue · <code>4hop2__567956_39078_8987_8974</code>
+</dd>
+<dt>
+问题
+</dt>
+<dd>
+Country B was the only communist country to have an embassy where?
+</dd>
+<dt>
+标准答案
+</dt>
+<dd>
+Alfredo Stroessner's Paraguay
+</dd>
+<dt>
+模型思考
+</dt>
+<dd class="tv-detection-reasoning">
+“根据现有资料，答案可能是 Confederate Gen.&nbsp;John Bell Hood”
+</dd>
+</dl>
+<div class="tv-detection-metric">
+<span>Head TV</span><strong>9.551%</strong>
+</div>
+<p class="tv-detection-result">
+<strong>结果</strong>：模型猜测错误且推理不确定性较高，高 TV 成功触发增强推理，最终回答正确。
+</p>
+</article>
+<article class="tv-detection-case tv-detection-miss">
+<header class="tv-detection-case-header">
+<span>轨迹 B</span> <strong>未能检出</strong>
+</header>
+<dl class="tv-detection-case-fields">
+<dt>
+<strong>数据集</strong> · <strong>ID</strong>
+</dt>
+<dd class="tv-detection-source">
+DROP · <code>2e82b6a6-8afa-4c30-8bf7-8bd101f9e16e</code>
+</dd>
+<dt>
+问题
+</dt>
+<dd>
+Which team scored more touchdowns in the fourth quarter?
+</dd>
+<dt>
+标准答案
+</dt>
+<dd>
+Chargers
+</dd>
+<dt>
+模型思考
+</dt>
+<dd class="tv-detection-reasoning">
+“Panthers 有两个达阵：Gamble 和 Rosario，答案应该是 Panthers”
+</dd>
+</dl>
+<div class="tv-detection-metric">
+<span>Head TV</span><strong>3.169%</strong>
+</div>
+<p class="tv-detection-result">
+<strong>结果</strong>：模型自信地给出错误答案，但 TV 未达到阈值，因此没有触发增强推理。
+</p>
+</article>
+</div>
+<p>上述两条实际轨迹展示了这一边界。轨迹 A 中，模型的思考过程中就给出了可能的猜测，Head TV 高达 <code>9.551%</code>，因此被检测到并成功触发增强推理；轨迹 B 中，模型形成了一条完整且确定的错误推理链，尽管答案错误，但是 Head TV 没有达到阈值，无法被检出。</p>
+<p>这种 Head TV 可以视为不可信推理的代理指标。当然，模型的这种不确定性也可能会反映在推理链的输出中，但是我们的实验发现，相比之下，Head TV 的信号更加本质，并且能检测到一些不会在自然语言中表达出来的不可信信号；此外，一些指标如生成 Token 的熵分布，也能在不可信出现时捕获相关信号，但这类 Token 级别的指标都是局部代理，通常在模型思考的后半部分展现出可信推理的反馈信号，无法像 Head TV 一样检测出整个推理过程的不确定性。</p>
+<div class="fingerprint-baseline tv-repair-cost-table">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>数据集</th>
+<th style="text-align: right;">原始推理 token 消耗</th>
+<th style="text-align: right;">增强推理 token 消耗<br>（<span class="evidence-missing">+ 百分比</span>）</th>
+<th style="text-align: right;">原始推理<br>时间开销</th>
+<th style="text-align: right;">增强推理时间开销<br>（<span class="evidence-missing">+ 百分比</span>）</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DROP</td>
+<td style="text-align: right;">22.7k</td>
+<td style="text-align: right;">4.6k (<span class="evidence-missing">+20.3%</span>)</td>
+<td style="text-align: right;">774.2 s</td>
+<td style="text-align: right;">67.6 s (<span class="evidence-missing">+8.7%</span>)</td>
+</tr>
+<tr class="even">
+<td>BrowseComp-Plus</td>
+<td style="text-align: right;">179.2k</td>
+<td style="text-align: right;">13.6k (<span class="evidence-missing">+7.6%</span>)</td>
+<td style="text-align: right;">1,967.2 s</td>
+<td style="text-align: right;">109.4 s (<span class="evidence-missing">+5.6%</span>)</td>
+</tr>
+<tr class="odd">
+<td>2WikiMultiHopQA</td>
+<td style="text-align: right;">53.6k</td>
+<td style="text-align: right;">6.3k (<span class="evidence-missing">+11.8%</span>)</td>
+<td style="text-align: right;">933.1 s</td>
+<td style="text-align: right;">34.2 s (<span class="evidence-missing">+3.7%</span>)</td>
+</tr>
+<tr class="even">
+<td>MuSiQue</td>
+<td style="text-align: right;">172.5k</td>
+<td style="text-align: right;">22.9k (<span class="evidence-missing">+13.3%</span>)</td>
+<td style="text-align: right;">2,050.7 s</td>
+<td style="text-align: right;">180.3 s (<span class="evidence-missing">+8.8%</span>)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>我们同样统计了计算开销，包括原始推理和增强推理的 token 与时间开销，以及增强策略开销相对原始推理的百分比。综合所有结果，推理增强策略在使用 <strong class="evidence-missing">11.1%</strong> 的额外 token 开销和 <strong class="evidence-missing">14.9%</strong> 的额外时间开销后，带来了 <strong class="evidence-complete">5.9%</strong> 的相对性能提升；此外，平均每条轨迹的 TV 检测大约仅花费 <strong class="evidence-missing">1.9 s</strong>。增强策略带来的额外开销仍然稍重，不过 TV 检测本身的开销是轻量级的。</p>
+<p>总体来看，这一实验说明 head TV 可以从事后机制分析指标，转化为一种有实际价值的推理门控信号。它不直接生成更好的答案，而是帮助 Agent 系统定位何时推理不可信，可能需要改变后续推理策略，以获得更可信的推理结果。</p>
+<!-- Data source: the four-dataset TV-gated repair aggregation used for Section 5. -->
+</section>
+<section id="sec-conclusion" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="sec-conclusion"><span class="header-section-number">6</span> 总结与展望</h2>
+<p>本文从随机数生成中稳定出现的模型指纹出发，定位出了一类负责搬运候选信息的 heads。我们最终发现，当答案尚未被唯一确定、模型仍需在多个候选之间竞争时，这类 heads 会产生显著的因果效应；这一作用不仅能够跨任务、跨表述泛化，也在多种截断正常推理回路的干预实验中稳定出现。最后，我们进一步将 Head TV 作为不可信推理的检测信号，并用它触发额外推理，从而提升模型的推理性能。</p>
+<p>当然，需要承认的是，这篇研究并没有将模型的随机数指纹这件事情研究清楚。尽管我开始注意到那篇 Linux.do 帖子的时候，是希望分析一下指纹是如何形成的，但是随后我就意识到，很难在不看数据或者不分析训练动态的情况下研究这件事情。并且，在预训练完成的情况下，仅仅需要极少的轨迹微调，即可大幅改变模型的偏好，这使得分析较为困难。</p>
+<p>意识到这一点后，我改变了我的思路，开始观察模型的信息流，并逐渐得出了博客呈现的结果。整个过程断断续续大概花了一个半月的时间，观察到的一些现象，也的确加深了我对模型的理解，其中最重要的观察可能就是信息的分散，以及模型回路之间的竞争了。至于最后的增强推理方法，有些类似于 J-Space 那一套，从模型理解出发，提出方案约束模型行为。</p>
+<p>其实这里还有不少值得思考的点，比如博客中提到的信息回路之间的竞争：为什么推理回路被截断后，对 Head 消融产生的因果效应就会很大？理论上来说，softmax 对于 logit 的扰动其实是很敏感的，logit 相差 1 对于概率分布的影响可能相当大，但是从线性映射的角度，输出 logit 相差 1 基本只是一个小的扰动。这种某种意义上反线性代数的现象，说明正常推理的时候，模型似乎有种机制框定了本应该脆弱的决策边界；而当推理回路被破坏的时候，决策边界才重新恢复脆弱性。</p>
+<p>这些问题在我看来都是理解模型的一部分，不管是上面提到的，还是说一些更延伸的，比如我们定位的回路在稀疏注意力或者线性注意力中是否存在。当然，这些都是后续要继续探究的事情了。</p>
+
+
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> 返回顶部</a></main> <!-- /main -->
+<script src="../../../assets/language-switch.js?v=20260921-margin-notes"></script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/tanyingjie01\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 Yingjie Tan</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p><a href="mailto:tanyj23@mails.tsinghua.edu.cn">Contact me</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
