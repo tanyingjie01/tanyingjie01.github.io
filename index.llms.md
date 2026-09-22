@@ -88,16 +88,8 @@ Interpretability becomes actionable when an observed representation can be inter
 
 ### [Inside a Model’s Random-Number Fingerprint: A Special Circuit in LLMs](posts/random-number-fingerprint-circuit/index.llms.md)
 
-Aug 30, 2026
+Sep 22, 2026
 
 30 min
-
-### [Welcome to My Research Notes](posts/welcome/index.llms.md)
-
-A visual tour of the layout I will use for future technical essays and experiment reports.
-
-Aug 29, 2026
-
-2 min
 
 Back to top

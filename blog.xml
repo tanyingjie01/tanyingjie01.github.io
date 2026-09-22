@@ -10,7 +10,7 @@
 <atom:link href="https://tanyingjie01.github.io/blog.xml" rel="self" type="application/rss+xml"/>
 <description>Research, thinking, and observations on AI.</description>
 <generator>quarto-1.10.18</generator>
-<lastBuildDate>Sun, 30 Aug 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 22 Sep 2026 00:00:00 GMT</lastBuildDate>
 <item>
   <title>Inside a Model’s Random-Number Fingerprint: A Special Circuit in LLMs</title>
   <dc:creator>Yingjie Tan</dc:creator>
@@ -18,16 +18,7 @@
   <description><![CDATA[ Discussions about GPT “getting worse” and third-party APIs quietly substituting other models never really stop<sup class="margin-note-ref" aria-label="See Note 1 in the right margin">1</sup>. A <a href="https://linux.do/t/topic/2472419">LINUX DO post</a> proposed a simple test: repeatedly ask a model to choose a random number from a fixed range, estimate the output distribution, and use that distribution as a statistical fingerprint of the model. ]]></description>
   <category>Research</category>
   <guid>https://tanyingjie01.github.io/posts/random-number-fingerprint-circuit/</guid>
-  <pubDate>Sun, 30 Aug 2026 00:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Welcome to My Research Notes</title>
-  <dc:creator>Yingjie Tan</dc:creator>
-  <link>https://tanyingjie01.github.io/posts/welcome/</link>
-  <description><![CDATA[ A visual tour of the layout I will use for future technical essays and experiment reports. ]]></description>
-  <category>Thinking</category>
-  <guid>https://tanyingjie01.github.io/posts/welcome/</guid>
-  <pubDate>Sat, 29 Aug 2026 00:00:00 GMT</pubDate>
+  <pubDate>Tue, 22 Sep 2026 00:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>

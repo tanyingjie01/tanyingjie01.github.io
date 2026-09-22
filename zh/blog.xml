@@ -10,7 +10,7 @@
 <atom:link href="https://tanyingjie01.github.io/zh/blog.xml" rel="self" type="application/rss+xml"/>
 <description>记录关于 AI 的研究、思考与观察。</description>
 <generator>quarto-1.10.18</generator>
-<lastBuildDate>Sun, 30 Aug 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 22 Sep 2026 00:00:00 GMT</lastBuildDate>
 <item>
   <title>从模型的随机数指纹出发：一项关于 LLM 推理回路的研究</title>
   <dc:creator>Yingjie Tan</dc:creator>
@@ -18,16 +18,7 @@
   <description><![CDATA[ 一直以来，围绕如何判断 GPT「降智」或者说路由到小模型的讨论层出不穷。一篇 <a href="https://linux.do/t/topic/2472419">LINUX DO 帖子</a> 提出了一种简单的判断方法：让模型从给定范围中随机选择数字，多次采样它的输出分布，并将其当作统计指纹来识别模型<sup class="margin-note-ref" aria-label="参见右侧注 1">1</sup>。 ]]></description>
   <category>研究</category>
   <guid>https://tanyingjie01.github.io/zh/posts/random-number-fingerprint-circuit/</guid>
-  <pubDate>Sun, 30 Aug 2026 00:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>为什么我决定开博客：论我对AI科研与论文的看法</title>
-  <dc:creator>Yingjie Tan</dc:creator>
-  <link>https://tanyingjie01.github.io/zh/posts/welcome/</link>
-  <description><![CDATA[ 这是一篇用于展示版式的占位文章。在第一篇正式研究笔记发布之前， 它负责呈现完整的长文阅读体验。 ]]></description>
-  <category>思考</category>
-  <guid>https://tanyingjie01.github.io/zh/posts/welcome/</guid>
-  <pubDate>Sat, 29 Aug 2026 00:00:00 GMT</pubDate>
+  <pubDate>Tue, 22 Sep 2026 00:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>

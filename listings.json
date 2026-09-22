@@ -1,23 +1,20 @@
 [
   {
+    "listing": "/zh/blog.html",
+    "items": [
+      "/zh/posts/random-number-fingerprint-circuit/index.html"
+    ]
+  },
+  {
     "listing": "/index.html",
     "items": [
-      "/posts/random-number-fingerprint-circuit/index.html",
-      "/posts/welcome/index.html"
+      "/posts/random-number-fingerprint-circuit/index.html"
     ]
   },
   {
     "listing": "/blog.html",
     "items": [
-      "/posts/random-number-fingerprint-circuit/index.html",
-      "/posts/welcome/index.html"
-    ]
-  },
-  {
-    "listing": "/zh/blog.html",
-    "items": [
-      "/zh/posts/random-number-fingerprint-circuit/index.html",
-      "/zh/posts/welcome/index.html"
+      "/posts/random-number-fingerprint-circuit/index.html"
     ]
   }
 ]

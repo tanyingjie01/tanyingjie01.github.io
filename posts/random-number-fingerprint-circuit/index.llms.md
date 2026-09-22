@@ -4,7 +4,7 @@ Author
 
 Published
 
-August 30, 2026
+September 22, 2026
 
 Discussions about GPT “getting worse” and third-party APIs quietly substituting other models never really stop¹. A [LINUX DO post](https://linux.do/t/topic/2472419) proposed a simple test: repeatedly ask a model to choose a random number from a fixed range, estimate the output distribution, and use that distribution as a statistical fingerprint of the model.
 

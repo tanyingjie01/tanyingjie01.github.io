@@ -34,14 +34,8 @@ FIELD NOTES三种视角，一条探索之路
 ### [从模型的随机数指纹出发：\
 一项关于 LLM 推理回路的研究](../zh/posts/random-number-fingerprint-circuit/index.llms.md)
 
-2026年8月30日
+2026年9月22日
 
 11 分钟
-
-### [为什么我决定开博客：论我对AI科研与论文的看法](../zh/posts/welcome/index.llms.md)
-
-2026年8月29日
-
-1 分钟
 
 返回顶部
