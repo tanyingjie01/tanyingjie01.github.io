@@ -28,18 +28,11 @@
     "text": "3 让设计退到内容之后\n视觉系统采用温暖的纸张底色、克制而清晰的排版，以及单一的蓝紫色强调色。 导航与元数据容易找到，但文章内容始终是页面中最重要的部分。\n现在，这个模板已经可以逐篇替换为真实的研究笔记。"
   },
   {
-    "objectID": "zh/index.html#当前关注的问题",
-    "href": "zh/index.html#当前关注的问题",
+    "objectID": "zh/index.html",
+    "href": "zh/index.html",
     "title": "Yingjie Tan",
-    "section": "当前关注的问题",
-    "text": "当前关注的问题\n\n这些主题串联起我的实验、文章与阅读笔记。"
-  },
-  {
-    "objectID": "zh/index.html#近期文章",
-    "href": "zh/index.html#近期文章",
-    "title": "Yingjie Tan",
-    "section": "近期文章",
-    "text": "近期文章"
+    "section": "",
+    "text": "个人简介\n我是清华大学求真书院的博士生。我的研究兴趣在于理解机器学习模型与神经网络。 我从观察到的现象出发，分析模型行为的根本原因，并致力于开发高效且具有泛化能力的实用学习方法。 近期，我主要研究 DeepSeek 稀疏注意力（DSA）架构的上下文压缩，以及训练稳定性。 欢迎阅读我的个人博客。\n\n\n\n\n 返回顶部"
   },
   {
     "objectID": "zh/about.html#记录研究也记录思考过程",

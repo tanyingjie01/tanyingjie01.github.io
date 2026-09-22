@@ -1,12 +1,5 @@
 [
   {
-    "listing": "/zh/index.html",
-    "items": [
-      "/zh/posts/random-number-fingerprint-circuit/index.html",
-      "/zh/posts/welcome/index.html"
-    ]
-  },
-  {
     "listing": "/blog.html",
     "items": [
       "/posts/random-number-fingerprint-circuit/index.html",

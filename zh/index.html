@@ -31,19 +31,16 @@ ul.task-list li input[type="checkbox"] {
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
 <link href="../assets/favicon.svg" rel="icon" type="image/svg+xml">
-<script src="../site_libs/quarto-listing/list.min.js"></script>
-<script src="../site_libs/quarto-listing/quarto-listing.js"></script>
 <script src="../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-52aa7558b31972c3b5df7143b6aadf4f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-f03c9bd732892fcadd036e6bb1175dd0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-6c536c7392ff11bb3463f261d04ca9dc.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "language": {
     "search-no-results-text": "没有结果",
@@ -59,92 +56,18 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "搜索"
   }
 }</script>
-<script>
-
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-latest-posts-zh .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
-
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-description','listing-categories','listing-reading-time',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-latest-posts-zh'] = new List('listing-latest-posts-zh', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
 <style>html{ scroll-behavior: smooth; }</style>
 
-  <script defer="" src="../assets/katex/katex.min.js"></script>
-  <script>document.addEventListener("DOMContentLoaded", function () {
- var mathElements = document.getElementsByClassName("math");
- var macros = [];
- for (var i = 0; i < mathElements.length; i++) {
-  var texText = mathElements[i].firstChild;
-  if (mathElements[i].tagName == "SPAN") {
-   katex.render(texText.data, mathElements[i], {
-    displayMode: mathElements[i].classList.contains('display'),
-    throwOnError: false,
-    macros: macros,
-    fleqn: false
-   });
-}}});
-  </script>
-  <link rel="stylesheet" href="../assets/katex/katex.min.css">
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 <meta property="og:title" content="Yingjie Tan">
-<meta property="og:image" content="https://tanyingjie01.github.io/assets/tan-solar-system.svg">
+<meta property="og:description" content="Research notes on language models, interpretability, long-context reasoning, and efficient inference.">
 <meta property="og:site_name" content="Yingjie Tan">
-<meta property="og:image:alt" content="">
 <meta name="twitter:title" content="Yingjie Tan">
-<meta name="twitter:image" content="https://tanyingjie01.github.io/assets/tan-solar-system.svg">
-<meta name="twitter:image:alt" content="">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:description" content="Research notes on language models, interpretability, long-context reasoning, and efficient inference.">
+<meta name="twitter:card" content="summary">
 </head>
 
-<body class="nav-fixed landing-page zh-page quarto-light">
+<body class="nav-fixed landing-page profile-page zh-page quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -203,214 +126,10 @@ window.Quarto = {
 </header>
 
 
-<div class="hero">
-<div class="hero-copy">
-<p class="eyebrow">
-AI 研究 · 持续更新的笔记
-</p>
-<h1>
-理解模型如何<span>传递信息。</span>
-</h1>
-<p class="hero-lede">
-我是 Yingjie Tan。我的研究关注语言模型如何检索、路由、压缩和转换信息， 以及如何让这些机制更容易理解、更高效。
-</p>
-<div class="hero-actions">
-<p><a href="../zh/blog.html" class="btn btn-primary btn-lg">阅读博客</a> <a href="../zh/about.html" class="btn btn-quiet btn-lg">关于我</a></p>
-</div>
-</div>
-<div class="hero-mark tan-galaxy" aria-hidden="true">
-<p><img class="tan-system-image" src="../assets/tan-solar-system.svg" alt=""></p>
-</div>
-</div>
-<div class="home-rule">
-
-</div>
-<div class="home-section research-section">
-<div class="section-intro">
-<p class="section-number">
-01
-</p>
-<section id="当前关注的问题" class="level2">
-<h2 class="anchored" data-anchor-id="当前关注的问题">当前关注的问题</h2>
-<p>
-这些主题串联起我的实验、文章与阅读笔记。
-</p>
+<section id="个人简介" class="level1 personal-profile">
+<h1>个人简介</h1>
+<p>我是清华大学求真书院的博士生。我的研究兴趣在于理解机器学习模型与神经网络。 我从观察到的现象出发，分析模型行为的根本原因，并致力于开发高效且具有泛化能力的实用学习方法。 近期，我主要研究 DeepSeek 稀疏注意力（DSA）架构的上下文压缩，以及训练稳定性。 欢迎阅读我的<a href="../zh/blog.html">个人博客</a>。</p>
 </section>
-</div>
-<div class="research-grid">
-<div class="research-card">
-<p><span class="card-index">A</span></p>
-<section id="信息流" class="level3">
-<h3 class="anchored" data-anchor-id="信息流">信息流</h3>
-<p>哪些表征与计算路径真正决定了模型最终给出的答案？</p>
-</section>
-</div>
-<div class="research-card">
-<p><span class="card-index">B</span></p>
-<section id="稀疏注意力" class="level3">
-<h3 class="anchored" data-anchor-id="稀疏注意力">稀疏注意力</h3>
-<p>模型选择了什么、遗漏了什么，又为什么仍然可能完成正确推理？</p>
-</section>
-</div>
-<div class="research-card">
-<p><span class="card-index">C</span></p>
-<section id="高效上下文" class="level3">
-<h3 class="anchored" data-anchor-id="高效上下文">高效上下文</h3>
-<p>如何压缩长轨迹与 KV cache，同时保留与当前问题相关的证据？</p>
-</section>
-</div>
-</div>
-</div>
-<section class="home-visual-atlas" aria-labelledby="visual-atlas-title">
-<header class="atlas-heading">
-<p class="section-number">
-02
-</p>
-<h2 id="visual-atlas-title" class="anchored">
-用图像理解研究系统
-</h2>
-<p>
-五幅动态地图，串联起我关注的模型结构、信息流与研究问题。
-</p>
-</header>
-<div class="atlas-list">
-<article class="atlas-card atlas-violet">
-<div class="atlas-visual">
-<img class="atlas-image" src="../assets/atlas/transformer-circuit.svg" alt="动态 Transformer 电路图：信号流经注意力与 MLP 模块。">
-</div>
-<div class="atlas-copy">
-<span class="atlas-index">01 · 计算电路</span>
-<h3 class="anchored">
-Transformer 中的信息电路
-</h3>
-<p>
-信息并不是简单地穿过模型；它沿着计算电路被路由、改写、放大，并与其他证据组合。
-</p>
-</div>
-</article>
-<article class="atlas-card atlas-cyan">
-<div class="atlas-visual">
-<img class="atlas-image" src="../assets/atlas/sparse-attention-routing.svg" alt="动态稀疏注意力堆栈：每层由 index head 选择 token，再由主 head 进行推理。">
-</div>
-<div class="atlas-copy">
-<span class="atlas-index">02 · 稀疏路由</span>
-<h3 class="anchored">
-DeepSeek 稀疏注意力架构
-</h3>
-<p>
-在每一层，index head 先选择少量 token，主 head 再围绕这些被路由的证据进行集中推理。
-</p>
-</div>
-</article>
-<article class="atlas-card atlas-amber">
-<div class="atlas-visual">
-<img class="atlas-image" src="../assets/atlas/kv-cache-compression.svg" alt="动态 KV Cache 压缩漏斗：大规模记忆被压缩成紧凑表示。">
-</div>
-<div class="atlas-copy">
-<span class="atlas-index">03 · 上下文压缩</span>
-<h3 class="anchored">
-压缩即智能
-</h3>
-<p>
-KV Cache 压缩的核心，是判断什么可以舍弃、什么必须仍可寻址，以及有效抽象本身是否就是一种智能。
-</p>
-</div>
-</article>
-<article class="atlas-card atlas-blue">
-<div class="atlas-visual">
-<img class="atlas-image" src="../assets/atlas/retrieval-heads.svg" alt="动态检索头图：多个注意力头扫描长上下文，并汇聚到少量证据 token。">
-</div>
-<div class="atlas-copy">
-<span class="atlas-index">04 · 长程检索</span>
-<h3 class="anchored">
-跨越长上下文的检索
-</h3>
-<p>
-一个有效的检索头像望远镜：扫描广阔的记忆空间，分辨少数远端信号，并把正确证据带回当前计算。
-</p>
-</div>
-</article>
-<article class="atlas-card atlas-green">
-<div class="atlas-visual">
-<img class="atlas-image" src="../assets/atlas/causal-intervention.svg" alt="动态因果干预图：一条关键计算路径在多层模型中被高亮。">
-</div>
-<div class="atlas-copy">
-<span class="atlas-index">05 · 因果干预</span>
-<h3 class="anchored">
-寻找真正起作用的路径
-</h3>
-<p>
-当一个被观察到的表征可以被干预，并能与模型行为的可测变化联系起来，可解释性才真正具有因果意义。
-</p>
-</div>
-</article>
-</div>
-</section>
-<div class="home-section writing-section">
-<div class="section-heading-row">
-<div>
-<p class="section-number">
-03
-</p>
-<section id="近期文章" class="level2">
-<h2 class="anchored" data-anchor-id="近期文章">近期文章</h2>
-</section>
-</div>
-<p><a href="../zh/blog.html" class="section-link">查看全部文章 <span aria-hidden="true">↗</span></a></p>
-</div>
-<div id="listing-latest-posts-zh" class="quarto-listing quarto-listing-container-default">
-<div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="JUU3JUEwJTk0JUU3JUE5JUI2" data-listing-date-sort="1788048000000" data-listing-file-modified-sort="1790073755160" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2092">
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="../zh/posts/random-number-fingerprint-circuit/index.html" class="no-external">从模型的随机数指纹出发：<br>一项关于 LLM 推理回路的研究</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('JUU3JUEwJTk0JUU3JUE5JUI2'); return false;">研究</div>
-
-</div>
-<div class="delink listing-description"><a href="../zh/posts/random-number-fingerprint-circuit/index.html" class="no-external">
-一直以来，围绕如何判断 GPT「降智」或者说路由到小模型的讨论层出不穷。一篇 LINUX DO 帖子 提出了一种简单的判断方法：让模型从给定范围中随机选择数字，多次采样它的输出分布，并将其当作统计指纹来识别模型<sup class="margin-note-ref" aria-label="参见右侧注 1">1</sup>。
-</a></div>
-</div>
-<div class="metadata">
-<a href="../zh/posts/random-number-fingerprint-circuit/index.html" class="no-external">
-<div class="listing-date">
-2026年8月30日
-</div>
-<div class="listing-reading-time">11 分钟</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="1" data-categories="JUU2JTgwJTlEJUU4JTgwJTgz" data-listing-date-sort="1787961600000" data-listing-file-modified-sort="1788254104633" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="75">
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="../zh/posts/welcome/index.html" class="no-external">为什么我决定开博客：论我对AI科研与论文的看法</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('JUU2JTgwJTlEJUU4JTgwJTgz'); return false;">思考</div>
-
-</div>
-<div class="delink listing-description"><a href="../zh/posts/welcome/index.html" class="no-external">
-这是一篇用于展示版式的占位文章。在第一篇正式研究笔记发布之前， 它负责呈现完整的长文阅读体验。
-</a></div>
-</div>
-<div class="metadata">
-<a href="../zh/posts/welcome/index.html" class="no-external">
-<div class="listing-date">
-2026年8月29日
-</div>
-<div class="listing-reading-time">1 分钟</div>
-</a>
-</div>
-</div>
-</div>
-<div class="listing-no-matching d-none">没有匹配内容</div>
-</div>
-</div>
-
 
 
 
@@ -418,13 +137,6 @@ KV Cache 压缩的核心，是判断什么可以舍弃、什么必须仍可寻�
 <script src="../assets/language-switch.js?v=20260921-margin-notes"></script>
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
-    const icon = "";
-    const anchorJS = new window.AnchorJS();
-    anchorJS.options = {
-      placement: 'right',
-      icon: icon
-    };
-    anchorJS.add('.anchored');
     const isCodeAnnotation = (el) => {
       for (const clz of el.classList) {
         if (clz.startsWith('code-annotation-')) {                     
