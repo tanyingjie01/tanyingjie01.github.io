@@ -1,6 +1,6 @@
 ---
 title: "从模型的随机数指纹出发：<br>一项关于 LLM 推理回路的研究"
-date: 2026-08-30
+date: 2026-09-22
 author: []
 categories:
   - 研究

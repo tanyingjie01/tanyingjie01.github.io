@@ -1,6 +1,6 @@
 ---
 title: "Inside a Model’s Random-Number Fingerprint: A Special Circuit in LLMs"
-date: 2026-08-30
+date: 2026-09-22
 author: []
 categories:
   - Research
