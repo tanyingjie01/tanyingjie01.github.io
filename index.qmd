@@ -36,7 +36,6 @@ more interpretable and efficient.
 
 <div class="hero-actions">
 [Explore the writing](blog.qmd){.btn .btn-primary .btn-lg}
-[More about me](about.qmd){.btn .btn-quiet .btn-lg}
 </div>
 :::
 

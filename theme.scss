@@ -142,24 +142,18 @@ h4 {
 }
 
 .navbar-brand {
-  position: relative;
-  padding-left: 1.45rem;
-  font-size: 0.97rem;
-  font-weight: 720;
-  letter-spacing: -0.025em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6rem;
+  min-height: 2.6rem;
+  padding: 0;
 }
 
-.navbar-brand::before {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 0.82rem;
-  height: 0.82rem;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0.29rem -0.22rem 0 -0.09rem var(--lime);
-  content: "";
-  transform: translateY(-50%);
+.navbar-logo {
+  width: 1.4rem;
+  height: 1.4rem;
+  max-height: none;
 }
 
 .navbar .navbar-nav {

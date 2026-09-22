@@ -21,6 +21,9 @@ website:
   favicon: assets/favicon.svg
   search: false
   navbar:
+    title: false
+    logo: assets/brand-mark.svg
+    logo-alt: "首页 / Home"
     pinned: true
     collapse: true
     left:
@@ -28,8 +31,6 @@ website:
         text: Home
       - href: blog.qmd
         text: Blog
-      - href: about.qmd
-        text: About
     right:
       - href: zh/index.qmd
         text: 中文
