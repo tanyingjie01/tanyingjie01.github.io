@@ -70,7 +70,7 @@ ul.task-list li input[type="checkbox"] {
     }
 
     const options = {
-      valueNames: ['listing-date','listing-title','listing-description','listing-categories','listing-reading-time',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
+      valueNames: ['listing-date','listing-title','listing-description','listing-categories','listing-reading-time-label',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
       
       searchColumns: ["listing-title","listing-description","listing-categories"],
     };
@@ -289,7 +289,7 @@ window.Quarto = {
     </div>
 </div>
 <div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="JUU3JUEwJTk0JUU3JUE5JUI2" data-listing-date-sort="1790035200000" data-listing-file-modified-sort="1790077304519" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2092">
+<div class="quarto-post image-right" data-index="0" data-categories="JUU3JUEwJTk0JUU3JUE5JUI2" data-listing-date-sort="1790035200000" data-listing-file-modified-sort="1790077785571" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2092">
 <div class="body">
 <h3 class="no-anchor listing-title">
 <a href="../zh/posts/random-number-fingerprint-circuit/index.html" class="no-external">从模型的随机数指纹出发：<br>一项关于 LLM 推理回路的研究</a>
@@ -300,7 +300,7 @@ window.Quarto = {
 
 </div>
 <div class="delink listing-description"><a href="../zh/posts/random-number-fingerprint-circuit/index.html" class="no-external">
-一直以来，围绕如何判断 GPT「降智」或者说路由到小模型的讨论层出不穷。一篇 LINUX DO 帖子 提出了一种简单的判断方法：让模型从给定范围中随机选择数字，多次采样它的输出分布，并将其当作统计指纹来识别模型<sup class="margin-note-ref" aria-label="参见右侧注 1">1</sup>。
+<p>本文从随机数生成中的稳定指纹出发，定位了一类搬运候选信息的注意力头。当答案尚未唯一确定时，这些头表现出跨任务、跨表述的因果作用，并在多种干预下保持稳定。进一步以 Head TV 检测不可信推理，触发额外推理以提升模型表现。</p>
 </a></div>
 </div>
 <div class="metadata">
@@ -308,7 +308,9 @@ window.Quarto = {
 <div class="listing-date">
 2026年9月22日
 </div>
-<div class="listing-reading-time">11 分钟</div>
+<div class="metadata-value listing-reading-time-label">
+阅读时间：30分钟
+</div>
 </a>
 </div>
 </div>

@@ -15,7 +15,7 @@
   <title>从模型的随机数指纹出发：一项关于 LLM 推理回路的研究</title>
   <dc:creator>Yingjie Tan</dc:creator>
   <link>https://tanyingjie01.github.io/zh/posts/random-number-fingerprint-circuit/</link>
-  <description><![CDATA[ 一直以来，围绕如何判断 GPT「降智」或者说路由到小模型的讨论层出不穷。一篇 <a href="https://linux.do/t/topic/2472419">LINUX DO 帖子</a> 提出了一种简单的判断方法：让模型从给定范围中随机选择数字，多次采样它的输出分布，并将其当作统计指纹来识别模型<sup class="margin-note-ref" aria-label="参见右侧注 1">1</sup>。 ]]></description>
+  <description><![CDATA[ 本文从随机数生成中的稳定指纹出发，定位了一类搬运候选信息的注意力头。当答案尚未唯一确定时，这些头表现出跨任务、跨表述的因果作用，并在多种干预下保持稳定。进一步以 Head TV 检测不可信推理，触发额外推理以提升模型表现。 ]]></description>
   <category>研究</category>
   <guid>https://tanyingjie01.github.io/zh/posts/random-number-fingerprint-circuit/</guid>
   <pubDate>Tue, 22 Sep 2026 00:00:00 GMT</pubDate>
