@@ -1,0 +1,111 @@
+---
+lang: zh-CN
+title: "博客"
+description: "记录关于 AI 的研究、思考与观察。"
+page-layout: full
+toc: false
+title-block-style: none
+body-classes: blog-page zh-page
+listing:
+  id: blog-posts-zh
+  contents: posts
+  include:
+    lang: zh-CN
+  sort: "date desc"
+  type: default
+  fields:
+    - date
+    - title
+    - description
+    - categories
+    - reading-time
+  categories: true
+  sort-ui: false
+  filter-ui:
+    - title
+    - description
+    - categories
+  page-size: 20
+  feed:
+    items: 20
+    type: partial
+---
+
+::: {.page-intro .blog-intro}
+<h1 class="visually-hidden">博客</h1>
+
+```{=html}
+<link rel="stylesheet" href="../assets/blog-triad.css">
+<section class="blog-triad" aria-label="博客的三个内容分支">
+  <div class="blog-triad__art">
+    <svg class="blog-triad__svg" viewBox="0 0 1024 1024" role="group" aria-labelledby="blog-triad-title blog-triad-desc">
+      <title id="blog-triad-title">研究、思考与观察</title>
+      <desc id="blog-triad-desc">蓝色的研究箭形与网络、金橙色的思考螺旋与翠绿色的观察之眼，交织成平面的三色纹章。悬停、点击或使用下方按钮，探索三个视角。</desc>
+      <defs>
+        <image id="triad-crystal-art" href="../assets/blog-triad-editorial.webp" width="1024" height="1024"/>
+        <path id="triad-research-region" d="M512 30 L584 130 C726 167 774 293 752 405 C737 482 649 552 545 609 L512 644 L478 603 C346 540 287 487 270 383 C249 286 303 173 440 130 Z"/>
+        <path id="triad-thinking-region" d="M296 441 C174 475 106 576 104 691 C92 827 205 946 352 956 C459 964 539 914 563 843 L544 755 L472 696 L456 594 L388 527 Z"/>
+        <path id="triad-observation-region" d="M740 427 C850 466 918 565 931 690 C949 821 867 921 720 959 C635 978 563 942 525 907 L582 838 L573 702 L547 641 L591 594 L672 552 Z"/>
+        <filter id="triad-region-feather" x="-10%" y="-10%" width="120%" height="120%">
+          <feGaussianBlur stdDeviation="9"/>
+        </filter>
+        <filter id="triad-research-feather" x="-10%" y="-10%" width="120%" height="120%">
+          <feMorphology operator="dilate" radius="12"/>
+          <feGaussianBlur stdDeviation="9"/>
+        </filter>
+        <mask id="triad-research-light" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+          <use href="#triad-research-region" fill="white" filter="url(#triad-research-feather)"/>
+        </mask>
+        <mask id="triad-thinking-light" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+          <use href="#triad-thinking-region" fill="white" filter="url(#triad-region-feather)"/>
+        </mask>
+        <mask id="triad-observation-light" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+          <use href="#triad-observation-region" fill="white" filter="url(#triad-region-feather)"/>
+        </mask>
+      </defs>
+      <use class="blog-triad__base" href="#triad-crystal-art"/>
+      <g class="blog-triad__layer" data-part="research" data-interactive>
+        <use class="blog-triad__highlight" href="#triad-crystal-art" mask="url(#triad-research-light)"/>
+        <use class="blog-triad__hit" href="#triad-research-region"/>
+      </g>
+      <g class="blog-triad__layer" data-part="thinking" data-interactive>
+        <use class="blog-triad__highlight" href="#triad-crystal-art" mask="url(#triad-thinking-light)"/>
+        <use class="blog-triad__hit" href="#triad-thinking-region"/>
+      </g>
+      <g class="blog-triad__layer" data-part="observation" data-interactive>
+        <use class="blog-triad__highlight" href="#triad-crystal-art" mask="url(#triad-observation-light)"/>
+        <use class="blog-triad__hit" href="#triad-observation-region"/>
+      </g>
+    </svg>
+  </div>
+  <div class="blog-triad__copy">
+    <p class="blog-triad__eyebrow"><span>FIELD NOTES</span><span class="blog-triad__edition">三种视角，一条探索之路</span></p>
+    <div class="blog-triad__panels" id="blog-triad-panels" aria-live="polite" aria-atomic="true">
+      <div class="blog-triad__panel is-visible" data-panel="intro" aria-hidden="false">
+        <h2 class="blog-triad__title">研究、思考与观察</h2>
+        <p class="blog-triad__description">从现象出发，在思考中连接线索，<br class="blog-triad__line-break">用研究回应好奇。</p>
+      </div>
+      <div class="blog-triad__panel" data-panel="research" data-part="research" aria-hidden="true">
+        <h2 class="blog-triad__title">研究</h2>
+        <p class="blog-triad__description">发布技术性博客与实验报告，分享阶段性的科研成果，以及支撑结论的方法和证据。</p>
+      </div>
+      <div class="blog-triad__panel" data-panel="thinking" data-part="thinking" aria-hidden="true">
+        <h2 class="blog-triad__title">思考</h2>
+        <p class="blog-triad__description">记录我对 AI 现象与问题的思考，以及在阅读和实践中逐渐形成的理解。</p>
+      </div>
+      <div class="blog-triad__panel" data-panel="observation" data-part="observation" aria-hidden="true">
+        <h2 class="blog-triad__title">观察</h2>
+        <p class="blog-triad__description">整理实验中出现的现象，并写下我对这些现象为何发生的推测。</p>
+      </div>
+    </div>
+    <div class="blog-triad__controls" role="group" aria-label="查看内容分支">
+      <button class="blog-triad__control" type="button" data-part="research" data-interactive aria-controls="blog-triad-panels" aria-pressed="false"><span class="blog-triad__control-index" aria-hidden="true">01</span>研究</button>
+      <button class="blog-triad__control" type="button" data-part="thinking" data-interactive aria-controls="blog-triad-panels" aria-pressed="false"><span class="blog-triad__control-index" aria-hidden="true">02</span>思考</button>
+      <button class="blog-triad__control" type="button" data-part="observation" data-interactive aria-controls="blog-triad-panels" aria-pressed="false"><span class="blog-triad__control-index" aria-hidden="true">03</span>观察</button>
+    </div>
+    <p class="blog-triad__hint"><span class="blog-triad__mouse-hint">移入图形，探索不同视角</span><span class="blog-triad__touch-hint">轻触图形，探索不同视角</span></p>
+  </div>
+</section>
+<script src="../assets/blog-triad.js"></script>
+```
+:::

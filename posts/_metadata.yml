@@ -1,0 +1,16 @@
+# Options inherited by every post in this directory.
+author: "Yingjie Tan"
+freeze: true
+
+toc: true
+toc-title: "On this page"
+toc-depth: 3
+toc-location: left
+
+page-layout: article
+title-block-banner: false
+
+format:
+  html:
+    code-copy: true
+    code-overflow: wrap

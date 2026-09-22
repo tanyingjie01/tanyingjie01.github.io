@@ -1,0 +1,73 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - "*.qmd"
+    - "posts/**/*.qmd"
+    - "zh/**/*.qmd"
+  resources:
+    - "assets/**"
+  preview:
+    host: 127.0.0.1
+    port: 4200
+    browser: false
+
+lang: en
+
+website:
+  title: "Yingjie Tan"
+  site-url: "https://tanyingjie01.github.io"
+  description: "Research notes on language models, interpretability, long-context reasoning, and efficient inference."
+  favicon: assets/favicon.svg
+  search: false
+  navbar:
+    pinned: true
+    collapse: true
+    left:
+      - href: index.qmd
+        text: Home
+      - href: blog.qmd
+        text: Blog
+      - href: about.qmd
+        text: About
+    right:
+      - href: zh/index.qmd
+        text: 中文
+        id: lang-zh
+      - href: index.qmd
+        text: English
+        id: lang-en
+  back-to-top-navigation: true
+  open-graph: true
+  twitter-card: true
+  llms-txt: true
+  page-navigation: true
+  page-footer:
+    left: "© 2026 Yingjie Tan"
+    right: "[Contact me](mailto:tanyj23@mails.tsinghua.edu.cn)"
+    border: false
+
+format:
+  html:
+    theme:
+      - cosmo
+      - theme.scss
+    toc: false
+    html-math-method:
+      method: katex
+      url: /assets/katex/
+    code-copy: true
+    code-overflow: wrap
+    anchor-sections: true
+    smooth-scroll: true
+    citations-hover: true
+    footnotes-hover: true
+    crossrefs-hover: true
+    link-external-icon: false
+    link-external-newwindow: true
+    include-after-body: assets/language-switch.html
+    grid:
+      sidebar-width: 240px
+      body-width: 800px
+      margin-width: 270px
+      gutter-width: 1.75rem

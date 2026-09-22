@@ -1,0 +1,55 @@
+---
+title: "Blog"
+description: "Research, thinking, and observations on AI."
+page-layout: full
+toc: false
+title-block-style: none
+body-classes: blog-page
+listing:
+  id: blog-posts
+  contents: posts
+  include:
+    lang: en
+  sort: "date desc"
+  type: default
+  fields:
+    - date
+    - title
+    - description
+    - categories
+    - reading-time
+  categories: true
+  sort-ui: false
+  filter-ui:
+    - title
+    - description
+    - categories
+  page-size: 20
+  feed:
+    items: 20
+    type: partial
+---
+
+::: {.page-intro .blog-intro}
+<h1 class="visually-hidden">Blog</h1>
+
+```{=html}
+<section class="blog-tree" aria-label="Three branches of the blog">
+  <div class="blog-tree-root">Blog</div>
+  <div class="blog-tree-branches">
+    <article class="blog-tree-branch blog-tree-research">
+      <h2>Research</h2>
+      <p>Technical articles and experiment reports that share research results, methods, and the evidence behind them.</p>
+    </article>
+    <article class="blog-tree-branch blog-tree-thinking">
+      <h2>Thinking</h2>
+      <p>Reflections on AI phenomena and questions, together with the understanding I form through reading and practice.</p>
+    </article>
+    <article class="blog-tree-branch blog-tree-observation">
+      <h2>Observation</h2>
+      <p>Patterns that emerge from experiments, along with my hypotheses about the mechanisms that may produce them.</p>
+    </article>
+  </div>
+</section>
+```
+:::

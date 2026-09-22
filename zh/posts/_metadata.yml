@@ -1,0 +1,17 @@
+# 中文文章共享配置。
+lang: zh-CN
+author: "Yingjie Tan"
+freeze: true
+
+toc: true
+toc-title: "本页目录"
+toc-depth: 3
+toc-location: left
+
+page-layout: article
+title-block-banner: false
+
+format:
+  html:
+    code-copy: true
+    code-overflow: wrap
