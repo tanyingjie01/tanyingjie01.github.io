@@ -258,6 +258,40 @@ h4 {
   color: inherit;
 }
 
+// Simple personal profile ---------------------------------------------------
+body.profile-page {
+  background: #ffffff;
+}
+
+.personal-profile {
+  width: min(calc(100% - 2.5rem), 960px);
+  margin: clamp(2rem, 5vw, 3.5rem) auto;
+  color: #191a20;
+  font-family: "Times New Roman", "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+  letter-spacing: normal;
+}
+
+.personal-profile h1 {
+  margin: 0 0 1.15rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid currentColor;
+  font-family: inherit;
+  font-size: 1.45rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.personal-profile p {
+  margin: 0;
+  font-size: clamp(1.05rem, 2vw, 1.2rem);
+  line-height: 1.75;
+  text-align: justify;
+}
+
+.personal-profile a {
+  text-decoration: underline;
+}
+
 // Homepage hero -------------------------------------------------------------
 .hero {
   display: grid;
