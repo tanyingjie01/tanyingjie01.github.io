@@ -1266,6 +1266,7 @@ html[lang^="zh"] .blog-tree-branch p {
 }
 
 // Listing -------------------------------------------------------------------
+.blog-page #quarto-document-content > .quarto-listing,
 .blog-intro + .quarto-listing-container-default,
 .blog-intro ~ .quarto-listing-container-default,
 .blog-intro ~ #listing-listing,

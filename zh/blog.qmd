@@ -6,6 +6,8 @@ page-layout: full
 toc: false
 title-block-style: none
 body-classes: blog-page zh-page
+# Set to true to restore the artwork and interactive panel.
+show-blog-triad: false
 listing:
   id: blog-posts-zh
   contents: posts
@@ -31,8 +33,10 @@ listing:
     type: partial
 ---
 
-::: {.page-intro .blog-intro}
 <h1 class="visually-hidden">博客</h1>
+
+:::: {.content-visible when-meta="show-blog-triad"}
+::: {.page-intro .blog-intro}
 
 ```{=html}
 <link rel="stylesheet" href="../assets/blog-triad.css">
@@ -109,3 +113,4 @@ listing:
 <script src="../assets/blog-triad.js"></script>
 ```
 :::
+::::
