@@ -43,7 +43,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-52aa7558b31972c3b5df7143b6aadf4f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-eb819f0f3e967368ef28552893923605.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-b33ef1d71317a4a0ea0e3ae9d51aea62.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "language": {
     "search-no-results-text": "No results",
@@ -273,8 +273,12 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 <p>During an LLM forward pass, QK determines where attention reads from, while OV determines what is written into the residual stream. That information is read and processed by MoE layers before the output layer produces a logit distribution.</p>
 <p>Under this picture, a reasonable hypothesis is that some deep-layer heads encode the range <code>1–300</code>, so downstream computation can read the candidate range. That information is written into the residual stream and shapes the output; the model’s selection preference is written along the way.</p>
 <p>To test this hypothesis, we ran experiments on the MoE model Qwen3-235B-A22B. We constructed nine Chinese prompts similar to <span class="inline-prompt-example">“请从1-300随机选择一个数，只输出这个数字”</span>. All ask the model to select a random number from <code>1–300</code>, but use different semantic phrasings.</p>
-<p>The exact probabilities vary across prompts, but their overall structure remains stable: almost all next-token probability mass is assigned to digits, and <code>1</code> and <code>2</code> consistently form the dominant competition.</p>
-<div class="fingerprint-baseline">
+<p>The exact probabilities vary across prompts, but their overall structure remains stable: almost all next-token probability mass is assigned to digits, and <code>1</code> and <code>2</code> consistently form the dominant competition<sup class="margin-note-ref" aria-label="See Note 3 in the right margin">3</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 3</span></p>
+<p>I suspect that the high probability of <code>1</code> and <code>2</code> relative to other digits reflects the numerical distribution in the pretraining corpus. The pronounced preference between <code>1</code> and <code>2</code>, however, seems more likely to be encoded during post-training. This may explain why many models favor <code>1</code> and <code>2</code> while the exact probabilities form distinct fingerprints.</p>
+</div></div><div class="fingerprint-baseline">
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -388,20 +392,20 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 </section>
 <section id="sec-head-generalization" class="level2 page-columns page-full" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="sec-head-generalization"><span class="header-section-number">3</span> Head Generalization Experiments</h2>
-<p>So far, we have demonstrated important properties of <code>L82.H18</code> in the task of choosing a random number from 1 to 300. A natural question is how well these properties generalize: can <code>L82.H18</code> exhibit a similar ability in other tasks—aggregating and transporting candidate information to support the model’s output—and can it implement more general functions?</p>
-<p>To answer this question, we conducted generalization experiments that varied the candidate type, candidate constraints, and downstream task in turn, investigating the head’s role under a range of scenario settings.</p>
+<p>So far, we have demonstrated the behavior of <code>L82.H18</code> when choosing a random number from 1 to 300. The next question is how well it generalizes: can it <span class="intro-mechanism-blue">aggregate and transport candidate information to help form a model fingerprint</span> in other tasks, and can it serve a more general function?</p>
+<p>To answer this question, we varied candidate types and constraints, downstream tasks, and reasoning length to examine the head’s function across settings.</p>
 <section id="candidate-type-generalization-experiments" class="level3 page-columns page-full" data-number="3.1">
 <h3 data-number="3.1" class="anchored" data-anchor-id="candidate-type-generalization-experiments"><span class="header-section-number">3.1</span> Candidate-Type Generalization Experiments</h3>
 <p>We began with the most direct generalization: if numerical candidates are replaced by another type of candidate, does <code>L82.H18</code> exhibit the same properties? We replaced the original <code>1–300</code> range with an alphabetic range:</p>
 <div class="prompt-example">
 <p>Choose any letter from A to D and output only that letter.</p>
 </div>
-<p>The result closely mirrors the numerical-range experiment. <code>L82.H18</code> assigns <strong>88.62%</strong> attention to the letter <code>D</code>; deleting this prominent attention edge produces as much as <strong>30.3%</strong> TV.</p>
+<p>The result closely mirrors the numerical-range experiment: <code>L82.H18</code> assigns <strong>88.62%</strong> attention to the letter <code>D</code>, and deleting this prominent attention edge produces <strong>30.3%</strong> TV.</p>
 <p>We then expanded the candidates into explicit lists to test whether this property extends to general candidate sets. Every experiment used the same template:</p>
 <div class="prompt-example">
 <p>Choose any item from the candidate list 【…】 and output only the selected item.</p>
 </div>
-<p>Only the objects inside 【…】 were changed. We constructed 40 seven-item lists: 20 canonical lists and 20 non-canonical lists.</p>
+<p>We constructed a range of candidate lists, including canonical and non-canonical lists.</p>
 <ul>
 <li><strong class="list-type-canonical">Canonical lists</strong>: the elements have a strong intrinsic order and are presented in that order, such as the heavenly-stem list 【甲, 乙, 丙, 丁, …】.</li>
 <li><strong class="list-type-noncanonical">Non-canonical lists</strong>: the elements have no stable intrinsic order and are arranged without a canonical sequence, such as the food list 【dumplings, noodles, rice, buns, …】.</li>
@@ -438,12 +442,12 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 </tbody>
 </table>
 </div>
-<p>The results show that <code>L82.H18</code> is substantially stronger on canonical lists. It assigns more attention both to the candidate set as a whole and to the final list item; removing its attention edges to all list-item tokens also produces substantially greater TV for canonical lists<sup class="margin-note-ref" aria-label="See Note 6 in the right margin">6</sup>.</p>
+<p>The results show that <code>L82.H18</code> has a substantially stronger effect on canonical lists: it assigns more attention to them, and removing its attention edges to the list produces greater TV than for non-canonical lists<sup class="margin-note-ref" aria-label="See Note 6 in the right margin">6</sup>.</p>
 
 <div class="no-row-height column-margin column-container"><div class="">
 <p><span class="margin-label">Note 6</span></p>
 <p>The more salient or familiar a list’s ordering relation is, the stronger the effect of <code>L82.H18</code>. For example, the numerical list <code>[1, 2, 3, 4]</code> produces a stronger effect than the seasonal list <code>[spring, summer, autumn, winter]</code>.</p>
-</div></div><p>We further investigated the effect of list order to determine whether this behavior depends on the intrinsic ordering relation among the elements or requires them to be displayed in that order. We completely reversed each list and constructed several additional shuffled arrangements, then observed the behavior of <code>L82.H18</code>. The experiment contained 280 prompts in total.</p>
+</div></div><p>We further investigated whether this behavior depends on the elements’ intrinsic ordering or requires them to be presented in order. We completely reversed each list and constructed several shuffled arrangements, then observed <code>L82.H18</code>.</p>
 <div class="fingerprint-baseline">
 <div class="table-responsive">
 <table class="table order-comparison-table">
@@ -533,12 +537,8 @@ Shuffled
 </table>
 </div>
 </div>
-<p>Overall, list order has little effect. Attention and TV remain essentially unchanged across the original, reversed, and shuffled non-canonical lists. Only fully reversing the canonical lists produces a noticeable decline in TV, which nevertheless remains substantially higher than under every non-canonical condition. Canonical lists retain relatively high attention and TV across multiple arrangements. This suggests that <code>L82.H18</code> can recognize that a candidate set has a strict intrinsic order, rather than relying only on the order in which the list appears in the prompt, and can carry this information into the downstream residual stream to write the model’s preference<sup class="margin-note-ref" aria-label="See Note 7 in the right margin">7</sup>.</p>
-
-<div class="no-row-height column-margin column-container"><div class="">
-<p><span class="margin-label">Note 7</span></p>
-<p>It remains unclear whether this process arises during pretraining or post-training. My inclination is that, for numerical candidate inputs, the higher probability assigned to <code>1</code> and <code>2</code> than to other digits is determined by the vast distribution of numerical data in the pretraining corpus; however, a model’s pronounced preference between <code>1</code> and <code>2</code> is more likely to be encoded during post-training. This may also explain why all models favor generating <code>1</code> and <code>2</code>, while their exact probabilities form distinct fingerprints.</p>
-</div></div></section>
+<p>Overall, list order has little effect. For non-canonical lists, attention and TV remain essentially unchanged regardless of order. Among canonical lists, only complete reversal produces a noticeable decline in TV; attention and TV otherwise stay relatively high across arrangements. This suggests that <code>L82.H18</code> can recognize a candidate set’s strict intrinsic order rather than relying only on the order in which the list appears in the prompt.</p>
+</section>
 <section id="candidate-constraint-generalization-experiments" class="level3 page-columns page-full" data-number="3.2">
 <h3 data-number="3.2" class="anchored" data-anchor-id="candidate-constraint-generalization-experiments"><span class="header-section-number">3.2</span> Candidate-Constraint Generalization Experiments</h3>
 <p>Next, we examine generalization across candidate constraints: when we add constraints to the full candidate set and change the set of allowed choices, does <code>L82.H18</code> shift its attention to the constraints defining that set? We first run a simple experiment, retaining the original <code>1–300</code> range while additionally requiring the selected number to be less than <code>150</code>:</p>

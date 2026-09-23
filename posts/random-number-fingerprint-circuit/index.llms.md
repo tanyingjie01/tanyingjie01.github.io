@@ -52,7 +52,11 @@ Under this picture, a reasonable hypothesis is that some deep-layer heads encode
 
 To test this hypothesis, we ran experiments on the MoE model Qwen3-235B-A22B. We constructed nine Chinese prompts similar to “请从1-300随机选择一个数，只输出这个数字”. All ask the model to select a random number from `1–300`, but use different semantic phrasings.
 
-The exact probabilities vary across prompts, but their overall structure remains stable: almost all next-token probability mass is assigned to digits, and `1` and `2` consistently form the dominant competition.
+The exact probabilities vary across prompts, but their overall structure remains stable: almost all next-token probability mass is assigned to digits, and `1` and `2` consistently form the dominant competition³.
+
+Note 3
+
+I suspect that the high probability of `1` and `2` relative to other digits reflects the numerical distribution in the pretraining corpus. The pronounced preference between `1` and `2`, however, seems more likely to be encoded during post-training. This may explain why many models favor `1` and `2` while the exact probabilities form distinct fingerprints.
 
 |  P(1)  |  P(2)  | P(3\text{–}9) | P(\text{digit}) |
 |:------:|:------:|:-------------:|:---------------:|
@@ -129,9 +133,9 @@ This suggests that the main role of `L82.H18` is to transport candidate-range in
 
 ## 3 Head Generalization Experiments
 
-So far, we have demonstrated important properties of `L82.H18` in the task of choosing a random number from 1 to 300. A natural question is how well these properties generalize: can `L82.H18` exhibit a similar ability in other tasks—aggregating and transporting candidate information to support the model’s output—and can it implement more general functions?
+So far, we have demonstrated the behavior of `L82.H18` when choosing a random number from 1 to 300. The next question is how well it generalizes: can it aggregate and transport candidate information to help form a model fingerprint in other tasks, and can it serve a more general function?
 
-To answer this question, we conducted generalization experiments that varied the candidate type, candidate constraints, and downstream task in turn, investigating the head’s role under a range of scenario settings.
+To answer this question, we varied candidate types and constraints, downstream tasks, and reasoning length to examine the head’s function across settings.
 
 ### 3.1 Candidate-Type Generalization Experiments
 
@@ -139,13 +143,13 @@ We began with the most direct generalization: if numerical candidates are replac
 
 Choose any letter from A to D and output only that letter.
 
-The result closely mirrors the numerical-range experiment. `L82.H18` assigns **88.62%** attention to the letter `D`; deleting this prominent attention edge produces as much as **30.3%** TV.
+The result closely mirrors the numerical-range experiment: `L82.H18` assigns **88.62%** attention to the letter `D`, and deleting this prominent attention edge produces **30.3%** TV.
 
 We then expanded the candidates into explicit lists to test whether this property extends to general candidate sets. Every experiment used the same template:
 
 Choose any item from the candidate list 【…】 and output only the selected item.
 
-Only the objects inside 【…】 were changed. We constructed 40 seven-item lists: 20 canonical lists and 20 non-canonical lists.
+We constructed a range of candidate lists, including canonical and non-canonical lists.
 
 - **Canonical lists**: the elements have a strong intrinsic order and are presented in that order, such as the heavenly-stem list 【甲, 乙, 丙, 丁, …】.
 - **Non-canonical lists**: the elements have no stable intrinsic order and are arranged without a canonical sequence, such as the food list 【dumplings, noodles, rice, buns, …】.
@@ -155,13 +159,13 @@ Only the objects inside 【…】 were changed. We constructed 40 seven-item lis
 | **Canonical lists** | 24.09% | 75.60% | 7.2% |
 | **Non-canonical lists** | 6.56% | 41.89% | 2.7% |
 
-The results show that `L82.H18` is substantially stronger on canonical lists. It assigns more attention both to the candidate set as a whole and to the final list item; removing its attention edges to all list-item tokens also produces substantially greater TV for canonical lists⁶.
+The results show that `L82.H18` has a substantially stronger effect on canonical lists: it assigns more attention to them, and removing its attention edges to the list produces greater TV than for non-canonical lists⁶.
 
 Note 6
 
 The more salient or familiar a list’s ordering relation is, the stronger the effect of `L82.H18`. For example, the numerical list `[1, 2, 3, 4]` produces a stronger effect than the seasonal list `[spring, summer, autumn, winter]`.
 
-We further investigated the effect of list order to determine whether this behavior depends on the intrinsic ordering relation among the elements or requires them to be displayed in that order. We completely reversed each list and constructed several additional shuffled arrangements, then observed the behavior of `L82.H18`. The experiment contained 280 prompts in total.
+We further investigated whether this behavior depends on the elements’ intrinsic ordering or requires them to be presented in order. We completely reversed each list and constructed several shuffled arrangements, then observed `L82.H18`.
 
 | List type | Arrangement | Attention to final list item | Total candidate attention | TV after removing list-attention edges |
 |----|----|----|----|----|
@@ -170,11 +174,7 @@ We further investigated the effect of list order to determine whether this behav
 | **Non-canonical lists** | Reversed | 10.65% | 44.76% | 2.6% |
 |  | Shuffled | 7.54% | 44.40% | 2.5% |
 
-Overall, list order has little effect. Attention and TV remain essentially unchanged across the original, reversed, and shuffled non-canonical lists. Only fully reversing the canonical lists produces a noticeable decline in TV, which nevertheless remains substantially higher than under every non-canonical condition. Canonical lists retain relatively high attention and TV across multiple arrangements. This suggests that `L82.H18` can recognize that a candidate set has a strict intrinsic order, rather than relying only on the order in which the list appears in the prompt, and can carry this information into the downstream residual stream to write the model’s preference⁷.
-
-Note 7
-
-It remains unclear whether this process arises during pretraining or post-training. My inclination is that, for numerical candidate inputs, the higher probability assigned to `1` and `2` than to other digits is determined by the vast distribution of numerical data in the pretraining corpus; however, a model’s pronounced preference between `1` and `2` is more likely to be encoded during post-training. This may also explain why all models favor generating `1` and `2`, while their exact probabilities form distinct fingerprints.
+Overall, list order has little effect. For non-canonical lists, attention and TV remain essentially unchanged regardless of order. Among canonical lists, only complete reversal produces a noticeable decline in TV; attention and TV otherwise stay relatively high across arrangements. This suggests that `L82.H18` can recognize a candidate set’s strict intrinsic order rather than relying only on the order in which the list appears in the prompt.
 
 ### 3.2 Candidate-Constraint Generalization Experiments
 
