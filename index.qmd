@@ -1,130 +1,18 @@
 ---
+lang: en
 page-layout: full
 toc: false
 title: "Yingjie Tan"
 title-block-style: none
-body-classes: landing-page
-listing:
-  id: latest-posts
-  contents: posts
-  include:
-    lang: en
-  sort: "date desc"
-  type: default
-  max-items: 3
-  fields:
-    - date
-    - title
-    - description
-    - categories
-    - reading-time
-  sort-ui: false
-  filter-ui: false
+body-classes: landing-page profile-page
+anchor-sections: false
 ---
 
-:::: {.hero}
-::: {.hero-copy}
-<p class="eyebrow">AI RESEARCH · NOTES IN PROGRESS</p>
+::: {.personal-profile}
+# Personal Profile
 
-<h1>Understanding how models <span>move information.</span></h1>
-
-<p class="hero-lede">
-I’m Yingjie Tan. I study the mechanisms that let language models retrieve,
-route, compress, and transform information—and how to make those mechanisms
-more interpretable and efficient.
-</p>
-
-<div class="hero-actions">
-[Explore the writing](blog.qmd){.btn .btn-primary .btn-lg}
-</div>
+I am a Ph.D. student at Tsinghua University. My research interests lie in understanding machine learning models and neural networks.
+Starting from observed phenomena, I analyze the root causes of model behavior and aim to develop practical learning methods that are efficient and generalizable.
+Recently, I have focused on context compression for DeepSeek Sparse Attention (DSA) architectures and on training stability.
+You can read my [personal blog](blog.qmd).
 :::
-
-::: {.hero-mark .tan-galaxy aria-hidden="true"}
-<img class="tan-system-image" src="/assets/tan-solar-system.svg" alt="">
-:::
-::::
-
-::: {.home-rule}
-:::
-
-:::: {.home-section .research-section}
-::: {.section-intro}
-<p class="section-number">01</p>
-
-## Current questions
-
-<p>The themes that organize my experiments, essays, and reading notes.</p>
-:::
-
-::: {.research-grid}
-::: {.research-card}
-<span class="card-index">A</span>
-
-### Information flow
-
-Which representations and computational paths actually control a model’s
-answer?
-:::
-
-::: {.research-card}
-<span class="card-index">B</span>
-
-### Sparse attention
-
-What gets selected, what gets missed, and why can reasoning still succeed?
-:::
-
-::: {.research-card}
-<span class="card-index">C</span>
-
-### Efficient context
-
-How can long trajectories and KV caches be compressed without losing evidence?
-:::
-:::
-::::
-
-<section class="home-visual-atlas" aria-labelledby="visual-atlas-title">
-  <header class="atlas-heading">
-    <p class="section-number">02</p>
-    <h2 id="visual-atlas-title">Research systems, visualized</h2>
-    <p>Five animated maps of the systems and questions that shape my work.</p>
-  </header>
-  <div class="atlas-list">
-<article class="atlas-card atlas-violet">
-  <div class="atlas-visual"><img class="atlas-image" src="/assets/atlas/transformer-circuit.svg" alt="Animated Transformer circuit with signals moving through attention and MLP blocks."></div>
-  <div class="atlas-copy"><span class="atlas-index">01 · CIRCUITS</span><h3>Transformer circuits</h3><p>Information does not simply pass through a model—it is routed, rewritten, amplified, and combined along a computational circuit.</p></div>
-</article>
-<article class="atlas-card atlas-cyan">
-  <div class="atlas-visual"><img class="atlas-image" src="/assets/atlas/sparse-attention-routing.svg" alt="Animated sparse-attention stack where index heads select tokens before main heads reason over them."></div>
-  <div class="atlas-copy"><span class="atlas-index">02 · ROUTING</span><h3>DeepSeek sparse-attention routing</h3><p>At every layer, an index head chooses a small token set; the main head then performs focused reasoning over that routed evidence.</p></div>
-</article>
-<article class="atlas-card atlas-amber">
-  <div class="atlas-visual"><img class="atlas-image" src="/assets/atlas/kv-cache-compression.svg" alt="Animated KV-cache compression funnel that condenses a large memory bank into a compact representation."></div>
-  <div class="atlas-copy"><span class="atlas-index">03 · COMPRESSION</span><h3>Compression as intelligence</h3><p>KV-cache compression asks what can be discarded, what must remain addressable, and whether useful abstraction is itself a form of intelligence.</p></div>
-</article>
-<article class="atlas-card atlas-blue">
-  <div class="atlas-visual"><img class="atlas-image" src="/assets/atlas/retrieval-heads.svg" alt="Animated retrieval heads scanning a long context and converging on a small set of evidence tokens."></div>
-  <div class="atlas-copy"><span class="atlas-index">04 · RETRIEVAL</span><h3>Retrieval across long context</h3><p>A useful head behaves like a telescope: it scans a wide memory field, resolves a few distant signals, and brings the right evidence into focus.</p></div>
-</article>
-<article class="atlas-card atlas-green">
-  <div class="atlas-visual"><img class="atlas-image" src="/assets/atlas/causal-intervention.svg" alt="Animated causal intervention map that highlights one computational path through a layered model."></div>
-  <div class="atlas-copy"><span class="atlas-index">05 · INTERVENTION</span><h3>Finding the causal path</h3><p>Interpretability becomes actionable when an observed representation can be intervened on and connected to a measurable change in behavior.</p></div>
-</article>
-  </div>
-</section>
-
-:::: {.home-section .writing-section}
-::: {.section-heading-row}
-<div>
-<p class="section-number">03</p>
-
-## Recent writing
-</div>
-
-[View all posts <span aria-hidden="true">↗</span>](blog.qmd){.section-link}
-:::
-
-::: {#latest-posts}
-:::
-::::

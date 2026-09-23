@@ -1851,6 +1851,12 @@ html[lang^="zh"] #quarto-document-content {
   text-decoration-color: rgba(62, 75, 195, 0.36);
 }
 
+#quarto-document-content :is(p, li, figcaption) a.section-ref[href^="#"] {
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-style: normal;
+  white-space: nowrap;
+}
+
 #quarto-document-content h2 {
   margin-top: 3.8rem;
   padding-top: 0.25rem;

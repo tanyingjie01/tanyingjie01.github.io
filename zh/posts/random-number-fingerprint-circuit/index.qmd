@@ -73,7 +73,13 @@ $$
 
 从这一推测出发，我们在 MOE 模型 Qwen3-235B-A22B 上进行实验。我们构造与[「请从1-300随机选择一个数，只输出这个数字」]{.inline-prompt-example}类似的 9 条中文 prompts，其均要求模型从 `1–300` 中随机选择一个数，但采用了不同的语义表述。
 
-实验结果表明，不同 prompts 的具体概率分布会有所变化，但整体结构保持稳定：生成 token 的概率质量几乎全部集中在数字上，且数字 `1` 和 `2` 始终构成最主要的竞争。
+实验结果表明，不同 prompts 的具体概率分布会有所变化，但整体结构保持稳定：生成 token 的概率质量几乎全部集中在数字上，且数字 `1` 和 `2` 始终构成最主要的竞争<sup class="margin-note-ref" aria-label="参见右侧注 3">3</sup>。
+
+::: {.column-margin}
+<span class="margin-label">注 3</span>
+
+我倾向于认为，`1` 和 `2` 的概率高于其他数字，是由预训练语料中的数字分布决定的；但是，模型对数字 `1`、`2` 之间的明显偏好，更像是在后训练中被编码的。这也能解释为什么所有模型都更喜欢生成 `1` 和 `2`，但具体的概率却形成了不同的指纹。
+:::
 
 ::: {.fingerprint-baseline}
 | $P(1)$ | $P(2)$ | $P(3\text{–}9)$ | $P(\text{数字})$ |
@@ -169,9 +175,9 @@ $$
 
 ## Head 泛化实验 {#sec-head-generalization}
 
-目前为止，我们证明了 `L82.H18` 在「从 1–300 中随机选数」这一任务中的重要特性。一个自然的问题是：这种特性的泛化性如何，`L82.H18` 能在其它任务中展现出类似的「将候选信息汇总搬运，以支持模型的输出」这一特性么，以及它是否能够实现更一般的功能？
+目前为止，我们证明了 `L82.H18` 在「从 1–300 中随机选数」这一任务中的特性。接下来一个自然的问题是：这种特性的泛化性如何，`L82.H18` 能在其它任务中展现出类似的<span class="intro-mechanism-blue">「将候选信息汇总搬运，并促进形成模型指纹」</span>这一特性么，以及它是否能够具有更一般的功能？
 
-为此，我们进行了泛化实验，依次改变候选类型、候选约束和下游任务，以探究 head 在各种场景设定下的作用。
+为此，我们进行了泛化实验，改变候选类型与约束、下游任务与推理长度，以探究 head 在各种场景下的功能。
 
 ### 候选类型泛化实验
 
@@ -181,7 +187,7 @@ $$
 请从 A 到 D 中任选一个，只输出这个字母。
 :::
 
-实验结果与数字范围几乎一致。`L82.H18` 对字母 `D` 的注意力为 **88.62%**；删除这条显著注意力边后，TV 高达 **30.3%**。
+实验结果与数字范围几乎一致，`L82.H18` 对字母 `D` 的注意力高达 **88.62%**，删除这条显著注意力边后，TV 达到 **30.3%**。
 
 我们进一步把输入候选扩展为显式列表，以检验该特性能否扩展到一般候选集合。所有实验都使用如下相同模板：
 
@@ -189,7 +195,7 @@ $$
 请从候选列表【……】中任选一个，只输出被选中的候选。
 :::
 
-实验只替换列表【……】中的候选对象。我们构建了 40 种七元素列表，其中包括 20 种规范列表和 20 种非规范列表：
+我们构建了多种候选列表，包括规范列表和非规范列表：
 
 - <strong class="list-type-canonical">规范列表</strong>：列表内元素本身具有强烈的顺序关系，并且按照该顺序排列，例如天干列表【甲、乙、丙、丁……】。
 - <strong class="list-type-noncanonical">非规范列表</strong>：列表元素之间不存在稳定的内在顺序，排列顺序杂乱，例如食物列表【饺子、面条、米饭、包子……】。
@@ -201,15 +207,15 @@ $$
 | <strong class="list-type-noncanonical">非规范列表</strong> | 6.56% | 41.89% | 2.7% |
 :::
 
-实验结果表明，`L82.H18` 在规范列表上的表现显著更强，其分配给全部候选和列表末项的注意力都更高；删除指向全部列表元素的注意力边后，规范列表的 TV 也明显更高<sup class="margin-note-ref" aria-label="参见右侧注 6">6</sup>。
+实验结果表明，`L82.H18` 在规范列表上的表现显著更强，其分配的注意力都更高，删除指向列表的注意力边后，规范列表的 TV 也明显更高<sup class="margin-note-ref" aria-label="参见右侧注 5">5</sup>。
 
 ::: {.column-margin}
-<span class="margin-label">注 6</span>
+<span class="margin-label">注 5</span>
 
 列表具备的序关系越明显或越常见，`L82.H18` 的效果越强。例如，数字列表 `[1, 2, 3, 4]` 强于季节列表 `[春，夏，秋，冬]`。
 :::
 
-我们进一步探究列表顺序的影响，以判断这种影响是基于列表元素内蕴的序关系，还是必须按照顺序列出。我们将列表中的元素完全逆序，并额外构造了多种乱序，而后观察 `L82.H18` 的表现，实验共包含 280 条 prompts。
+我们进一步探究列表顺序的影响，以判断这种影响是基于列表元素内蕴的序关系，还是必须按照顺序列出。我们将列表中的元素完全逆序，并构造了多种乱序，而后观察 `L82.H18` 的表现。
 
 <div class="fingerprint-baseline">
 <div class="table-responsive">
@@ -255,42 +261,36 @@ $$
 </div>
 </div>
 
-总体而言，列表顺序的影响不大。非规范列表在原序、逆序和乱序下的注意力和 TV 基本不变；规范列表中只有完全逆序带来了较明显的 TV 下降，但仍然显著高于所有非规范列表条件。规范列表在多种顺序下仍然保持了较高的注意力和 TV，这说明 `L82.H18` 能够识别候选集合具有严格内在顺序这一类信息，而不是只基于 prompt 输入中列表的顺序，并将信息移动至下游残差流并写入模型偏好<sup class="margin-note-ref" aria-label="参见右侧注 7">7</sup>。
-
-::: {.column-margin}
-<span class="margin-label">注 7</span>
-
-目前尚不清楚这一过程产生在预训练还是后训练中。我倾向于认为，在数字候选输入中，`1` 和 `2` 的概率高于其他数字，是由预训练语料中庞大的数字分布决定的；但是，模型对数字 `1`、`2` 之间的明显偏好，更像是在后训练中被编码的。这也能解释为什么所有模型都更喜欢生成 `1` 和 `2`，但具体的概率却形成了不同的指纹。
-:::
+总体而言，列表顺序的影响不大。非规范列表在任何顺序下的注意力和 TV 基本不变；规范列表中只有完全逆序带来了较明显的 TV 下降，但在多种顺序下仍然保持了较高的注意力和 TV。这说明 `L82.H18` 能够识别候选集合具有内在顺序这类信息，而不是只基于输入中列表的顺序。
 
 ### 候选约束泛化实验
 
-接下来，我们探究候选约束的泛化：当我们在候选全集上增加约束、改变实际允许选择的集合时，`L82.H18` 是否会转而注意用于界定该集合的约束信息？我们首先进行一个简单的实验，保留原任务中的 `1–300` 范围，并额外要求所选数字小于 `150`：
+接下来，我们探究候选约束的泛化：当我们在候选集合上增加约束、改变实际允许选择的集合时，`L82.H18` **是否会转而注意用于界定该集合的约束信息？**我们首先进行一个简单的实验，保留原任务中的 `1–300` 范围，并额外要求所选数字小于 `150`：
 
 ::: {.prompt-example}
 请从1-300中小于150的数里随机选择一个，只输出这个数字
 :::
 
-实验结果显示，在最终回答位置，`L82.H18` 对新增约束「小于 150」中的 `150` 分配了 **83.42%** 的注意力，对原始上界 `300` 的注意力则降至 **9.07%**。删除该 head 在最终回答位置的写入后，TV 高达 **44.4%**。这说明此时 `L82.H18` 的主要读取位置转向新的候选边界，并且其写入仍然会显著影响输出概率分布。
+实验结果显示，在最终回答位置，`L82.H18` 对新增约束 `150` 分配了 **83.42%** 的注意力，对 `300` 的注意力则降至 **9.07%**。删除该 head 在最终回答位置的写入后，TV 高达 **44.4%**。
 
 
-我们进一步将实验扩展到不同类型的规范列表（见[第 3.1 节](#候选类型泛化实验){.no-external target="_self"}），并为每个列表构造 8 种活动子集。我们在题干中额外指定本次允许选择的活动集合，固定使用以下句式：
+我们进一步将实验扩展到 [Sec 3.1](#候选类型泛化实验){.no-external .section-ref target="_self"} 中不同类型的规范列表，并为每个列表构造多个活动子集，在题干中额外指定本次允许选择的集合，固定使用以下句式：
 
 ::: {.prompt-example}
 候选全集为【…】。本次允许集合为【…】。请从允许集合中随机选择一项，只输出答案
 :::
 
-例如，对于字母列表【A、B、C、D、E、F、G、H】，额外指定允许集合为【A、C、E】。我们分别统计最终回答位置的 `L82.H18` 对题干中重述的活动集合和原始全集的注意力，并观察同时删除指向原始全集与活动集合的注意力边后的 TV：
+我们分别统计最终回答位置的 `L82.H18` 对题干中重述的允许集合和原始全集的注意力，并观察同时删除指向原始全集与允许集合的注意力边后的 TV：
 
 <!-- Active-subset means: code/random_number/results/qwen3_235b_h18_original_active_joint_edge_ablation_48_v1/{universe_summary,per_prompt}.csv. Eight prompts per list; TV is drop_both_list_edges_tv_mean: full-vocabulary TV after dropping the union of original-set and active-set attention edges and renormalizing the remaining attention. -->
 <div class="fingerprint-baseline active-subset-comparison">
-<div class="table-responsive" role="region" tabindex="0" aria-label="活动集合实验结果，可横向滚动">
+<div class="table-responsive" role="region" tabindex="0" aria-label="允许集合实验结果，可横向滚动">
 <table class="table active-subset-table">
 <thead>
 <tr>
 <th scope="col">列表</th>
 <th scope="col">列表元素</th>
-<th scope="col">对活动集合的<br>平均注意力</th>
+<th scope="col">对允许集合的<br>平均注意力</th>
 <th scope="col">对原始全集的<br>平均注意力</th>
 <th scope="col">删除注意力边的<br>平均TV</th>
 </tr>
@@ -343,7 +343,7 @@ $$
 </div>
 </div>
 
-实验结果表明，各类列表中，`L82.H18` 对活动集合的平均注意力均高于对原始全集的注意力，两者总体均值分别为 **57.06%** 和 **17.17%**。这说明，`L82.H18` 的确会根据额外约束，将主要注意力转向当前实际允许选择的活动候选。同时删除指向原始全集与活动集合的注意力边后，总体平均 TV 为 **8.1%**，表明对这两处候选信息的联合读取会影响输出概率分布。
+实验结果表明，各类列表中，`L82.H18` 对允许集合的平均注意力均高于对原始全集的注意力，两者总体均值分别为 **57.06%** 和 **17.17%**。这说明，`L82.H18` 的确会根据额外约束，将主要注意力转向当前实际允许选择的活动候选。同时删除指向原始全集与允许集合的注意力边后，总体平均 TV 为 **8.1%**，表明对这两处候选信息的联合读取会影响输出概率分布。
 
 我们进一步进行了实验，构建了更复杂的基于规则的列表筛选任务。这次不再直接列出活动候选集合，而是提供完整列表与筛选规则，要求模型从满足规则的候选中任意选择一项。这里的筛选规则包含内部区间、中点邻域、距离壳层、末端半区、复合排除和配对求和。下方的柱状图展示了每类任务中 `L82.H18` 对列表与规则的平均注意力，以及对应的删边 TV。
 
@@ -353,12 +353,12 @@ $$
 
 实验结果与之前类似，`L82.H18` 的主要注意力都分配给了列表和规则描述。删除指向这些位置的注意力边，并对其余 source 重新归一化后，各类任务的平均 TV 达到 **3.2%–10.0%**，表明这些读取对输出概率分布具有明显的因果影响。
 
-此外，在进行实验的过程中，我们还发现了 head 功能分化的现象。具体来说，尽管先前的实验中我们以 `L82.H18` 作为实验对象，但具备类似功能的 head 不止这一个。对于同层另一个具有类似功能的 head `L82.H29`<sup class="margin-note-ref" aria-label="参见右侧注 8">8</sup>，我们发现在约束选择任务中，两个 head 的读取侧重会发生分化：`L82.H18` 更关注用于界定候选范围的约束，而 `L82.H29` 更关注原始列表中的最后一位候选。
+此外，在进行实验的过程中，我们还发现了 head 功能分化的现象。具体来说，尽管先前的实验中我们以 `L82.H18` 作为实验对象，但具备类似功能的 head 不止这一个。对于同层另一个具有类似功能的 head `L82.H29`<sup class="margin-note-ref" aria-label="参见右侧注 6">6</sup>，我们发现在约束选择任务中，两个 head 的读取侧重会发生分化：`L82.H18` 更关注用于界定候选范围的约束，而 `L82.H29` 更关注原始列表中的最后一位候选。
 
 ::: {.column-margin .metric-note}
-<span class="margin-label">注 8</span>
+<span class="margin-label">注 6</span>
 
-该 head 通过与[第 2.1 节](#head-定位){.no-external target="_self"}类似的全量筛选与复验方法定位。在原始 `1–300` 随机选数任务中，其对 `300` 的平均注意力在全部 6,016 个 heads 中排名第一；中心化全词表 logit $\operatorname{RMS}_{c}(h,l)$ 在所有 heads 中排名第二。
+该 head 通过与 [Sec 2.1](#head-定位){.no-external .section-ref target="_self"} 类似的全量筛选与复验方法定位。在原始 `1–300` 随机选数任务中，其对 `300` 的平均注意力在全部 6,016 个 heads 中排名第一；中心化全词表 logit $\operatorname{RMS}_{c}(h,l)$ 在所有 heads 中排名第二。
 :::
 
 下面这条 prompt 是一个直观的例子：[「给定有序字母列表【A，B，C，D，E，F，G】。B、E与F均不可选择；请在其余字母中任选一项。只输出所选字母，不要解释。答案：」]{.inline-prompt-example}在相同的最终回答位置 `q61`，`L82.H18` 对约束 token（如 `B/E/F`）的总注意力为 **57.60%**；相比之下，`L82.H29` 对原始列表中的末项 `G` 的注意力高达 **45.33%**。删除两者的对应高注意力边的 TV 分别为 **23.9%** 和 **5.0%**。
@@ -386,18 +386,18 @@ $$
 | <strong class="task-type-unique">唯一性任务</strong> | 58.862% | 0.5% |
 :::
 
-在两组任务中，`L82.H18` 都展现出了对 `300` 的显著注意力，但是只有在非唯一性任务中，删除 head 的 TV 才产生显著变化<sup class="margin-note-ref" aria-label="参见右侧注 9">9</sup>。
+在两组任务中，`L82.H18` 都展现出了对 `300` 的显著注意力，但是只有在非唯一性任务中，删除 head 的 TV 才产生显著变化<sup class="margin-note-ref" aria-label="参见右侧注 7">7</sup>。
 
 ::: {.column-margin}
-<span class="margin-label">注 9</span>
+<span class="margin-label">注 7</span>
 
 但是并非所有非唯一性任务都会导致显著的 TV 变化。例如，在「从 1–300 中选出大于 250 的数」这一任务中，TV 影响只有 0.3%。一个合理的猜测是：虽然该任务有多个合法候选，但是这些合法候选的首个输出 token 都必须是 `2`，因此不受到影响。
 :::
 
-因此，`L82.H18` 不能简单地被视为只在随机选择任务中才生效的 head。它在唯一性任务中仍会注意候选边界，这意味着 `L82.H18` 会把范围信息输送到回答位置；但是似乎只有当答案尚未被锁定、模型仍需要在合法候选之间分配概率时，下游任务才会强烈使用这份信息<sup class="margin-note-ref" aria-label="参见右侧注 10">10</sup>。
+因此，`L82.H18` 不能简单地被视为只在随机选择任务中才生效的 head。它在唯一性任务中仍会注意候选边界，这意味着 `L82.H18` 会把范围信息输送到回答位置；但是似乎只有当答案尚未被锁定、模型仍需要在合法候选之间分配概率时，下游任务才会强烈使用这份信息<sup class="margin-note-ref" aria-label="参见右侧注 8">8</sup>。
 
 ::: {.column-margin}
-<span class="margin-label">注 10</span>
+<span class="margin-label">注 8</span>
 
 事实上，我一开始并没有意识到这一点，而是错误地以为当输出需要全局信息时，head 才会生效，但是更多的实验排除了这一猜测。造成这一错误推论的原因是，许多非唯一性任务需要汇聚全局信息才能推测出合法候选。
 :::
@@ -461,7 +461,7 @@ $$
 
 ### 长程思考泛化实验 {#sec-long-thinking-generalization}
 
-[第 3.3 节](#sec-task-type-generalization){.no-external target="_self"}的实验始终关闭 thinking 模式，因此为了判断上述关于 `L82.H18` 生效条件的断言能否泛化到长程思考，我们开启 thinking 模式进行实验，让模型先生成完整 reasoning，而后在回答开始时直接输出答案，最后在 `</think>` 之后的最终回答位置测量 `L82.H18` 的各项指标。我们选取了一些典型任务，覆盖多个正确率梯度，将非 thinking 模式和 thinking 模式的对比结果列于下表：
+[Sec 3.3](#sec-task-type-generalization){.no-external .section-ref target="_self"} 的实验始终关闭 thinking 模式，因此为了判断上述关于 `L82.H18` 生效条件的断言能否泛化到长程思考，我们开启 thinking 模式进行实验，让模型先生成完整 reasoning，而后在回答开始时直接输出答案，最后在 `</think>` 之后的最终回答位置测量 `L82.H18` 的各项指标。我们选取了一些典型任务，覆盖多个正确率梯度，将非 thinking 模式和 thinking 模式的对比结果列于下表：
 
 <div class="fingerprint-baseline">
 <div class="table-responsive">
@@ -550,10 +550,10 @@ $$
 </div>
 </div>
 
-开启 thinking 后，任务正确率上升到将近 100%，列表边 TV 则全部下降到几乎 0%；与此同时，分配给原列表的注意力也急剧降低。这一观察与之前类似，说明当长程思考已经推理出答案时，模型的回答几乎不再依赖 `L82.H18` 搬运原列表信息<sup class="margin-note-ref" aria-label="参见右侧注 11">11</sup>。
+开启 thinking 后，任务正确率上升到将近 100%，列表边 TV 则全部下降到几乎 0%；与此同时，分配给原列表的注意力也急剧降低。这一观察与之前类似，说明当长程思考已经推理出答案时，模型的回答几乎不再依赖 `L82.H18` 搬运原列表信息<sup class="margin-note-ref" aria-label="参见右侧注 9">9</sup>。
 
 ::: {.column-margin}
-<span class="margin-label">注 11</span>
+<span class="margin-label">注 9</span>
 
 另一个值得注意的点是，任务成功率越高，`L82.H18` 对列表的注意力就越小。目前尚不确定是较少的注意力直接导致了较小的 TV，还是注意力与 TV 随任务难度共同变化的表现反映了某种更深层的回路机制。我个人更倾向于后一种解释。
 :::
@@ -571,23 +571,23 @@ $$
 
 结果表明，prompt 或 reasoning 的长度并不会让 `L82.H18` 失效：两个等长占位条件下列表边 TV 仍然大于 5%，只有当加入足以确定答案的推理过程后，正确率上升到 100%，列表注意力和 TV 才同时大幅下降。因此，造成变化的主要因素并不是长程距离，也和是否开启 thinking 无关，而是答案是否已经被上下文锁定。
 
-上述结果进一步加强了[第 3.3 节](#sec-task-type-generalization){.no-external target="_self"}的论述：只要答案未被有效推理或者确定，`L82.H18` 搬运的候选信息就会显著影响输出分布。
+上述结果进一步加强了 [Sec 3.3](#sec-task-type-generalization){.no-external .section-ref target="_self"} 的论述：只要答案未被有效推理或者确定，`L82.H18` 搬运的候选信息就会显著影响输出分布。
 
 <!-- Data sources: code/random_number/results/qwen3_235b_h18_content_tasks_thinking_v1, qwen3_235b_h18_difficulty_spectrum_thinking_v1, qwen3_235b_h18_difficulty_spectrum_thinking_high_attention_v1, and qwen3_235b_h18_information_length_controls_v1. -->
 
 ### 跨 Head 功能泛化实验 {#sec-cross-head-generalization}
 
-在之前的实验中，我们主要以 `L82.H18` 为研究对象。但正如[第 3.1 节](#候选类型泛化实验){.no-external target="_self"}中所指出的，这组 heads 只有在列表内部具备强烈的顺序关系时，才会展现出较强的因果效应，这使得其生效范围较为狭窄。
+在之前的实验中，我们主要以 `L82.H18` 为研究对象。但正如 [Sec 3.1](#候选类型泛化实验){.no-external .section-ref target="_self"} 中所指出的，这组 heads 只有在列表内部具备强烈的顺序关系时，才会展现出较强的因果效应，这使得其生效范围较为狭窄。
 
-一个自然的问题是：对于顺序关系不那么强的列表，是否仍然存在一族 heads，展现出类似的功能？事实上，从 head 功能分化和 Transformer circuit 的角度来看，类似的 heads 时应当存在的<sup class="margin-note-ref" aria-label="参见右侧注 12">12</sup>。基于这一理念，我们进一步进行实验，观察对于一般列表，是否还有类似功能的 heads。
+一个自然的问题是：对于顺序关系不那么强的列表，是否仍然存在一族 heads，展现出类似的功能？事实上，从 head 功能分化和 Transformer circuit 的角度来看，类似的 heads 时应当存在的<sup class="margin-note-ref" aria-label="参见右侧注 10">10</sup>。基于这一理念，我们进一步进行实验，观察对于一般列表，是否还有类似功能的 heads。
 
 ::: {#note-head-information-dispersion .column-margin}
-<span class="margin-label">注 12</span>
+<span class="margin-label">注 10</span>
 
 从更顶层的视角来看，我更愿意将其称为信息分散的一种体现，尤其是模型越大、能力越强时越是如此。多个 heads 可能负责类似的功能，但其生效的具体场景可能有所差异。
 :::
 
-类似[第 2 节](#写入随机数指纹的-head){.no-external target="_self"}的设定，我们构建了多个随机中文单 token 无序候选列表，并分别执行随机选择和确定性选择任务，而后扫描全部 6,016 个 query heads，同样执行消融观察，在 attention 的 `o_proj` 之前将输出切片置零。基于之前的观察，我们将筛选分数定义为
+类似 [Sec 2](#写入随机数指纹的-head){.no-external .section-ref target="_self"} 的设定，我们构建了多个随机中文单 token 无序候选列表，并分别执行随机选择和确定性选择任务，而后扫描全部 6,016 个 query heads，同样执行消融观察，在 attention 的 `o_proj` 之前将输出切片置零。基于之前的观察，我们将筛选分数定义为
 
 ::: {.restored-math-font}
 $$
@@ -603,7 +603,7 @@ $$
 ![图 8：全模型 heads 的 $S(h,l)$ 热力图，其中得分最高的六个 heads 已经被标出。](/assets/figures/random-number/unordered_candidate_head_selection_heatmap.png){fig-alt="94 层乘 64 个 query heads 的筛选得分热力图，高分区域集中在模型晚层，图中标出了严格复验得分最高的六个 heads。"}
 :::
 
-从图中可以看到，得分较高的 heads 均位于深层，浅层和中层 heads 几乎都呈现出纯白色。这符合认知：这类能汇聚信息流并影响下游任务的能力主要只会出现在深层 heads 中。同时，除选出的 heads 外，许多深层 heads 也表现出较弱但可见的 $S(h,l)$ 响应，整体功能响应呈现出零散分布，这也是[注 12](#note-head-information-dispersion){.no-external target="_self"}中所说的信息分散的一种表现。
+从图中可以看到，得分较高的 heads 均位于深层，浅层和中层 heads 几乎都呈现出纯白色。这符合认知：这类能汇聚信息流并影响下游任务的能力主要只会出现在深层 heads 中。同时，除选出的 heads 外，许多深层 heads 也表现出较弱但可见的 $S(h,l)$ 响应，整体功能响应呈现出零散分布，这也是[注 10](#note-head-information-dispersion){.no-external target="_self"}中所说的信息分散的一种表现。
 
 更多的实验表明，这些 heads 与 `L82.H18` 展现出相似作用：答案未决时，它们集中读取候选列表，删除后会明显改变输出分布；答案已经确定时，其因果效应则接近消失。为了保持博客的可读性，我们不再赘述这些实验，在下一节中，我们会使用定位出来的更一般性的head进行干预实验，进一步揭示其工作机制和信息回路。
 
@@ -611,7 +611,7 @@ $$
 
 ## 候选 Head 回路的因果干预实验
 
-经过[第 3 节](#sec-head-generalization){.no-external target="_self"}的一系列实验，我们定位出了一族具有相似功能的 heads，并对其作用形成了一个初步判断
+经过 [Sec 3](#sec-head-generalization){.no-external .section-ref target="_self"} 的一系列实验，我们定位出了一族具有相似功能的 heads，并对其作用形成了一个初步判断
 
 ::: {.research-question .circuit-claim}
 **当答案未被有效推理出来、模型仍需在多个候选之间进行竞争时，下游任务会强烈使用这族 heads 搬运的候选信息**
@@ -627,7 +627,7 @@ $$
 
 从这一视角来看，我们定位出的 heads 共同参与了一大类候选竞争回路：当模型能够正常完成推理时，确定答案的信号占据主导，这类回路的写入难以影响最终输出，删除这些 heads 产生的 TV 很小；当正常推理信号较弱，或者相应回路被截断时，这类回路的写入便会获得更大的因果效应，表现为删除 heads 后的 TV 显著上升。
 
-[第 3.4 节](#sec-long-thinking-generalization){.no-external target="_self"}和[第 3.5 节](#sec-cross-head-generalization){.no-external target="_self"}的实验已经初步支持了这一观点。我们进一步采用主动的干预实验进行检验，我们采用多种方法破坏模型正常推理的回路，而后观察在这些干预下，候选 heads 的因果效应是否会如预期般增强，以及是否会稳定出现。
+[Sec 3.4](#sec-long-thinking-generalization){.no-external .section-ref target="_self"} 和 [Sec 3.5](#sec-cross-head-generalization){.no-external .section-ref target="_self"} 的实验已经初步支持了这一观点。我们进一步采用主动的干预实验进行检验，我们采用多种方法破坏模型正常推理的回路，而后观察在这些干预下，候选 heads 的因果效应是否会如预期般增强，以及是否会稳定出现。
 
 ### 删除输入证据的干预实验
 
@@ -635,7 +635,7 @@ $$
 
 为此，我们选取 DROP、BrowseComp-Plus、2WikiMultiHopQA 和 MuSiQue 这四个数据集，构造反事实的问答基例：每个问题都被改写，正确答案及其他候选均被替换为随机生成的临时代号，代号的拼写和数字不包含任何可供推断的规律，以防止模型利用参数化记忆回答问题。
 
-每个基例分别包含<strong class="evidence-complete">完整证据</strong>和<strong class="evidence-missing">缺乏证据</strong>两个版本，其问题、候选列表和正确代号完全相同，唯一的区别是：<strong class="evidence-missing">缺乏证据</strong>版本删除了输入中推理所需要的关键证据，使模型无法再从给定资料中唯一确定正确候选；<strong class="evidence-complete">完整证据</strong>版本则予以保留。我们在每个输入 prompt 的 thinking 结束、第一个正式回答开始的位置，联合删除[第 3.5 节](#sec-cross-head-generalization)中定位出的 heads 的写入，而后计算干预前后完整词表概率分布的 TV。
+每个基例分别包含<strong class="evidence-complete">完整证据</strong>和<strong class="evidence-missing">缺乏证据</strong>两个版本，其问题、候选列表和正确代号完全相同，唯一的区别是：<strong class="evidence-missing">缺乏证据</strong>版本删除了输入中推理所需要的关键证据，使模型无法再从给定资料中唯一确定正确候选；<strong class="evidence-complete">完整证据</strong>版本则予以保留。我们在每个输入 prompt 的 thinking 结束、第一个正式回答开始的位置，联合删除 [Sec 3.5](#sec-cross-head-generalization){.no-external .section-ref target="_self"} 中定位出的 heads 的写入，而后计算干预前后完整词表概率分布的 TV。
 
 ::: {.fingerprint-baseline .evidence-ablation-table}
 | 数据集 | <span class="evidence-metric-header"><strong>成功率</strong><strong>（<span class="evidence-complete">完整证据</span> → <span class="evidence-missing">缺乏证据</span>）</strong></span> | <span class="evidence-metric-header"><strong>删除 head 的 TV</strong><strong>（<span class="evidence-complete">完整证据</span> → <span class="evidence-missing">缺乏证据</span>）</strong></span> |
@@ -654,7 +654,7 @@ $$
 
 我们进一步从模型的推理过程入手，删除 reasoning 中用于识别正确答案的推理链路，并观察 heads 的因果效应变化，这一干预可以视为破坏推理回路的中段。
 
-我们仍然使用[第 4.1 节](#删除输入证据的干预实验){.no-external target="_self"}中的反事实数据集以及[第 3.5 节](#sec-cross-head-generalization){.no-external target="_self"}定位的 heads，并分别构造<strong class="evidence-complete">完整推理链</strong>和<strong class="evidence-missing">缺失推理链</strong>两个版本。两者区别是：<strong class="evidence-complete">完整推理链</strong>版本注入了模型在完整证据条件下生成的多段 Agent 式 reasoning；<strong class="evidence-missing">缺失推理链</strong>版本则在同一条 reasoning 中，删除从首次提及到最后一次提及正确代号的连续推理段落。两者最后都以“我已经完成推理并且已经知道答案”结束，而后让模型生成正式答案。我们还是在第一个正式回答 token 的位置观察 heads 的效应。
+我们仍然使用 [Sec 4.1](#删除输入证据的干预实验){.no-external .section-ref target="_self"} 中的反事实数据集以及 [Sec 3.5](#sec-cross-head-generalization){.no-external .section-ref target="_self"} 定位的 heads，并分别构造<strong class="evidence-complete">完整推理链</strong>和<strong class="evidence-missing">缺失推理链</strong>两个版本。两者区别是：<strong class="evidence-complete">完整推理链</strong>版本注入了模型在完整证据条件下生成的多段 Agent 式 reasoning；<strong class="evidence-missing">缺失推理链</strong>版本则在同一条 reasoning 中，删除从首次提及到最后一次提及正确代号的连续推理段落。两者最后都以“我已经完成推理并且已经知道答案”结束，而后让模型生成正式答案。我们还是在第一个正式回答 token 的位置观察 heads 的效应。
 
 ::: {.fingerprint-baseline .evidence-ablation-table}
 | 数据集 | <span class="evidence-metric-header"><strong>成功率</strong><strong>（<span class="evidence-complete">完整推理链</span> → <span class="evidence-missing">缺失推理链</span>）</strong></span> | <span class="evidence-metric-header"><strong>删除 head 的 TV</strong><strong>（<span class="evidence-complete">完整推理链</span> → <span class="evidence-missing">缺失推理链</span>）</strong></span> |
@@ -671,10 +671,10 @@ $$
 
 ### 删除检索 Head 的干预实验
 
-之前我们分别从输入侧和推理链破坏了正常推理路径，现在我们考虑截断推理回路的末端：保持问题和输入证据完整，只屏蔽从上下文中搬运答案的 retrieval heads<sup class="margin-note-ref" aria-label="参见右侧注 13">13</sup>。此时虽然原始证据仍然存在于上下文，但是模型失去了利用证据的能力，我们观察这种情况下，候选 heads 的 TV 是否也显著上升。
+之前我们分别从输入侧和推理链破坏了正常推理路径，现在我们考虑截断推理回路的末端：保持问题和输入证据完整，只屏蔽从上下文中搬运答案的 retrieval heads<sup class="margin-note-ref" aria-label="参见右侧注 11">11</sup>。此时虽然原始证据仍然存在于上下文，但是模型失去了利用证据的能力，我们观察这种情况下，候选 heads 的 TV 是否也显著上升。
 
 ::: {.column-margin}
-<span class="margin-label">注 13</span>
+<span class="margin-label">注 11</span>
 
 关于 retrieval heads 的定义和作用，请参考原始论文：[Retrieval Head Mechanistically Explains Long-Context Factuality](https://arxiv.org/abs/2404.15574)。近期我的一些实验观察表明，retrieval heads 的作用是在推理回路的末端、模型已经知道答案时，将其从上下文中搬运到 decode 输出位置。
 :::
@@ -718,15 +718,15 @@ $$
 **在正常推理输出答案后，检测候选 heads 的 TV 值；当 TV 超过阈值时，投入额外的开销继续加强推理。**
 :::
 
-我们还是在 DROP、BrowseComp-Plus、2WikiMultiHopQA 和 MuSiQue 数据集上进行测试，并构造 Agent 式工作流，让模型基于 Search 返回的非完整信息进行推理。在推理结束并输出答案后，我们在最后一轮输出正式开始的位置，删除候选 heads 的写入，并计算删除前后完整词表分布的 TV<sup class="margin-note-ref" aria-label="参见右侧注 14">14</sup>。
+我们还是在 DROP、BrowseComp-Plus、2WikiMultiHopQA 和 MuSiQue 数据集上进行测试，并构造 Agent 式工作流，让模型基于 Search 返回的非完整信息进行推理。在推理结束并输出答案后，我们在最后一轮输出正式开始的位置，删除候选 heads 的写入，并计算删除前后完整词表分布的 TV<sup class="margin-note-ref" aria-label="参见右侧注 12">12</sup>。
 
 ::: {.column-margin}
-<span class="margin-label">注 14</span>
+<span class="margin-label">注 12</span>
 
 由于只需要在正式回答前的最后一个 `\n\n` 位置进行干预，因此前段所有 tokens 均可以复用 prefix cache，这确保了干预检测的低开销。具体实现中，通过 vLLM 的 `llm.collective_rpc` 切换为干预状态。
 :::
 
-根据[第 4 节](#候选-head-回路的因果干预实验){.no-external target="_self"}的实验结果，我们经验性地将 TV 阈值固定为 **6%**。当干预前后的 TV 超过该阈值时，Agent 框架将继续执行工作流，通过 Search 将更多信息输入给模型，并追加一条新的用户 prompt，提示模型之前的输出可能缺乏证据，要求模型继续推理并修正答案。
+根据 [Sec 4](#候选-head-回路的因果干预实验){.no-external .section-ref target="_self"} 的实验结果，我们经验性地将 TV 阈值固定为 **6%**。当干预前后的 TV 超过该阈值时，Agent 框架将继续执行工作流，通过 Search 将更多信息输入给模型，并追加一条新的用户 prompt，提示模型之前的输出可能缺乏证据，要求模型继续推理并修正答案。
 
 ::: {.analysis-figure}
 ![图 9：基于 Head TV 检测的推理增强结果，展示了每个数据集上原始推理成功率、TV 超过阈值的频率、推理增强后的成功率。](/assets/figures/random-number/head_tv_gated_reasoning_improvement.png){fig-alt="四组并列柱状图，展示 2WikiMultiHopQA、BrowseComp-Plus、DROP 和 MuSiQue 上的原始推理成功率、TV 超过阈值的频率与推理增强后的成功率。"}

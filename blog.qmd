@@ -5,6 +5,8 @@ page-layout: full
 toc: false
 title-block-style: none
 body-classes: blog-page
+# Set to true to restore the three-branch introduction.
+show-blog-tree: false
 listing:
   id: blog-posts
   contents: posts
@@ -30,8 +32,10 @@ listing:
     type: partial
 ---
 
-::: {.page-intro .blog-intro}
 <h1 class="visually-hidden">Blog</h1>
+
+:::: {.content-visible when-meta="show-blog-tree"}
+::: {.page-intro .blog-intro}
 
 ```{=html}
 <section class="blog-tree" aria-label="Three branches of the blog">
@@ -53,3 +57,4 @@ listing:
 </section>
 ```
 :::
+::::
