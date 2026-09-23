@@ -1,4 +1,4 @@
-# Inside a Model’s Random-Number Fingerprint: A Special Circuit in LLMs
+# From a Model’s Random-Number Fingerprint: A Study of LLM Reasoning Circuits
 
 Author
 
@@ -6,21 +6,23 @@ Published
 
 September 22, 2026
 
-Discussions about GPT “getting worse” and third-party APIs quietly substituting other models never really stop¹. A [LINUX DO post](https://linux.do/t/topic/2472419) proposed a simple test: repeatedly ask a model to choose a random number from a fixed range, estimate the output distribution, and use that distribution as a statistical fingerprint of the model.
+Discussions about GPT “getting worse” or being routed to a smaller model never really stop. A [LINUX DO post](https://linux.do/t/topic/2472419) proposed a simple test: repeatedly ask a model to choose a random number from a fixed range, estimate its output distribution, and use that distribution as a statistical fingerprint of the model¹.
 
 Note 1
 
-One workaround for requests being routed to mini is described in this [LINUX DO post](https://linux.do/t/topic/2745544). It worked well in my tests with a Pro account. My current guess is that retained conversations may each be subject to an IP check, so keeping more conversations may require a cleaner IP.
+Since the release of Astra, a more popular test seems to be the pelican-riding-a-bicycle prompt; see this [LINUX DO post](https://linux.do/t/topic/2858863).
 
 It is easy to see why this method works and why it is useful. But it also suggests a more interesting research question:
 
 **How is this random-number fingerprint written or generated inside the model?**
 
-To investigate this question, we began with a family of prompts asking the model to “choose a random number from 1 to 300” and intervened on its attention heads. This led to a group of heads that strongly read the numerical upper bound `300`. As we varied the task, their more general role began to emerge: they read the candidate set for the current task. Their writes to the residual stream strongly affect the output only when the answer remains unresolved and downstream computation still needs to arbitrate among candidates.
+To investigate this question, we began with prompts asking the model to “choose a random number from 1 to 300”. We located heads that strongly read the candidate-range boundary `300`. Further experiments gradually revealed their more general role: reading the candidate set in a reasoning task. When the answer has not yet been successfully inferred and the model must still choose among candidates, the information these heads write into the residual stream markedly changes the output.
 
-More surprisingly, in reasoning tasks where the context provides the information needed for the correct answer, manually blocking the retrieval heads that carry that answer markedly amplifies the causal effect of these candidate heads. This suggests that two circuits compete inside the model. When the model can use contextual evidence to infer the answer, the reasoning circuit represented by the retrieval heads is active and the candidate-head circuit is suppressed. Once essential information is masked, the reasoning circuit is severed and the candidate-head circuit begins to dominate the model’s behavior.
+When we manually interrupt the normal reasoning circuit—for example, by deleting a key reasoning chain or blocking retrieval heads—the causal effects of these candidate heads are likewise amplified. This suggests two competing circuits: when the model can reason normally, the reasoning circuit operates while the candidate-head circuit is suppressed;when that circuit is interrupted, the candidate circuit gains causal influence and begins to dominate behavior.
 
-**If this question interests you, read on. The complete post will take about 15 minutes.**
+Based on this observation, we use the candidate heads’ behavior as a signal of whether the model’s reasoning is reliable. When it indicates unreliable reasoning, we trigger additional reasoning. The experiments show that this strategy can detect such cases and improve performance.
+
+**If this question interests you, read on. The complete post will take about 30 minutes.**
 
 ## 1 Background: Non-random Outputs from LLMs
 
@@ -32,25 +34,23 @@ The model does not literally draw a random number during its forward pass. More 
 
 p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 
-With both the prompt and decoding configuration fixed, the model’s next-token probability distribution is therefore fixed as well.
+With both the prompt and decoding configuration fixed, the model’s next-token probability distribution p is fixed as well².
 
 Under sampling, a pseudorandom number generator selects a token from the distribution p. Individual outputs can vary, while the long-run statistical distribution should remain stable. This is why random-number choice can serve as a model fingerprint: different parameter sets assign different but stable probabilities to number tokens, and repeated sampling turns those preferences into a recognizable output distribution.
-
-Under greedy decoding, the decoder simply selects the token with the largest logit. Under ideal deterministic computation, the entire generated sequence should therefore be fixed².
 
 Note 2
 
 Real inference services are not necessarily reproducible bit for bit. Batching and parallel reductions in backends such as vLLM and SGLang can change the order of floating-point operations and introduce numerical differences. See Thinking Machines Lab’s [Defeating Nondeterminism in LLM Inference](https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/).
 
-The question we care about is therefore this: for a fixed family of random-number prompts, what numerical probability distribution forms inside the model, and how is that preference generated over the course of the forward pass?
+The question we really care about is: **How is this probability distribution written and generated during the model’s forward pass?**
 
 ## 2 The Head That Writes the Random-Number Fingerprint
 
-During an LLM forward pass, QK determines where attention reads from, while OV determines what is written into the residual stream. That information is then read and processed by FFN or MoE layers before the output layer turns the resulting state into a logit distribution.
+During an LLM forward pass, QK determines where attention reads from, while OV determines what is written into the residual stream. That information is read and processed by MoE layers before the output layer produces a logit distribution.
 
-Under this simple picture, a reasonable hypothesis for random-number generation is that some middle-to-late-layer heads aggregate global information about `1–300`, allowing downstream computation to understand the range from which it should select. These heads write that information into the residual stream; the range constraint shapes the final output, and the model’s fingerprint preference is encoded somewhere along this path.
+Under this picture, a reasonable hypothesis is that some deep-layer heads encode the range `1–300`, so downstream computation can read the candidate range. That information is written into the residual stream and shapes the output; the model’s selection preference is written along the way.
 
-To test this hypothesis, we ran experiments on Qwen3-235B-A22B. We constructed nine Chinese prompts similar to “请从1-300随机选择一个数，只输出这个数字”. All ask the model to select a random number from `1–300`, but use different semantic phrasings. Every prompt has a length of 28 tokens.
+To test this hypothesis, we ran experiments on the MoE model Qwen3-235B-A22B. We constructed nine Chinese prompts similar to “请从1-300随机选择一个数，只输出这个数字”. All ask the model to select a random number from `1–300`, but use different semantic phrasings.
 
 The exact probabilities vary across prompts, but their overall structure remains stable: almost all next-token probability mass is assigned to digits, and `1` and `2` consistently form the dominant competition.
 
@@ -62,11 +62,7 @@ We therefore use “which head most strongly disrupts this generation preference
 
 ### 2.1 Head localization
 
-Qwen3-235B-A22B has 94 layers and 64 query heads per layer³. We examined each head through ablation: immediately before the layer’s attention `o_proj`, we zeroed the target head’s 128-dimensional output slice at every prefill position while leaving all other computation unchanged.
-
-Note 3
-
-`Qwen3-235B-A22B` is a distinctly depth-heavy architecture. This design introduces additional computational overhead, including a longer serial path through depth and expert communication repeated across layers. Later model designs have tended to add capacity through width—especially by increasing the number of experts—to obtain better parallelism and performance.
+Qwen3-235B-A22B has 94 layers and 64 query heads per layer. We examined each head through ablation: immediately before the layer’s attention `o_proj`, we zeroed the target head’s 128-dimensional output slice at every input-token position while leaving all other computation unchanged.
 
 We measured the change between the original and ablated full-vocabulary distributions with total variation distance:
 
@@ -74,7 +70,7 @@ We measured the change between the original and ablated full-vocabulary distribu
 
 Here, p is the original next-token distribution, while p^{(h,l)} is the distribution after ablating head (h,l). A larger TV means that the head has a stronger causal effect on the current output distribution.
 
-Through a full screen followed by independent validation, we identified `L82.H18` as the most significant head. Its full-vocabulary TV reached `0.34`, the strongest effect among all heads and clearly separated from the runner-up⁴.
+We identified `L82.H18` as the most significant head. Its full-vocabulary TV reached **34.0%**, the strongest effect among all heads⁴.
 
 Note 4
 
@@ -90,9 +86,9 @@ Figure 1(a): Local TV landscape around `L82.H18`.
 
 ![Grouped bar chart comparing probabilities for tokens 1 and 2 in the full model and after ablating L82.H18.](../../assets/figures/random-number/l82_h18_probability_shift.png)
 
-Figure 1(b): P(1) and P(2) in the full model and after ablating `L82.H18`.
+Figure 1(b): Changes in P(1) and P(2) after ablating `L82.H18`.
 
-After ablating `L82.H18`, P(1) decreased for every prompt, with a mean change of `−33.80` percentage points; meanwhile, P(2) changed by an average of `+33.54` percentage points, while the remaining output probabilities were nearly unchanged.
+After ablating `L82.H18`, P(1) decreased for every prompt, with a mean change of **−33.80** percentage points; meanwhile, P(2) changed by an average of **+33.54** percentage points, while the remaining output probabilities were nearly unchanged.
 
 This shows that the identified `L82.H18` does indeed write a strong preference within the set of numerical candidates.
 
@@ -102,38 +98,34 @@ We next examine the attention distribution of `L82.H18`. All prompts used here c
 
 ![Twenty-eight token prompt map arranged in two rows, highlighting 300 at t7 through t9, assistant at t22, think-mode tokens, and the final double-newline answer boundary at t27.](../../assets/figures/random-number/h18_prompt_token_map.png)
 
-Figure 2: The 28-token prompt after applying the chat template.
+Figure 2: The 28-token random-number prompt after applying the chat template.
 
-The most concentrated attention connection of `L82.H18` runs from token `\n\n` at t27 to token `300` at t7–t9, with an average attention mass of 99.56%. Figure 3 shows the attention distributions for five representative prompts.
+The most concentrated attention connection of `L82.H18` runs from token `\n\n` at t27 to token `300` at t7–t9, with an average attention mass of **99.56%**. The figure below shows the attention distributions for five representative prompts.
 
 ![L82.H18 attention across five representative prompts; each row is one prompt and 300 always occupies t7 through t9](../../assets/figures/random-number/h18_q27_attention_heatmap.png)
 
-Figure 3: `L82.H18@q27` attention across five representative prompts. Each row represents one prompt, each column represents a source-token position, and token `300` always occupies t7–t9⁵.
+Figure 3: `L82.H18@q27` attention across five representative prompts. Each row represents one prompt, each column a token position, and token `300` always occupies t7–t9.
 
-Note 5
-
-Most of the attention falls on the final token of `300`. This matches our intuition: because the forward pass proceeds token by token, only the final token’s representation can aggregate the complete information before downstream computation attends to and uses it.
-
-In other words, just before producing the answer, `L82.H18` reads almost exclusively from the numerical upper bound `300` and writes the resulting vector into the residual stream at the answer position.
+In other words, as the model prepares its answer, `L82.H18` reads almost exclusively from the range boundary `300` and writes the resulting vector at the start of the answer.
 
 ### 2.3 Head attention intervention
 
 To determine whether the prominent attention edge actually dominates the output shift, we performed the following `L82.H18` attention interventions on the same prompts:
 
 - **Full model**: no intervention; this is the baseline.
-- **Remove `L82.H18`**: zero the head’s 128-dimensional output at every position.
-- **Remove the `q27→300` attention edges**: zero only the three edges from q27 to t7–t9.
-- **Remove `L82.H18`, then restore the `q27→300` write**: first remove `L82.H18`, then add back at t27 the original residual-write vector contributed predominantly by t7–t9; the other token positions remain ablated.
+- **Remove `L82.H18`**: zero the head’s output at every token position.
+- **Remove the `\n\n → 300` attention edges**: zero only the three edges from q27 to t7–t9.
+- **Remove `L82.H18`, then restore the `\n\n → 300` write**: first remove `L82.H18`, then add back at t27 the original residual-write vector contributed predominantly by t7–t9; the other token positions remain ablated.
 
-The first three experiments test whether the `q27→300` attention edges dominate the behavior of `L82.H18`. The fourth reverses the intervention by restoring the information these edges write into the residual stream, testing whether this can recover the effect of the complete head.
+The first three experiments test whether the `\n\n → 300` attention edges dominate the behavior of `L82.H18`. The fourth restores the information these edges write into the residual stream, testing whether it recovers the effect of the complete head.
 
-![Grouped vertical bar chart showing mean next-token probabilities and full-vocabulary TV under four L82.H18 intervention conditions.](../../assets/figures/random-number/h18_q27_attention_intervention.png)
+![Grouped vertical bar chart showing the probability of generating token 1, the probability of generating token 2, and full-vocabulary TV under four L82.H18 intervention conditions.](../../assets/figures/random-number/h18_q27_attention_intervention.png)
 
-Figure 4: Mean next-token probabilities and full-vocabulary TV under four conditions.
+Figure 4: The probabilities of generating tokens `1` and `2`, and full-vocabulary TV, under four conditions: full model, remove L82.H18, remove \n\n → 300 attention edges, and remove L82.H18 then restore the \n\n → 300 write.
 
-The results show that removing the `q27→300` attention edges reaches **96.95%** of the effect of removing the complete `L82.H18` head. In other words, `q27→300` reproduces nearly the entire head-level causal effect. After removing the complete `L82.H18`, restoring only the residual write dominated by `q27→300` recovers **97.33%** of the original deletion effect.
+The results show that removing the `\n\n → 300` attention edges reaches **96.95%** of the effect of removing the complete `L82.H18` head. After removing `L82.H18`, restoring only the residual write dominated by these edges recovers **97.33%** of the original deletion effect.
 
-This shows that `L82.H18` carries candidate-range information to the final answer position and, in doing so, writes a preference into the residual stream that ultimately appears as the model’s output fingerprint.
+This suggests that the main role of `L82.H18` is to transport candidate-range information to the answer position and thereby help form the model’s output fingerprint.
 
 ## 3 Head Generalization Experiments
 
@@ -314,49 +306,177 @@ At a higher level, I prefer to view this as a form of distributed information, e
 
 Following the setup of [Section 2](#the-head-that-writes-the-random-number-fingerprint), we construct random unordered lists of Chinese single-token candidates and run both random-choice and deterministic-choice tasks. We then scan all 6,016 query heads, ablating each output slice immediately before the attention `o_proj`. Based on the preceding observations, we define the selection score as
 
-S(h)=\max\\\left(\Delta \operatorname{TV}\_h,0\right)\times A_h,
+S(h,l)=\max\\\left(\Delta \operatorname{TV}(h,l),0\right)\times A(h,l),
 
-where \Delta \operatorname{TV}\_h is the head-ablation TV difference between random and deterministic choice, and A_h is attention to the candidate list under random choice. The score requires both candidate-list reading and a causal effect concentrated in the unresolved condition, reducing interference from biases such as syntactic or ICL heads.
+where \Delta \operatorname{TV}(h,l) is the head-ablation TV difference between random and deterministic choice, and A(h,l) is attention to the candidate list under random choice. The score requires both candidate-list reading and a causal effect concentrated in the unresolved condition, reducing interference from biases such as syntactic or ICL heads.
 
-The six highest-scoring heads are `L80.H42`, `L82.H21`, `L85.H49`, `L89.H53`, `L87.H14`, and `L88.H13`. They are also the only heads with S(h)\>1 pp.
+The six highest-scoring heads are `L80.H42`, `L82.H21`, `L85.H49`, `L89.H53`, `L87.H14`, and `L88.H13`. They are also the only heads with S(h,l)\>1 pp.
 
 ![A 94-layer by 64-query-head heatmap of selection scores. High scores concentrate in the late layers, and the six highest-scoring strictly revalidated heads are labeled.](../../assets/figures/random-number/unordered_candidate_head_selection_heatmap.png)
 
-Figure 8: Full-model heatmap of S(h), with the six highest-scoring heads labeled.
+Figure 8: Full-model heatmap of S(h,l), with the six highest-scoring heads labeled.
 
-The higher-scoring heads all lie in deep layers, while shallow and middle-layer heads are almost entirely white. This is consistent with the view that the ability to aggregate information streams and influence downstream computation appears mainly in deep layers. Beyond the selected heads, many late-layer heads also have weaker but visible S(h) responses, producing a dispersed functional pattern. This is another instance of the distributed information described in [Note 12](#note-head-information-dispersion).
+The higher-scoring heads all lie in deep layers, while shallow and middle-layer heads are almost entirely white. This is consistent with the view that the ability to aggregate information streams and influence downstream computation appears mainly in deep layers. Beyond the selected heads, many late-layer heads also have weaker but visible S(h,l) responses, producing a dispersed functional pattern. This is another instance of the distributed information described in [Note 12](#note-head-information-dispersion).
 
-## 4 Further Tests of the Candidate-Competition Circuit
+Further experiments show that these heads have effects similar to `L82.H18`: while the answer remains unresolved, they focus on the candidate list and their ablation substantially changes the output distribution; once the answer is determined, their causal effect nearly disappears. To keep this post readable, we do not detail those experiments here. In the next section, we use these more general heads in intervention experiments to examine their mechanism and information circuit.
 
-The experiments in Section 3 allow us to form a preliminary account of `L82.H18`. When the answer has not been successfully inferred and the model is forced to guess among several valid candidates, `L82.H18` writes candidate information carrying the model’s fingerprint preference into the answer position. This role is not restricted to the original `1–300` random-number task: it generalizes across different list types, candidate ranges, and active candidate sets defined by additional constraints.
+## 4 Causal Interventions on the Candidate-Head Circuit
 
-This section tests that account more closely. Does the candidate-competition pathway become causally important whenever the model cannot directly infer the answer, even when that failure has different causes? We first remove decisive evidence from the problem so that the answer is objectively underdetermined. We then keep the evidence intact but ablate the attention heads responsible for retrieving it, asking whether the candidate pathway gains causal weight in tasks that the intact model can solve correctly.
+The experiments in [Section 3](#sec-head-generalization) identified a family of heads with similar functions and suggested an initial account of their role:
 
-### 4.1 Candidate Betting Under Insufficient Evidence
+**When the answer has not yet been successfully inferred and the model must still choose among multiple candidates, downstream computation relies strongly on the candidate information transported by these heads.**
 
-To make “the model is guessing” behaviorally testable, we construct four types of temporary three-hop archives. The model must follow one of four relation chains—person→badge→room→key, supplier→container→warehouse→seal, researcher→project→server→access code, or courier→route→station→package—and select the unique answer from candidates `A–H`. Each random mapping has four core conditions: decisive evidence repeated near the question, decisive evidence available only in the distant context, the key records for two candidates removed simultaneously, and the answer stated directly before the question. The experiment covers 16 independent mappings, 176 prompts, and 1,040 forward passes.
+This behavior generalizes across candidate lists, constraints on the candidate set, task types, and answers that involve long-form thinking.
 
-Here, “guessing” is not defined by the model’s self-reported confidence. We additionally permute the candidate list and restore the missing relation chain. When decisive evidence is absent, changing only the list order changes the preferred answer in **81.25%** of cases; after the key chain is restored, **93.75%** of cases return to the correct answer. The model is therefore genuinely influenced by the remaining candidates under missing evidence rather than having reached a fixed answer through another route. Notably, 7 of the 16 ambiguous cases still assign at least **90%** top-1 probability to one candidate, so a high-confidence output does not imply sufficient evidence.
+We can also view this result through the lens of Transformer circuits. A model’s forward pass is not determined by one signal: multiple circuits write different signals into the residual stream, and those signals jointly shape the output. One useful way to understand their interaction is:
 
-| Condition                 | `L82.H18` whole-head TV | `L82.H29` whole-head TV |
-|---------------------------|------------------------:|------------------------:|
-| Near, determined          |                  0.105% |                  0.120% |
-| Distant, determined       |                  1.172% |                  2.895% |
-| **Objectively ambiguous** |             **10.470%** |             **11.607%** |
-| Answer stated directly    |                  0.028% |                  0.028% |
+Ordinarily, the strongest signal dominates the model’s behavior. Other signals remain present but are suppressed in the competition. If the dominant circuit weakens or is interrupted, a weaker circuit may gain relative weight and compensate for the missing information. This competition may be especially apparent in larger models whose information representations are more distributed.
 
-Both heads become much more causally important in the objectively ambiguous condition. `L82.H18` and `L82.H29` assign an average of **66.7%** and **65.1%** attention to the candidate list, respectively; deleting only their attention edges to that list produces mean TV values of **10.95%** and **5.45%**. By contrast, when the answer is stated directly, `L82.H18` still assigns **58.8%** attention to the list, yet its whole-head TV is only **0.028%**. Reading the candidate list and having that write actually influence the answer are therefore distinct: downstream computation uses the candidate write strongly only while the answer remains unresolved.
+From this perspective, the heads we found participate in a broad candidate-competition circuit. When the model can reason normally, the signal that determines the answer dominates, and removing the candidate heads produces little TV. When that reasoning signal weakens or its circuit is interrupted, the candidate heads’ writes gain causal influence, and their ablation produces much larger TV.
 
-This conclusion also has a clear boundary. On cases where the evidence is complete but the model naturally fails at distant retrieval, `L82.H18` TV is almost unable to distinguish reliable from unreliable retrieval, and `L82.H29` has only moderate predictive power. These heads are therefore good markers of the specific state in which decisive evidence is missing and the model must still bet among explicit candidates, but they are not universal detectors of every reasoning failure or uncertain state.
+The experiments in [Section 3.4](#sec-long-thinking-generalization) and [Section 3.5](#sec-cross-head-generalization) provide initial support for this account. We now test it with active interventions at three points in the reasoning pathway: the input evidence, the intermediate reasoning chain, and the retrieval heads that carry the answer to the output.
 
-### 4.2 Conditional Takeover After Removing Retrieval Heads
+### 4.1 Removing Input Evidence
 
-The preceding experiment removes evidence from the input itself, so it establishes only that insufficient evidence and high candidate-head TV co-occur. To test for a causal transfer between circuits, we keep both the task and the decisive evidence intact and use 20 retrieval heads identified in an independent experiment as the determined-retrieval pathway R. We denote the candidate-competition pathway by C: for the canonical sequence `A–H`, C consists of `L82.H18/H29`; for randomized lists of Chinese single-token nouns, it consists of `L80.H42/L82.H21/L85.H49/L88.H13`, identified through a new full-head scan. Every prompt is answered correctly and stably by the intact model.
+One direct way to disrupt normal reasoning is to remove the decisive evidence from the input, thereby damaging the start of the reasoning pathway.
 
-Each prompt is run under four conditions: `clean`, retrieval pathway removed (`−R`), candidate pathway removed (`−C`), and both removed (`−R−C`). The key quantity is not the natural effect of removing C, \operatorname{TV}(clean,-C), but its conditional effect after damaging R, \operatorname{TV}(-R,-R-C). A large increase in the latter means that the candidate write has gained causal weight after the retrieval pathway was damaged.
+We construct counterfactual question-answer cases from DROP, BrowseComp-Plus, 2WikiMultiHopQA, and MuSiQue. Each question is rewritten so that the correct answer and other candidates are replaced by randomly generated temporary codes. Neither the spelling nor the numbers in the codes reveal a pattern, preventing the model from answering through parametric memory.
 
-The initial factorial experiment provides conditional support. In the strongest unordered-candidate example, removing C in the natural state produces only **0.016%** TV; after removing R, the conditional TV of the same candidate pathway rises to **42.315%**. The probability of the correct token falls from **99.97%** under `clean` to **49.87%** under `−R`, then recovers to **92.10%** when C is also removed. Thus, once retrieval is damaged, the candidate pathway enters the final competition and, in this example, introduces a competing candidate rather than continuing to transport the original correct answer.
+Each case has a **complete-evidence** version and a **missing-evidence** version. The question, candidate list, and correct code are identical. The sole difference is that the missing-evidence version removes the key input facts needed to identify the correct candidate uniquely. At the point where thinking ends and the first final-answer token begins, we jointly ablate the writes of the heads identified in [Section 3.5](#sec-cross-head-generalization) and measure the full-vocabulary TV between the original and intervened distributions.
 
-This behavior is not a universal hard switch. Three of the four candidate-by-retrieval combinations contain strong conditional increases, but the canonical-sequence-by-retrieval-head combination does not show a stable effect; there are also counterexamples in which retrieval is materially damaged while conditional candidate TV remains below 1%. In a broader sweep over 226 distinct prompts, only eight satisfy the strict criteria of natural candidate TV no greater than 0.5%, retrieval TV at least 5%, and conditional candidate TV at least 5%, with most positives concentrated in four- or five-hop tasks. The current results are therefore better explained by a mixture of parallel writes from determined retrieval, candidate competition, and other backup pathways. Removing retrieval heads can shift causal weight toward candidate writes along some solution paths, but whether takeover occurs—and which candidate head takes over—still depends on the particular prompt and downstream residual state.
+| Dataset | **Success rate(complete → missing evidence)** | **Head-ablation TV(complete → missing evidence)** |
+|----|---:|---:|
+| DROP | **100%**→**7.69%** | **0.639%**→**8.129%** |
+| BrowseComp-Plus | **90%**→**3.33%** | **1.797%**→**6.153%** |
+| 2WikiMultiHopQA | **90.48%**→**0%** | **2.006%**→**6.732%** |
+| MuSiQue | **94.44%**→**0%** | **0.130%**→**7.466%** |
+
+The pattern is consistent across all four datasets. With complete evidence, success is close to **100%** and head-ablation TV is small. Removing decisive evidence sharply lowers success, leaving the model almost unable to infer the answer, while TV rises substantially. This is consistent with the candidate information carried by these heads gaining weight when the input to the normal reasoning circuit is cut off.
+
+### 4.2 Removing the Key Reasoning Chain
+
+Next we intervene on the model’s reasoning itself. We delete the part of the reasoning trace that identifies the correct answer and ask whether the candidate heads become more causally important. This intervention damages the middle of the reasoning pathway.
+
+We use the same counterfactual datasets and candidate heads as above. For each case, we construct a **complete-reasoning** version and a **missing-reasoning** version. The complete version inserts several segments of agent-style reasoning generated by the model with full evidence. In the missing version, we delete the continuous span from the first to the last mention of the correct code within that reasoning. Both versions end with “I have finished reasoning and know the answer,” after which the model produces its final answer. Again, we measure the heads’ effect at the first final-answer token.
+
+| Dataset | **Success rate(complete → missing reasoning)** | **Head-ablation TV(complete → missing reasoning)** |
+|----|---:|---:|
+| DROP | **100%**→**0%** | **1.133%**→**8.428%** |
+| BrowseComp-Plus | **100%**→**0%** | **1.098%**→**5.304%** |
+| 2WikiMultiHopQA | **100%**→**0%** | **0.910%**→**7.956%** |
+| MuSiQue | **100%**→**0%** | **1.454%**→**7.282%** |
+
+After part of the reasoning chain is removed, successful reasoning turns into failure on every trajectory. The mean TV of candidate-head ablation rises from **1.133%** to **7.277%**. This again matches the prediction: interrupting the middle of the reasoning circuit increases the causal weight of candidate information.
+
+### 4.3 Removing Retrieval Heads
+
+The preceding interventions damage the input and the reasoning chain. We now cut off the end of the reasoning circuit: keep the question and evidence intact, but ablate the retrieval heads that bring the answer from context to the output¹³. Although the evidence remains available, the model loses a pathway for using it. We test whether the candidate heads’ TV rises under this condition.
+
+Note 13
+
+For the definition and role of retrieval heads, see [Retrieval Head Mechanistically Explains Long-Context Factuality](https://arxiv.org/abs/2404.15574). Some of my recent experiments suggest that, at the end of a reasoning circuit, retrieval heads transport an answer already identified by the model from context to the decoding position.
+
+Following the method in that paper, we identify the top 20 retrieval heads, about 0.3% of all heads:
+
+`L81.H53`, `L81.H61`, `L79.H52`, `L81.H34`, `L85.H29`, `L79.H59`, `L81.H51`, `L83.H08`, `L61.H51`, `L61.H61`, `L81.H54`, `L76.H39`, `L81.H45`, `L06.H16`, `L79.H63`, `L59.H59`, `L61.H54`, `L82.H25`, `L83.H05`, and `L83.H10`.
+
+Let R denote these retrieval heads and C the previously identified candidate-information heads. We compare four conditions: the intact model (`clean`), removal of only the retrieval circuit (`−R`), removal of only the candidate circuit (`−C`), and removal of both (`−R−C`).
+
+On the same counterfactual datasets, we retain only trajectories answered correctly under `clean` but incorrectly under `−R`. For each trajectory, we examine three TV quantities:
+
+- \operatorname{TV}(\mathit{clean},-R) measures the effect of removing retrieval heads. Because the answer changes from correct to incorrect, we expect this value to be very large.
+- \operatorname{TV}(\mathit{clean},-C) measures the effect of removing candidate heads. With the reasoning circuit intact, we expect it to be small.
+- \operatorname{TV}(-R,-R-C) measures the effect of removing candidate heads after disrupting the reasoning circuit. We expect it to be substantially larger than \operatorname{TV}(\mathit{clean},-C).
+
+| Dataset | \operatorname{TV}(\mathit{clean},-R) | \operatorname{TV}(\mathit{clean},-C) | \operatorname{TV}(-R,-R-C) |
+|----|---:|---:|---:|
+| DROP | **65.507%** | **2.442%** | **7.459%** |
+| BrowseComp-Plus | **41.133%** | **2.376%** | **17.158%** |
+| 2WikiMultiHopQA | **54.411%** | **1.868%** | **10.483%** |
+| MuSiQue | **34.428%** | **2.713%** | **5.042%** |
+
+The results match our expectation. \operatorname{TV}(\mathit{clean},-R) is very large on all four datasets, confirming that the retrieval pathway has been effectively disrupted. Once retrieval heads are ablated, candidate-head TV rises substantially, by between **2.329%** and **14.782%**. The candidate information gains influence after the answer-transport function at the end of the reasoning circuit has been cut off.
+
+Together, these experiments further support competition among circuits. The candidate circuit is suppressed when the normal reasoning circuit is strong, but has a greater effect on the final output when that circuit fails.
+
+## 5 Improving Reasoning by Detecting Head TV
+
+The preceding experiments clarify the mechanism of these heads: their causal effect on the output distribution becomes much stronger when an answer has not been inferred reliably. This suggests a practical question. Can we use that signal to improve the model’s reasoning performance?
+
+**After an ordinary reasoning pass produces an answer, measure the candidate heads’ TV. If it exceeds a threshold, spend additional computation to continue reasoning.**
+
+We test this on DROP, BrowseComp-Plus, 2WikiMultiHopQA, and MuSiQue. An agent-style workflow asks the model to reason from incomplete information returned by Search. Once it has reasoned and produced an answer, we ablate candidate-head writes at the position where the final response begins and measure the full-vocabulary TV before and after ablation¹⁴.
+
+Note 14
+
+Only the final `\n\n` position before the formal answer needs intervention. Earlier tokens can reuse the prefix cache, keeping detection inexpensive. In our implementation, `llm.collective_rpc` in vLLM switches the model into the intervention state.
+
+Based on [Section 4](#sec-candidate-circuit-interventions), we set the TV threshold empirically to **6%**. When TV exceeds it, the agent continues its workflow: Search supplies more information, and a new user prompt tells the model that its previous answer may lack evidence and asks it to reason further and revise the answer.
+
+![Four groups of bars for 2WikiMultiHopQA, BrowseComp-Plus, DROP, and MuSiQue, comparing baseline success, the frequency of TV exceeding the threshold, and success after additional reasoning.](../../assets/figures/random-number/head_tv_gated_reasoning_improvement.png)
+
+Figure 9: Head-TV-gated reasoning enhancement, showing baseline success rate, frequency of TV exceeding the threshold, and success rate after additional reasoning on each dataset.
+
+Across all four datasets, TV identifies trajectories that the model has not reasoned through reliably, and the additional reasoning strategy improves success. Candidate-head TV can thus serve as a signal of unreliable reasoning and trigger a partial repair.
+
+The method has an important limit. It detects unreliable reasoning when the model itself has not formed a stable circuit. If the model reaches a wrong answer through a reasoning path it considers reliable, Head TV may remain low and the error will be missed.
+
+Trajectory A **Detected**
+
+**Dataset** · **ID**  
+MuSiQue · `4hop2__567956_39078_8987_8974`
+
+Question  
+Country B was the only communist country to have an embassy where?
+
+Ground truth  
+Alfredo Stroessner's Paraguay
+
+Model’s reasoning  
+“Given the available evidence, the answer might be Confederate Gen. John Bell Hood.”
+
+Head TV**9.551%**
+
+**Outcome:** The model guessed incorrectly and its reasoning was uncertain. High TV triggered additional reasoning, which produced the correct answer.
+
+Trajectory B **Missed**
+
+**Dataset** · **ID**  
+DROP · `2e82b6a6-8afa-4c30-8bf7-8bd101f9e16e`
+
+Question  
+Which team scored more touchdowns in the fourth quarter?
+
+Ground truth  
+Chargers
+
+Model’s reasoning  
+“The Panthers had two touchdowns, by Gamble and Rosario, so the answer should be the Panthers.”
+
+Head TV**3.169%**
+
+**Outcome:** The model confidently gave a wrong answer. TV did not reach the threshold, so no extra reasoning was triggered.
+
+These two real trajectories illustrate the boundary. In A, the model’s reasoning already contained a tentative guess. Head TV reached `9.551%`, so the system detected it and successfully triggered additional reasoning. In B, the model formed a coherent but incorrect reasoning chain. Despite the wrong answer, Head TV stayed below the threshold and the error was missed.
+
+Head TV can thus serve as a proxy for unreliable reasoning. Uncertainty may also appear in a model’s natural-language reasoning, but our experiments suggest that Head TV captures signals not expressed in words. Other measures, such as output-token entropy, can also respond to unreliable reasoning. Yet such token-level proxies are local and often become informative only later in the thinking process; Head TV can detect uncertainty in the reasoning process as a whole.
+
+[TABLE]
+
+We also measure computation cost: tokens and time spent on baseline and extra reasoning, and the extra cost as a percentage of the baseline. Across all results, an additional **11.1%** in tokens and **14.9%** in time yield a **5.9%** relative performance gain. Head-TV detection itself takes only about **1.9 s** per trajectory on average. The extra reasoning remains somewhat costly, but detection is lightweight.
+
+This experiment turns Head TV from a retrospective mechanistic measure into a useful reasoning gate. It does not generate a better answer directly. Rather, it helps an agent identify when reasoning is unreliable and decide when to change its subsequent strategy to obtain a more trustworthy answer.
+
+## 6 Conclusion and Outlook
+
+Starting from the stable fingerprint in a model’s random-number outputs, we identified a family of heads that transport candidate information. Their causal effect becomes pronounced when the answer has not been uniquely determined and the model must still choose among candidates. This role generalizes across tasks and phrasings, and appears consistently under several interventions that interrupt normal reasoning circuits. Finally, we used Head TV as a signal of unreliable reasoning to trigger additional computation and improve the model’s reasoning performance.
+
+This study does not fully explain how the random-number fingerprint itself is formed. When I first noticed the LINUX DO post, I hoped to trace that formation. But I realized that without examining the training data or training dynamics, the question would be difficult to answer. Even after pretraining, a very small amount of trajectory fine-tuning can greatly change a model’s preferences, further complicating the analysis.
+
+I therefore shifted from the origin of the fingerprint to the model’s information flow, gradually arriving at the results presented here. The work unfolded intermittently over about a month and a half. The most important observations for my own understanding were perhaps the dispersion of information and competition among circuits. The final reasoning-enhancement method is somewhat akin to J-Space: begin with an understanding of the model, then devise a way to constrain its behavior.
+
+Many questions remain. Why does ablating a head have such a large causal effect after the reasoning circuit is interrupted? Softmax is sensitive to logit perturbations: a difference of one logit unit can change the probability distribution substantially. From the perspective of a linear map, however, a one-unit difference in the output logit is only a small perturbation. This seemingly counterintuitive relationship suggests that normal reasoning may somehow stabilize a decision boundary that would otherwise be fragile. Once the reasoning circuit is damaged, that fragility may become visible again.
+
+Understanding such effects is part of understanding the model. So is asking whether the circuits identified here persist under sparse attention or linear attention. These questions remain for future work.
 
 Back to top

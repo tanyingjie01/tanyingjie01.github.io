@@ -72,7 +72,7 @@ Qwen3-235B-A22B 共有 94 层、每层 64 个 query heads。我们对每个 head
 
 其中 p 是原始下一 token 分布，p^{(h,l)} 是删除 head (h,l) 后的分布。TV 越大，说明这个 head 对当前输出分布的因果影响越强。
 
-通过「全量粗筛 + 独立复验」，我们定位到最显著的 head 为 `L82.H18`；其全词表 TV 达到 `0.34`，在所有 heads 中最强，并且与第二名拉开了显著差距⁴。
+通过实验，我们定位到最显著的 head 为 `L82.H18`，其全词表 TV 达到 **34.0%**，在所有 heads 中最强⁴。
 
 注 4
 
@@ -88,9 +88,9 @@ Qwen3-235B-A22B 共有 94 层、每层 64 个 query heads。我们对每个 head
 
 ![Grouped bar chart comparing probabilities for tokens 1 and 2 in the full model and after ablating L82.H18.](../../../assets/figures/random-number/l82_h18_probability_shift.png)
 
-图 1(b)：完整模型与删除 `L82.H18` 后的 P(1) 和 P(2)。
+图 1(b)：删除 `L82.H18` 后 P(1) 和 P(2) 变化。
 
-删除 `L82.H18` 后，所有 prompts 的 P(1) 均下降，平均变化为 `−33.80` 个百分点；与此同时，P(2) 平均变化为 `+33.54` 个百分点，其余输出概率几乎不变。
+删除 `L82.H18` 后，所有 prompts 的 P(1) 均下降，平均变化为 **−33.80** 个百分点；与此同时，P(2) 平均变化为 **+33.54** 个百分点，其余输出概率几乎不变。
 
 这说明，我们定位出的 `L82.H18` 的确在数字候选内部写入了强烈偏好。
 
@@ -100,38 +100,34 @@ Qwen3-235B-A22B 共有 94 层、每层 64 个 query heads。我们对每个 head
 
 ![Twenty-eight token prompt map arranged in two rows, highlighting 300 at t7 through t9, assistant at t22, think-mode tokens, and the final double-newline answer boundary at t27.](../../../assets/figures/random-number/h18_prompt_token_map.png)
 
-图 2：经 chat template 渲染后的 28-token prompt。
+图 2：经 chat template 渲染后的 28-token 随机数选择 prompt。
 
-实验结果表明，`L82.H18` 最集中的注意力连接是从 token `\n\n`（t27）到 token `300`（t7–t9），注意力质量平均为 99.56%，图 3 展示了其中 5 条代表性 prompts 的注意力分布。
+实验结果表明，`L82.H18` 最集中的注意力连接是从 token `\n\n`（t27）到 token `300`（t7–t9），注意力质量平均为 **99.56%**，下图展示了其中 5 条代表性 prompts 的注意力分布。
 
 ![L82.H18 在五条代表性 prompts 上的注意力热力图；每行是一条 prompt，300 始终位于 t7 至 t9](../../../assets/figures/random-number/h18_q27_attention_heatmap.png)
 
-图 3：`L82.H18@q27` 在 5 条代表性 prompts 上的注意力分布。每行表示一条 prompt，每列表示一个 source token 位置，token `300` 始终在 t7–t9 位置⁵。
+图 3：`L82.H18@q27` 在 5 条代表性 prompts 上的注意力分布。每行表示一条 prompt，每列表示一个 token 位置，token `300` 始终在 t7–t9 位置。
 
-注 5
-
-大部分注意力在 `300` 的最后一个 token，这符合我们的直觉：因为前向传播是逐 token 的，最后一个 token 的表征才可能汇聚全局信息，而后被下游任务注意并使用。
-
-换言之，在模型准备生成答案时，`L82.H18` 几乎只从数值上界 `300` 读取信息，再把得到的向量写入回答位置的残差流。
+换言之，在模型开始准备生成答案时，`L82.H18` 几乎只从范围边界 `300` 读取信息，再把得到的向量写入到回答开始位置。
 
 ### 2.3 Head 注意力干预
 
 为了判断上述显著注意力边是否真正主导输出变化，我们在相同的 prompts 上，进一步进行如下几种对 `L82.H18` 的注意力干预实验：
 
 - **完整模型**：不进行任何干预，作为基线。
-- **删除 `L82.H18`**：将 `L82.H18` 在所有位置的 128 维输出置零。
-- **删除 `q27→300` 注意力边**：只将 q27 指向 t7–t9 的三条边置零。
-- **删除 `L82.H18` 后补回 `q27→300` 写入**：先删除 `L82.H18`，再在 t27 补入主要由 t7–t9 贡献的原始残差写入向量，其余 token 位置仍保持删除。
+- **删除 `L82.H18`**：将 `L82.H18` 在所有 token 位置的输出置零。
+- **删除 `\n\n → 300` 注意力边**：只将 q27 指向 t7–t9 的三条边置零。
+- **删除 `L82.H18` 后补回 `\n\n → 300` 写入**：先删除 `L82.H18`，再在 t27 补入主要由 t7–t9 贡献的原始残差写入向量，其余 token 位置仍保持删除。
 
-前三种实验检验 `q27→300` 注意力边是否主导 `L82.H18` 的行为；第四种实验反向补回这条边写入残差流的信息，检验能否恢复完整 head 的作用。
+前三种实验检验 `\n\n → 300` 注意力边是否主导 `L82.H18` 的行为；第四种实验补回这条边写入残差流的信息，检验能否恢复完整 head 的作用。
 
-![Grouped vertical bar chart showing mean next-token probabilities and full-vocabulary TV under four L82.H18 intervention conditions.](../../../assets/figures/random-number/h18_q27_attention_intervention.png)
+![Grouped vertical bar chart showing the probability of generating token 1, the probability of generating token 2, and full-vocabulary TV under four L82.H18 intervention conditions.](../../../assets/figures/random-number/h18_q27_attention_intervention.png)
 
-图 4：四种条件下的平均下一 token 概率与全词表 TV。
+图 4：四种条件（完整模型、删除 L82.H18、删除 \n\n → 300 注意力边、删除 L82.H18 后补回 \n\n → 300 写入）下生成 token `1` 的概率、生成 token `2` 的概率和全词表 TV。
 
-实验结果表明，删除 `q27→300` 注意力边后，其效应能达到删除完整 `L82.H18` 效应的 **96.95%**。也就是说，几乎全部 head-level 因果效应都能由 `q27→300` 复现；在删除完整 `L82.H18` 后，仅补回 `q27→300` 主导的残差写入，能恢复原始删除效应的 **97.33%**。
+实验结果表明，删除 `\n\n → 300` 注意力边后，其效应能达到删除完整 `L82.H18` 效应的 **96.95%**。在删除完整 `L82.H18` 后，仅补回 `\n\n → 300` 主导的残差写入，能恢复原始删除效应的 **97.33%**。
 
-这说明 `L82.H18` 的作用确实是将候选范围信息搬运到最终回答位置，并在这个过程中将偏好写入残差流，最终在输出中形成模型指纹。
+这说明 `L82.H18` 的主要作用的确是候选范围信息搬运到回答位置，并促进在输出中形成模型指纹。
 
 ## 3 Head 泛化实验
 

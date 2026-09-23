@@ -8,5 +8,5 @@
 - [博客](https://tanyingjie01.github.io/zh/blog.llms.md)
 - [Yingjie Tan](https://tanyingjie01.github.io/index.llms.md)
 - [Blog](https://tanyingjie01.github.io/blog.llms.md)
-- [Inside a Model’s Random-Number Fingerprint: A Special Circuit in LLMs](https://tanyingjie01.github.io/posts/random-number-fingerprint-circuit/index.llms.md)
+- [From a Model’s Random-Number Fingerprint: A Study of LLM Reasoning Circuits](https://tanyingjie01.github.io/posts/random-number-fingerprint-circuit/index.llms.md)
 - [Yingjie Tan](https://tanyingjie01.github.io/zh/index.llms.md)

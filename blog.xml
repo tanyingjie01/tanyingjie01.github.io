@@ -12,10 +12,10 @@
 <generator>quarto-1.10.18</generator>
 <lastBuildDate>Tue, 22 Sep 2026 00:00:00 GMT</lastBuildDate>
 <item>
-  <title>Inside a Model’s Random-Number Fingerprint: A Special Circuit in LLMs</title>
+  <title>From a Model’s Random-Number Fingerprint: A Study of LLM Reasoning Circuits</title>
   <dc:creator>Yingjie Tan</dc:creator>
   <link>https://tanyingjie01.github.io/posts/random-number-fingerprint-circuit/</link>
-  <description><![CDATA[ Discussions about GPT “getting worse” and third-party APIs quietly substituting other models never really stop<sup class="margin-note-ref" aria-label="See Note 1 in the right margin">1</sup>. A <a href="https://linux.do/t/topic/2472419">LINUX DO post</a> proposed a simple test: repeatedly ask a model to choose a random number from a fixed range, estimate the output distribution, and use that distribution as a statistical fingerprint of the model. ]]></description>
+  <description><![CDATA[ Starting from a stable fingerprint in random-number generation, this post identifies attention heads that transport candidate information. Their causal effect appears when the answer is unresolved, generalizes across tasks and phrasings, and persists under interventions that interrupt normal reasoning. Head TV can then detect unreliable reasoning and trigger additional reasoning to improve performance. ]]></description>
   <category>Research</category>
   <guid>https://tanyingjie01.github.io/posts/random-number-fingerprint-circuit/</guid>
   <pubDate>Tue, 22 Sep 2026 00:00:00 GMT</pubDate>
