@@ -2420,6 +2420,29 @@ body.post-observation #quarto-document-content blockquote {
   color: #249b83;
 }
 
+.fig4-condition-baseline,
+.fig4-condition-head-ablation,
+.fig4-condition-edge-ablation,
+.fig4-condition-write-restoration {
+  font-weight: 700;
+}
+
+.fig4-condition-baseline {
+  color: #7f8792;
+}
+
+.fig4-condition-head-ablation {
+  color: #5363ee;
+}
+
+.fig4-condition-edge-ablation {
+  color: #d66f4d;
+}
+
+.fig4-condition-write-restoration {
+  color: #249b83;
+}
+
 .intervention-conditions.retrieval-tv-conditions li {
   color: var(--ink);
 }
@@ -2875,6 +2898,48 @@ figcaption {
 }
 
 // Code, math, figures --------------------------------------------------------
+@font-face {
+  font-family: "KaTeX Main Restored";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/katex/fonts/KaTeX_Main-Regular.woff") format("woff");
+}
+
+@font-face {
+  font-family: "KaTeX Main Restored";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/katex/fonts/KaTeX_Main-Italic.woff") format("woff");
+}
+
+@font-face {
+  font-family: "KaTeX Math Restored";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/katex/fonts/KaTeX_Math-Italic.woff") format("woff");
+}
+
+.restored-math-font .katex {
+  font-family: "KaTeX Main Restored", "Times New Roman", serif;
+}
+
+.restored-math-font .katex .mathnormal {
+  font-family: "KaTeX Math Restored", "Times New Roman", serif;
+}
+
+.restored-math-font .katex .mathit {
+  font-family: "KaTeX Main Restored", "Times New Roman", serif;
+  font-style: italic;
+}
+
+.restored-math-font .katex .mathrm,
+.restored-math-font .katex .mainrm {
+  font-family: "KaTeX Main Restored", "Times New Roman", serif;
+}
+
 pre,
 div.sourceCode {
   border: 0 !important;
