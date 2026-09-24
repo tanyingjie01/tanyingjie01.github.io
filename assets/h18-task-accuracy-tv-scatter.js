@@ -463,7 +463,7 @@
       x1: x(0), y1: y(fitIntercept),
       x2: x(100), y2: y(fitIntercept + fitSlope * 100)
     }));
-    const fitLabelX = 77;
+    const fitLabelX = 84;
     const fitLabel = svgElement("text", {
       x: x(fitLabelX),
       y: y(fitIntercept + fitSlope * fitLabelX + 0.55),

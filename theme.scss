@@ -1854,6 +1854,7 @@ html[lang^="zh"] #quarto-document-content {
 #quarto-document-content :is(p, li, figcaption) a.section-ref[href^="#"] {
   font-family: Inter, "Segoe UI", Arial, sans-serif;
   font-style: normal;
+  font-weight: 760;
   white-space: nowrap;
 }
 
@@ -1978,6 +1979,17 @@ body.post-observation #quarto-document-content blockquote {
   background: rgba(83, 99, 238, 0.13);
   color: var(--research-deep);
   font-weight: 700;
+}
+
+.nowrap-table-header {
+  white-space: nowrap;
+}
+
+.fingerprint-baseline table.task-difficulty-table thead th {
+  padding-left: 0.45rem;
+  padding-right: 0.45rem;
+  font-size: 0.93rem;
+  white-space: nowrap;
 }
 
 .fingerprint-baseline table.table tbody td {
@@ -2253,6 +2265,14 @@ body.post-observation #quarto-document-content blockquote {
   white-space: nowrap;
 }
 
+.fingerprint-baseline table.active-subset-table tbody tr > :nth-child(3) {
+  color: #247a62;
+}
+
+.fingerprint-baseline table.active-subset-table tbody tr > :nth-child(4) {
+  color: #b84949;
+}
+
 .fingerprint-baseline table.active-subset-table td.active-subset-elements {
   font-size: 0.82rem;
   font-weight: 500;
@@ -2449,6 +2469,19 @@ body.post-observation #quarto-document-content blockquote {
   color: #249b83;
 }
 
+.figure-key-blue,
+.figure-key-orange {
+  font-weight: 700;
+}
+
+.figure-key-blue {
+  color: #5363ee;
+}
+
+.figure-key-orange {
+  color: #d66f4d;
+}
+
 .intervention-conditions.retrieval-tv-conditions li {
   color: var(--ink);
 }
@@ -2565,19 +2598,19 @@ body.post-observation #quarto-document-content blockquote {
 }
 
 .h18-scatter-fit line {
-  stroke: #d64045;
+  stroke: #5363ee;
   stroke-width: 2.4;
   stroke-dasharray: 8 7;
   opacity: 0.82;
 }
 
 .h18-scatter-fit text {
-  fill: #d64045;
+  fill: #5363ee;
   stroke: rgba(248, 248, 243, 0.96);
   stroke-width: 5.5px;
   paint-order: stroke;
   font-family: var(--font-family-sans-serif);
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 750;
 }
 
@@ -2874,6 +2907,11 @@ body.post-observation .column-margin.column-container > div {
 .column-margin strong,
 .aside strong {
   color: var(--ink);
+}
+
+.column-margin a.section-ref strong,
+.aside a.section-ref strong {
+  color: inherit;
 }
 
 .margin-label {
