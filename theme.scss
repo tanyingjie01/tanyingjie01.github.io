@@ -2015,24 +2015,24 @@ body.post-observation #quarto-document-content blockquote {
 }
 
 .fingerprint-baseline.tv-repair-cost-table table.table tr > :nth-child(1) {
-  width: 20%;
+  width: 26%;
 }
 
 .fingerprint-baseline.tv-repair-cost-table table.table tr > :nth-child(2) {
-  width: 17%;
+  width: 12%;
 }
 
 .fingerprint-baseline.tv-repair-cost-table table.table tr > :nth-child(3) {
-  width: 24%;
+  width: 25%;
 }
 
 .fingerprint-baseline.tv-repair-cost-table table.table th:nth-child(4) {
-  width: 16%;
+  width: 12%;
   white-space: nowrap;
 }
 
 .fingerprint-baseline.tv-repair-cost-table table.table tr > :nth-child(5) {
-  width: 23%;
+  width: 25%;
 }
 
 .fingerprint-baseline.tv-repair-cost-table table.table tbody td {
@@ -2136,6 +2136,12 @@ body.post-observation #quarto-document-content blockquote {
   border-radius: 0.35rem;
   background: rgba(255, 255, 255, 0.72);
   font-family: var(--reading-serif);
+  color: var(--research-deep);
+  font-weight: 700;
+}
+
+.tv-detection-case-fields .tv-detection-reasoning.tv-detection-reasoning-red {
+  color: #b84949;
 }
 
 .tv-detection-metric {
@@ -2328,12 +2334,33 @@ body.post-observation #quarto-document-content blockquote {
 .retrieval-head-list p {
   margin: 0;
   color: #6489b9;
+  font-size: 0.86rem;
   line-height: 1.7;
 }
 
 .retrieval-head-list code {
   color: inherit;
   background: transparent;
+}
+
+#quarto-document-content code.retrieval-condition-r {
+  color: #b84949;
+}
+
+#quarto-document-content code.retrieval-condition-c {
+  color: #4857d6;
+}
+
+#quarto-document-content code.retrieval-condition-rc {
+  color: inherit;
+}
+
+#quarto-document-content code.retrieval-condition-rc .retrieval-condition-r-part {
+  color: #b84949;
+}
+
+#quarto-document-content code.retrieval-condition-rc .retrieval-condition-c-part {
+  color: #4857d6;
 }
 
 .fingerprint-baseline.retrieval-ablation-table table.table thead th {
@@ -2344,15 +2371,15 @@ body.post-observation #quarto-document-content blockquote {
 }
 
 .retrieval-ablation-table table.table tbody td:nth-child(2) {
-  color: #d66f4d;
+  color: #b84949;
 }
 
 .retrieval-ablation-table table.table tbody td:nth-child(3) {
-  color: #70737d;
+  color: #4857d6;
 }
 
 .retrieval-ablation-table table.table tbody td:nth-child(4) {
-  color: #4857d6;
+  color: #7b5bb5;
 }
 
 .evidence-ablation-table table.table th {
@@ -2446,6 +2473,18 @@ body.post-observation #quarto-document-content blockquote {
   color: #249b83;
 }
 
+.retrieval-tv-conditions li:nth-child(1)::before {
+  color: #b84949;
+}
+
+.retrieval-tv-conditions li:nth-child(2)::before {
+  color: #4857d6;
+}
+
+.retrieval-tv-conditions li:nth-child(3)::before {
+  color: #7b5bb5;
+}
+
 .fig4-condition-baseline,
 .fig4-condition-head-ablation,
 .fig4-condition-edge-ablation,
@@ -2469,9 +2508,14 @@ body.post-observation #quarto-document-content blockquote {
   color: #249b83;
 }
 
+.figure-key-gray,
 .figure-key-blue,
 .figure-key-orange {
   font-weight: 700;
+}
+
+.figure-key-gray {
+  color: #7f8792;
 }
 
 .figure-key-blue {
@@ -2491,11 +2535,11 @@ body.post-observation #quarto-document-content blockquote {
 }
 
 .intervention-conditions.retrieval-tv-conditions li:nth-child(2)::before {
-  color: #70737d;
+  color: #4857d6;
 }
 
 .intervention-conditions.retrieval-tv-conditions li:nth-child(3)::before {
-  color: #4857d6;
+  color: #7b5bb5;
 }
 
 .margin-note-ref {
