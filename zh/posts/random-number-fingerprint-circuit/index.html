@@ -42,7 +42,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-52aa7558b31972c3b5df7143b6aadf4f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-3942c359ae7d97146e073b37b2e1c175.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-4b595544d18c3e8bfe6f30bda29a1728.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "language": {
     "search-no-results-text": "没有结果",
@@ -189,9 +189,9 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#删除输入证据的干预实验" id="toc-删除输入证据的干预实验" class="nav-link" data-scroll-target="#删除输入证据的干预实验"><span class="header-section-number">4.1</span> 回路起始截断：删除输入证据</a></li>
   <li><a href="#删除关键推理链的干预实验" id="toc-删除关键推理链的干预实验" class="nav-link" data-scroll-target="#删除关键推理链的干预实验"><span class="header-section-number">4.2</span> 回路中段截断：删除关键推理链</a></li>
-  <li><a href="#删除检索-head-的干预实验" id="toc-删除检索-head-的干预实验" class="nav-link" data-scroll-target="#删除检索-head-的干预实验"><span class="header-section-number">4.3</span> 回路末端阶段：删除检索 Head</a></li>
+  <li><a href="#删除检索-head-的干预实验" id="toc-删除检索-head-的干预实验" class="nav-link" data-scroll-target="#删除检索-head-的干预实验"><span class="header-section-number">4.3</span> 回路末端截断：删除 Retrieval Head</a></li>
   </ul></li>
-  <li><a href="#sec-tv-triggered-repair" id="toc-sec-tv-triggered-repair" class="nav-link" data-scroll-target="#sec-tv-triggered-repair"><span class="header-section-number">5</span> 基于检测 Head TV 的性能增强推理</a></li>
+  <li><a href="#sec-tv-triggered-repair" id="toc-sec-tv-triggered-repair" class="nav-link" data-scroll-target="#sec-tv-triggered-repair"><span class="header-section-number">5</span> 基于 Head TV 检测的增强推理</a></li>
   <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion"><span class="header-section-number">6</span> 总结与展望</a></li>
   </ul>
 </nav>
@@ -271,12 +271,12 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 <h2 data-number="2" class="anchored" data-anchor-id="写入随机数指纹的-head"><span class="header-section-number">2</span> 写入随机数指纹的 Head</h2>
 <p>在 LLM 前向传播的过程中，QK 决定了注意力从哪里读取，OV 决定了向残差流写入什么，这些信息在 MoE 中被读取和处理，最终在输出层形成 logits 分布。</p>
 <p>对于随机数生成任务，按照上述对 LLM 信息流的理解，一个合理的推测是：模型的深层可能存在一些 heads，它们编码了 <code>1–300</code> 这一范围信息，让下游计算可以读取随机数的选取区间。该信息被写入残差流并形成输出，模型的选择偏好也在这一过程中被写入。</p>
-<p>从这一推测出发，我们在 MOE 模型 Qwen3-235B-A22B 上进行实验。我们构造与<span class="inline-prompt-example">「请从1-300随机选择一个数，只输出这个数字」</span>类似的 9 条中文 prompts，其均要求模型从 <code>1–300</code> 中随机选择一个数，但采用了不同的语义表述。</p>
+<p>从这一推测出发，我们在 MOE 模型 <a href="https://huggingface.co/Qwen/Qwen3-235B-A22B">Qwen3-235B-A22B</a> 上进行实验。我们构造与<span class="inline-prompt-example">「请从1-300随机选择一个数，只输出这个数字」</span>类似的多条中文 prompts，其均要求模型从 <code>1–300</code> 中随机选择一个数，但采用了不同的语义表述。</p>
 <p>实验结果表明，不同 prompts 的具体概率分布会有所变化，但整体结构保持稳定：生成 token 的概率质量几乎全部集中在数字上，且数字 <code>1</code> 和 <code>2</code> 始终构成最主要的竞争<sup class="margin-note-ref" aria-label="参见右侧注 3">3</sup>。</p>
 
 <div class="no-row-height column-margin column-container"><div class="">
 <p><span class="margin-label">注 3</span></p>
-<p>我倾向于认为，<code>1</code> 和 <code>2</code> 的概率高于其他数字，是由预训练语料中的数字分布决定的；但是，模型对数字 <code>1</code>、<code>2</code> 之间的明显偏好，更像是在后训练中被编码的。这也能解释为什么所有模型都更喜欢生成 <code>1</code> 和 <code>2</code>，但具体的概率却形成了不同的指纹。</p>
+<p>我倾向于认为，<code>1</code> 和 <code>2</code> 的概率高于其他数字，是由预训练语料中的数字分布决定的；但是，模型对数字 <code>1</code>、<code>2</code> 之间的明显偏好，更像是在后训练中被编码的。</p>
 </div></div><div class="fingerprint-baseline">
 <table class="caption-top table">
 <thead>
@@ -300,7 +300,7 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 <p>我们接下来将<strong>「哪个 head 会最大程度破坏这种生成偏好」</strong>作为寻找关键 head 的标准。</p>
 <section id="head-定位" class="level3 page-columns page-full" data-number="2.1">
 <h3 data-number="2.1" class="anchored" data-anchor-id="head-定位"><span class="header-section-number">2.1</span> Head 定位</h3>
-<p>Qwen3-235B-A22B 共有 94 层、每层 64 个 query heads。我们对每个 head 进行消融观察，在该层 attention 的 <code>o_proj</code> 之前，将目标 head 在所有输入 token 位置的 128 维输出切片置零，同时保持其他计算不变。</p>
+<p><a href="https://huggingface.co/Qwen/Qwen3-235B-A22B">Qwen3-235B-A22B</a> 共有 94 层、每层 64 个 query heads。我们对每个 head 进行消融观察，在该层 attention 的 <code>o_proj</code> 之前，将目标 head 在所有输入 token 位置的 128 维输出切片置零，同时保持其他计算不变。</p>
 <p>为了衡量消融前后完整词表概率分布的差异，我们使用总变差距离（total variation distance，TV）：</p>
 <div class="restored-math-font">
 <p><span class="math display">
@@ -1179,33 +1179,38 @@ S(h,l)=\max\!\left(\Delta \operatorname{TV}(h,l),0\right)\times A(h,l),
 <tr class="odd">
 <td>DROP</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.69%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.639%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.129%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.64%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.13%</strong></span></td>
 </tr>
 <tr class="even">
 <td>BrowseComp-Plus</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">91.92%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">3.33%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.797%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.153%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.80%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.15%</strong></span></td>
 </tr>
 <tr class="odd">
 <td>2WikiMultiHopQA</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">90.48%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">2.006%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.732%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">2.01%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.73%</strong></span></td>
 </tr>
 <tr class="even">
 <td>MuSiQue</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">94.44%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.130%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.466%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.13%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.47%</strong></span></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>所有数据集都呈现出一致的结果：<span class="intro-mechanism-green">完整证据下的成功率近乎 <strong>100%</strong>，此时删除 heads 后的 TV 较小；</span><span class="intro-mechanism-red">删除关键证据后，模型几乎无法推理，此时 TV 则显著上升。</span>实验结果符合我们的预期，<span class="intro-mechanism-blue">当推理回路的起始被截断时，heads 搬运的候选信息具备显著的因果效应。</span></p>
+<p>所有数据集都呈现出一致的结果：<span class="intro-mechanism-green">完整证据模型的推理几乎总是成功，此时删除 heads 后的 TV 较小；</span><span class="intro-mechanism-red">删除关键证据后，模型几乎无法推理，此时 TV 则显著上升。</span>实验结果符合我们的预期，<span class="intro-mechanism-blue">当推理回路的起始被截断时，heads 搬运的候选信息具备显著的因果效应。</span></p>
 <!-- Data source: code/random_number/results/qwen3_235b_all_four_counterfactual_missing_path_fourhead_v1/counterfactual_report.md. -->
 </section>
 <section id="删除关键推理链的干预实验" class="level3" data-number="4.2">
 <h3 data-number="4.2" class="anchored" data-anchor-id="删除关键推理链的干预实验"><span class="header-section-number">4.2</span> 回路中段截断：删除关键推理链</h3>
-<p>我们进一步从模型的推理过程入手，删除 reasoning 中用于识别正确答案的推理链路，并观察 heads 的因果效应变化，这一干预可以视为破坏推理回路的中段。</p>
-<p>我们仍然使用 <a href="#删除输入证据的干预实验" class="no-external section-ref" target="_self"><strong>Sec 4.1</strong></a> 中的反事实数据集以及 <a href="#sec-cross-head-generalization" class="no-external section-ref" target="_self"><strong>Sec 3.5</strong></a> 定位的 heads，并分别构造<strong class="evidence-complete">完整推理链</strong>和<strong class="evidence-missing">缺失推理链</strong>两个版本。两者区别是：<strong class="evidence-complete">完整推理链</strong>版本注入了模型在完整证据条件下生成的多段 Agent 式 reasoning；<strong class="evidence-missing">缺失推理链</strong>版本则在同一条 reasoning 中，删除从首次提及到最后一次提及正确代号的连续推理段落。两者最后都以“我已经完成推理并且已经知道答案”结束，而后让模型生成正式答案。我们还是在第一个正式回答 token 的位置观察 heads 的效应。</p>
+<p>接下来我们删除模型 thinking 中能够推理出答案的关键链路，并观察 heads 的因果效应变化，这可以被视为破坏推理回路的中段。</p>
+<p>我们仍然使用 <a href="#删除输入证据的干预实验" class="no-external section-ref" target="_self"><strong>Sec 4.1</strong></a> 中的反事实数据集以及 <a href="#sec-cross-head-generalization" class="no-external section-ref" target="_self"><strong>Sec 3.5</strong></a> 定位的 heads，并分别构造<strong class="evidence-complete">完整推理链</strong>和<strong class="evidence-missing">缺失推理链</strong>两个版本：</p>
+<ul>
+<li><strong class="evidence-complete">完整推理链</strong>：注入模型在完整证据条件下生成的多段 Agent 式推理。</li>
+<li><strong class="evidence-missing">缺失推理链</strong>：在推理轨迹中，删除从某一段关键的推理链路。</li>
+</ul>
+<p>两者最后都以「我已经完成推理并且已经知道答案」结束，而后模型生成正式答案，我们仍然在回答开始的位置观察 heads 的效应。</p>
 <div class="fingerprint-baseline evidence-ablation-table">
 <table class="caption-top table">
 <colgroup>
@@ -1224,47 +1229,47 @@ S(h,l)=\max\!\left(\Delta \operatorname{TV}(h,l),0\right)\times A(h,l),
 <tr class="odd">
 <td>DROP</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.133%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.428%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.13%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.43%</strong></span></td>
 </tr>
 <tr class="even">
 <td>BrowseComp-Plus</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.098%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">5.304%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.10%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">5.30%</strong></span></td>
 </tr>
 <tr class="odd">
 <td>2WikiMultiHopQA</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.910%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.956%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.91%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.96%</strong></span></td>
 </tr>
 <tr class="even">
 <td>MuSiQue</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.454%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.282%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.45%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.28%</strong></span></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>可以看到，在删除部分推理链路后，模型在所有轨迹上的成功推理均变成失败推理，删除候选 heads 的平均 TV 也从 <strong>1.133%</strong> 上升至 <strong>7.277%</strong>。实验结果同样符合我们的预期，证明了当推理回路的中段被截断时，heads 搬运的信息同样获得了更高的权重。</p>
+<p>可以看到，在删除推理链路后，模型在所有轨迹上均由成功变成失败，删除候选 heads 的平均 TV 也大幅上升。实验结果同样符合我们的预期，证明了<span class="intro-mechanism-blue">当推理回路的中段被截断时，heads 搬运的信息获得了更显著的效应。</span></p>
 <!-- Data source: code/random_number/results/qwen3_235b_real_four_dataset_cot_gap_fourhead_v1/{report.md,paired_summary.csv,completion_audit.json}. -->
 </section>
 <section id="删除检索-head-的干预实验" class="level3 page-columns page-full" data-number="4.3">
-<h3 data-number="4.3" class="anchored" data-anchor-id="删除检索-head-的干预实验"><span class="header-section-number">4.3</span> 回路末端阶段：删除检索 Head</h3>
-<p>之前我们分别从输入侧和推理链破坏了正常推理路径，现在我们考虑截断推理回路的末端：保持问题和输入证据完整，只屏蔽从上下文中搬运答案的 retrieval heads<sup class="margin-note-ref" aria-label="参见右侧注 9">9</sup>。此时虽然原始证据仍然存在于上下文，但是模型失去了利用证据的能力，我们观察这种情况下，候选 heads 的 TV 是否也显著上升。</p>
+<h3 data-number="4.3" class="anchored" data-anchor-id="删除检索-head-的干预实验"><span class="header-section-number">4.3</span> 回路末端截断：删除 Retrieval Head</h3>
+<p>之前我们分别从截断了推理回路的起始和中段，现在我们考虑截断其末端：保持问题和输入证据完整，只屏蔽负责从上下文中搬运答案的 retrieval heads<sup class="margin-note-ref" aria-label="参见右侧注 9">9</sup>。此时虽然答案证据仍然存在，但是模型失去了利用其的能力。</p>
 
 <div class="no-row-height column-margin column-container"><div class="">
 <p><span class="margin-label">注 9</span></p>
-<p>关于 retrieval heads 的定义和作用，请参考原始论文：<a href="https://arxiv.org/abs/2404.15574">Retrieval Head Mechanistically Explains Long-Context Factuality</a>。近期我的一些实验观察表明，retrieval heads 的作用是在推理回路的末端、模型已经知道答案时，将其从上下文中搬运到 decode 输出位置。</p>
-</div></div><p>为此，首先我们参照原始论文的方法，定位出 top-20 的 retrieval heads（约占所有 heads 的 0.3%），最终结果如下：</p>
+<p>关于 retrieval heads 的定义和作用，请参考原始论文：<a href="https://arxiv.org/abs/2404.15574">Retrieval Head Mechanistically Explains Long-Context Factuality</a>。一些实验现象表明，retrieval heads 的作用是在推理回路的末端、当模型已经知道答案时，将其从上下文中搬运到输出 decode 位置。</p>
+</div></div><p>我们首先定位出模型 top-20 的 retrieval heads（约占所有 heads 的 0.3%），结果如下：</p>
 <div class="retrieval-head-list">
 <p><code>L81.H53</code>、<code>L81.H61</code>、<code>L79.H52</code>、<code>L81.H34</code>、<code>L85.H29</code>、<code>L79.H59</code>、<code>L81.H51</code>、<code>L83.H08</code>、<code>L61.H51</code>、<code>L61.H61</code>、<code>L81.H54</code>、<code>L76.H39</code>、<code>L81.H45</code>、<code>L06.H16</code>、<code>L79.H63</code>、<code>L59.H59</code>、<code>L61.H54</code>、<code>L82.H25</code>、<code>L83.H05</code>、<code>L83.H10</code>。</p>
 </div>
-<p>并将其记作 <span class="math inline">R</span>；将先前定位出来的搬运候选信息的 heads 记作 <span class="math inline">C</span>。我们考虑如下四种条件：完整模型 <code>clean</code>、只删除检索回路 <code>−R</code>、只删除候选回路 <code>−C</code>、同时删除两者 <code>−R−C</code>。</p>
-<p>我们还是在先前使用的反事实数据集上进行实验，并且进行筛选，仅在那些 <code>clean</code> 下回答正确、<code>−R</code> 下回答错误的轨迹上进行实验。在每个轨迹上，我们均观察如下三种 TV：</p>
+<p>我们将其记作 <span class="math inline">R</span>，将先前定位出来搬运候选信息的 heads 记作 <span class="math inline">C</span>。我们考虑如下实验设定：完整模型 <code>full</code>、只删除检索回路 <code class="retrieval-condition-r">−R</code>、只删除候选回路 <code class="retrieval-condition-c">−C</code>、同时删除两者 <code class="retrieval-condition-rc"><span class="retrieval-condition-r-part">−R</span><span class="retrieval-condition-c-part">−C</span></code>。</p>
+<p>我们还是在 <a href="#删除输入证据的干预实验" class="no-external section-ref" target="_self"><strong>Sec 4.1</strong></a> 中的反事实数据集上进行实验，并且对轨迹额外进行筛选，仅考虑那些 <code>full</code> 下回答正确、<code class="retrieval-condition-r">−R</code> 下回答错误的轨迹。在每个轨迹上，我们观察如下 TV 值：</p>
 <div class="intervention-conditions retrieval-tv-conditions">
 <ul>
-<li><span class="math inline">\operatorname{TV}(\mathit{clean},-R)</span>：衡量删除检索 heads 的效应，由于删除后模型由回答正确切换为错误，这一数值将会极度高；</li>
-<li><span class="math inline">\operatorname{TV}(\mathit{clean},-C)</span>：衡量删除候选 heads 的效应，由于推理回路完整时模型能确定答案，我们预期这一数值将较小；</li>
-<li><span class="math inline">\operatorname{TV}(-R,-R-C)</span>：衡量推理回路被切断后，删除候选 heads 的效应，我们预期这一数值会显著高于 <span class="math inline">\operatorname{TV}(\mathit{clean},-C)</span>。</li>
+<li><span class="math inline">\operatorname{TV}(\mathit{full},\color{#b84949}{-R})</span>：衡量删除 retrieval heads 的效应，由于删除后模型由成功推理变为失败推理，该 TV 值将会极高；</li>
+<li><span class="math inline">\operatorname{TV}(\mathit{full},\color{#4857d6}{-C})</span>：衡量删除搬运候选信息 heads 的效应，由于推理回路完整时模型能确定答案，该 TV 值将会较小；</li>
+<li><span class="math inline">\operatorname{TV}(\color{#b84949}{-R},\color{#b84949}{-R}\color{#4857d6}{-C})</span>：衡量推理回路被切断后，删除搬运候选信息 heads 的效应，我们预期该 TV 值会显著高于 <span class="math inline">\operatorname{TV}(\mathit{full},\color{#4857d6}{-C})</span>。</li>
 </ul>
 </div>
 <div class="fingerprint-baseline evidence-ablation-table retrieval-ablation-table">
@@ -1278,66 +1283,66 @@ S(h,l)=\max\!\left(\Delta \operatorname{TV}(h,l),0\right)\times A(h,l),
 <thead>
 <tr class="header">
 <th>数据集</th>
-<th style="text-align: right;"><span class="math inline">\operatorname{TV}(\mathit{clean},-R)</span></th>
-<th style="text-align: right;"><span class="math inline">\operatorname{TV}(\mathit{clean},-C)</span></th>
-<th style="text-align: right;"><span class="math inline">\operatorname{TV}(-R,-R-C)</span></th>
+<th style="text-align: right;"><span class="math inline">\operatorname{TV}(\mathit{full},\color{#b84949}{-R})</span></th>
+<th style="text-align: right;"><span class="math inline">\operatorname{TV}(\mathit{full},\color{#4857d6}{-C})</span></th>
+<th style="text-align: right;"><span class="math inline">\operatorname{TV}(\color{#b84949}{-R},\color{#b84949}{-R}\color{#4857d6}{-C})</span></th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>DROP</td>
-<td style="text-align: right;"><strong>65.507%</strong></td>
-<td style="text-align: right;"><strong>2.442%</strong></td>
-<td style="text-align: right;"><strong>7.459%</strong></td>
+<td style="text-align: right;"><strong>65.51%</strong></td>
+<td style="text-align: right;"><strong>2.44%</strong></td>
+<td style="text-align: right;"><strong>7.46%</strong></td>
 </tr>
 <tr class="even">
 <td>BrowseComp-Plus</td>
-<td style="text-align: right;"><strong>41.133%</strong></td>
-<td style="text-align: right;"><strong>2.376%</strong></td>
-<td style="text-align: right;"><strong>17.158%</strong></td>
+<td style="text-align: right;"><strong>41.13%</strong></td>
+<td style="text-align: right;"><strong>2.38%</strong></td>
+<td style="text-align: right;"><strong>17.16%</strong></td>
 </tr>
 <tr class="odd">
 <td>2WikiMultiHopQA</td>
-<td style="text-align: right;"><strong>54.411%</strong></td>
-<td style="text-align: right;"><strong>1.868%</strong></td>
-<td style="text-align: right;"><strong>10.483%</strong></td>
+<td style="text-align: right;"><strong>54.41%</strong></td>
+<td style="text-align: right;"><strong>1.87%</strong></td>
+<td style="text-align: right;"><strong>10.48%</strong></td>
 </tr>
 <tr class="even">
 <td>MuSiQue</td>
-<td style="text-align: right;"><strong>34.428%</strong></td>
-<td style="text-align: right;"><strong>2.713%</strong></td>
-<td style="text-align: right;"><strong>5.042%</strong></td>
+<td style="text-align: right;"><strong>34.43%</strong></td>
+<td style="text-align: right;"><strong>2.71%</strong></td>
+<td style="text-align: right;"><strong>5.04%</strong></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>实验结果与预期一致，所有数据集上的 <span class="math inline">\operatorname{TV}(\mathit{clean},-R)</span> 均极度高，说明推理回路的确被有效截断。而在屏蔽掉检索 heads 后，候选 heads 的 TV 均显著上升，提升从 <strong>2.329%</strong> 到 <strong>14.782%</strong> 不等。这些结果表明，推理回路中主导搬运答案的末端功能被截断后，候选 heads 搬运的信息如预期般获得更高的权重。</p>
-<p>总体而言，上述实验进一步支持了不同回路之间存在竞争的解释：正常推理回路较强时，候选回路的作用会被压制；当推理回路失效时，候选回路则更显著地影响最终的输出。</p>
+<p>实验结果与预期一致，所有数据集上的 <span class="math inline">\operatorname{TV}(\mathit{full},\color{#b84949}{-R})</span> 均极高，而在屏蔽掉检索 retrieval heads 后，搬运候选信息 heads 的 TV 显著上升，提升从 <strong>2.33%</strong> 到 <strong>14.78%</strong> 不等。<span class="intro-mechanism-blue">这些结果表明，推理回路中主导的末端被截断后，候选 heads 搬运的信息获得了更显著的效应。</span></p>
+<p>总体而言，上述实验进一步揭示了不同回路之间的竞争：<span class="intro-mechanism-green">正常推理回路较强时，候选 heads 所代表回路的信号会被压制；</span><span class="intro-mechanism-red">当推理回路失效时，候选 heads 回路则更显著地影响输出。</span></p>
 <!-- Data sources: code/mix_head/outputs/qwen_context_head_analysis_v1/retrieval_heads.csv; code/random_number/results/qwen3_235b_old_r_hard_flip_cgain_min3_v1/{selected_factorial_all.jsonl,dataset_summary.json,experiment_manifest.json,completion_audit.json}. -->
 </section>
 </section>
 <section id="sec-tv-triggered-repair" class="level2 page-columns page-full" data-number="5">
-<h2 data-number="5" class="anchored" data-anchor-id="sec-tv-triggered-repair"><span class="header-section-number">5</span> 基于检测 Head TV 的性能增强推理</h2>
-<p>经过先前的实验与观察，我们对定位出的 heads 的机制已经有了较为清晰的认识：当答案尚未被有效推理出来时，它们对输出分布的因果效应会显著增强。那么，一个自然的想法是：能否利用这一机制增强模型的推理性能？具体来说，我们能否采用如下性能增强方式：</p>
+<h2 data-number="5" class="anchored" data-anchor-id="sec-tv-triggered-repair"><span class="header-section-number">5</span> 基于 Head TV 检测的增强推理</h2>
+<p>通过先前的实验，我们已经了解搬运候选信息 heads 的功能：<strong>当答案尚未被有效推理出来时，其对输出分布的影响效应会显著增强。</strong>那么，能否利用这一机制增强模型的推理性能？具体来说，我们能否采用如下性能增强方式：</p>
 <div class="research-question circuit-claim">
-<p><strong>在正常推理输出答案后，检测候选 heads 的 TV 值；当 TV 超过阈值时，投入额外的开销继续加强推理。</strong></p>
+<p><strong>在正常推理输出答案后，检测候选 heads 的 TV 值，</strong><br><strong>若 TV 超过阈值，投入额外的开销加强推理。</strong></p>
 </div>
-<p>我们还是在 DROP、BrowseComp-Plus、2WikiMultiHopQA 和 MuSiQue 数据集上进行测试，并构造 Agent 式工作流，让模型基于 Search 返回的非完整信息进行推理。在推理结束并输出答案后，我们在最后一轮输出正式开始的位置，删除候选 heads 的写入，并计算删除前后完整词表分布的 TV<sup class="margin-note-ref" aria-label="参见右侧注 10">10</sup>。</p>
+<p>我们还是在 <a href="https://allenai.org/open-data">DROP</a>、<a href="https://texttron.github.io/BrowseComp-Plus/">BrowseComp-Plus</a>、<a href="https://github.com/Alab-NII/2wikimultihop">2WikiMultiHopQA</a> 和 <a href="https://github.com/StonyBrookNLP/musique">MuSiQue</a> 数据集上进行实验，构造 Agent 式工作流，让模型基于检索到的信息进行推理。在推理结束并输出答案后，我们在最后一轮输出正式开始的位置，删除 heads 的写入并计算全词表 TV<sup class="margin-note-ref" aria-label="参见右侧注 10">10</sup>。</p>
 
 <div class="no-row-height column-margin column-container"><div class="">
 <p><span class="margin-label">注 10</span></p>
-<p>由于只需要在正式回答前的最后一个 <code>\n\n</code> 位置进行干预，因此前段所有 tokens 均可以复用 prefix cache，这确保了干预检测的低开销。具体实现中，通过 vLLM 的 <code>llm.collective_rpc</code> 切换为干预状态。</p>
-</div></div><p>根据 <a href="#候选-head-回路的因果干预实验" class="no-external section-ref" target="_self"><strong>Sec 4</strong></a> 的实验结果，我们经验性地将 TV 阈值固定为 <strong>6%</strong>。当干预前后的 TV 超过该阈值时，Agent 框架将继续执行工作流，通过 Search 将更多信息输入给模型，并追加一条新的用户 prompt，提示模型之前的输出可能缺乏证据，要求模型继续推理并修正答案。</p>
+<p>由于只需要在正式回答前的最后一个 <code>\n\n</code> 位置进行干预，因此之前所有 tokens 均可以 prefix cache 复用，这保证了 TV 检测的低开销。具体实现中，我们通过 vLLM 的 <code>llm.collective_rpc()</code> 在各个 worker 上调用 <code>set_rag_tv_probe()</code>，切换候选 heads 的消融状态。</p>
+</div></div><p>根据 <a href="#候选-head-回路的因果干预实验" class="no-external section-ref" target="_self"><strong>Sec 4</strong></a> 的实验结果，我们经验性地将 TV 阈值固定为 <strong class="intro-mechanism-red">6%</strong>。当 TV 超过该阈值时，Agent 工作流将继续执行，将更多检索的信息输入给模型，并追加新的用户 prompt，提示模型之前的输出可能缺乏证据，要求模型继续推理并确定答案。</p>
 <div class="analysis-figure">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="../../../assets/figures/random-number/head_tv_gated_reasoning_improvement.png" class="img-fluid figure-img" alt="四组并列柱状图，展示 2WikiMultiHopQA、BrowseComp-Plus、DROP 和 MuSiQue 上的原始推理成功率、TV 超过阈值的频率与推理增强后的成功率。"></p>
-<figcaption>图 9：基于 Head TV 检测的推理增强结果，展示了每个数据集上原始推理成功率、TV 超过阈值的频率、推理增强后的成功率。</figcaption>
+<figcaption>图 9：基于 TV 检测的推理增强结果，图片展示了每个数据集上的<span class="figure-key-gray">原始推理成功率</span>、<span class="figure-key-orange">TV 超过阈值的频率</span>、<span class="figure-key-blue">推理增强后的成功率</span>。</figcaption>
 </figure>
 </div>
 </div>
-<p>可以看到，四个数据集上，TV 均能检测出尚未被有效推理的轨迹，并且使用增强策略后能带来的成功率收益。这说明我们定位出来的 head TV 可以作检测不可信推理的指标，并且提供一定程度的修复。</p>
-<p>需要说明的是，方法只能检测出模型自身也未能形成稳定回路的不可信推理；对于模型自身认为可信、但实际上错误的推理，Head TV 仍然较低，无法被检测出来。</p>
+<p>可以看到，四个数据集上 TV 检测均能识别未被有效推理的轨迹，且在增强推理后能带来的成功率收益。这说明 TV 检测的确可以作为一种不可信推理的代理指标，并且提供一定程度的修复。</p>
+<p>需要说明的是，<span class="intro-mechanism-blue">方法只能检测出模型内部未能形成稳定推理回路的不可信推理；</span><span class="intro-mechanism-red">对于模型认为可信、但实际上错误的推理，无法被 TV 检测出来。</span></p>
 <div class="tv-detection-examples" aria-label="Head TV 检测成功与漏检案例对照">
 <article class="tv-detection-case tv-detection-hit">
 <header class="tv-detection-case-header">
@@ -1365,8 +1370,8 @@ Alfredo Stroessner's Paraguay
 <dt>
 模型思考
 </dt>
-<dd class="tv-detection-reasoning">
-“根据现有资料，答案可能是 Confederate Gen.&nbsp;John Bell Hood”
+<dd class="tv-detection-reasoning intro-mechanism-blue">
+「根据现有资料，答案可能是 Confederate Gen.&nbsp;John Bell Hood」
 </dd>
 </dl>
 <div class="tv-detection-metric">
@@ -1402,8 +1407,8 @@ Chargers
 <dt>
 模型思考
 </dt>
-<dd class="tv-detection-reasoning">
-“Panthers 有两个达阵：Gamble 和 Rosario，答案应该是 Panthers”
+<dd class="tv-detection-reasoning tv-detection-reasoning-red">
+「Panthers 有两个达阵：Gamble 和 Rosario，答案应该是 Panthers」
 </dd>
 </dl>
 <div class="tv-detection-metric">
@@ -1414,8 +1419,12 @@ Chargers
 </p>
 </article>
 </div>
-<p>上述两条实际轨迹展示了这一边界。轨迹 A 中，模型的思考过程中就给出了可能的猜测，Head TV 高达 <code>9.551%</code>，因此被检测到并成功触发增强推理；轨迹 B 中，模型形成了一条完整且确定的错误推理链，尽管答案错误，但是 Head TV 没有达到阈值，无法被检出。</p>
-<p>这种 Head TV 可以视为不可信推理的代理指标。当然，模型的这种不确定性也可能会反映在推理链的输出中，但是我们的实验发现，相比之下，Head TV 的信号更加本质，并且能检测到一些不会在自然语言中表达出来的不可信信号；此外，一些指标如生成 Token 的熵分布，也能在不可信出现时捕获相关信号，但这类 Token 级别的指标都是局部代理，通常在模型思考的后半部分展现出可信推理的反馈信号，无法像 Head TV 一样检测出整个推理过程的不确定性。</p>
+<p>上图给出的两条实际轨迹展示了这一边界。轨迹 A 中，模型的思考过程中就给出了猜测的信号，TV 高于阈值，因此被检测到并成功触发增强推理；轨迹 B 中，模型形成了一条完整且确定的推理链，尽管答案错误，但是 TV 没有达到阈值，无法被检出<sup class="margin-note-ref" aria-label="参见右侧注 11">11</sup>。</p>
+
+<div class="no-row-height column-margin column-container"><div id="note-tv-implicit-uncertainty" class="">
+<p><span class="margin-label">注 11</span></p>
+<p>尽管如此，但是实验表明类似轨迹 B 的推理，其 TV 仍然显著高于那些可信且正确的推理。这说明一些不可信或者不确定的信号虽然没有出现在模型自然语言的输出中，但是还是引起了表征空间的改变，从而能被 TV 检测到。</p>
+</div></div><p>因此，搬运候选信息 heads 的 TV 值可以视为不可信推理的代理指标。<strong class="figure-key-gray">当然，这种不可信的信号也可能会反映在模型的推理链中，但相比之下，TV 值能够检测到一些不会在自然语言中表达出来的信号（如 </strong><a href="#note-tv-implicit-uncertainty" class="no-external section-ref" target="_self"><strong>注 11</strong></a><strong class="figure-key-gray"> 所述）。此外，一些指标如生成 Token 时的分布熵，也能捕获一些相关信号，但这类 Token 级别的指标都是局部代理，无法像 TV 值一样识别出整个推理过程的不确定性。</strong></p>
 <div class="fingerprint-baseline tv-repair-cost-table">
 <table class="caption-top table">
 <colgroup>
@@ -1428,10 +1437,10 @@ Chargers
 <thead>
 <tr class="header">
 <th>数据集</th>
-<th style="text-align: right;">原始推理 token 消耗</th>
-<th style="text-align: right;">增强推理 token 消耗<br>（<span class="evidence-missing">+ 百分比</span>）</th>
+<th style="text-align: right;">原始推理<br>token 消耗</th>
+<th style="text-align: right;">增强推理<br>token 消耗<br>（<span class="evidence-missing">+ 百分比</span>）</th>
 <th style="text-align: right;">原始推理<br>时间开销</th>
-<th style="text-align: right;">增强推理时间开销<br>（<span class="evidence-missing">+ 百分比</span>）</th>
+<th style="text-align: right;">增强推理<br>时间开销<br>（<span class="evidence-missing">+ 百分比</span>）</th>
 </tr>
 </thead>
 <tbody>
@@ -1466,8 +1475,8 @@ Chargers
 </tbody>
 </table>
 </div>
-<p>我们同样统计了计算开销，包括原始推理和增强推理的 token 与时间开销，以及增强策略开销相对原始推理的百分比。综合所有结果，推理增强策略在使用 <strong class="evidence-missing">11.1%</strong> 的额外 token 开销和 <strong class="evidence-missing">14.9%</strong> 的额外时间开销后，带来了 <strong class="evidence-complete">5.9%</strong> 的相对性能提升；此外，平均每条轨迹的 TV 检测大约仅花费 <strong class="evidence-missing">1.9 s</strong>。增强策略带来的额外开销仍然稍重，不过 TV 检测本身的开销是轻量级的。</p>
-<p>总体来看，这一实验说明 head TV 可以从事后机制分析指标，转化为一种有实际价值的推理门控信号。它不直接生成更好的答案，而是帮助 Agent 系统定位何时推理不可信，可能需要改变后续推理策略，以获得更可信的推理结果。</p>
+<p>我们同样统计了计算开销，综合所有结果，推理增强在使用 <strong class="evidence-missing">11.1%</strong> 的额外 token 和 <strong class="evidence-missing">14.9%</strong> 的额外时间后，平均带来了 <strong class="evidence-complete">5.2 个百分点</strong> 的性能提升，且平均每条轨迹的 TV 检测大约仅花费 <strong class="evidence-missing">1.9 s</strong>。额外开销仍然稍重，不过 TV 检测本身是轻量级的。</p>
+<p>综合看来，实验说明候选 heads 的 TV 值可以从机制分析指标，转化为有实际价值的推理门控信号。其不直接生成更准确的答案，而是<strong class="intro-mechanism-blue">帮助 Agent 系统判断何时推理不可信，需要对后续推理进行增强，以获得更可信的结果。</strong></p>
 <!-- Data source: the four-dataset TV-gated repair aggregation used for Section 5. -->
 </section>
 <section id="sec-conclusion" class="level2" data-number="6">
