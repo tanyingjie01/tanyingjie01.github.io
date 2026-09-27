@@ -3691,3 +3691,48 @@ img {
     margin-top: 0;
   }
 }
+
+// Keep research articles within the mobile viewport without changing desktop layouts.
+@media (max-width: 767.98px) {
+  body.post-research {
+    max-inline-size: 100dvw;
+    overflow-x: clip;
+  }
+
+  body.post-research #quarto-content,
+  body.post-research #quarto-document-content,
+  body.post-research section.page-columns,
+  body.post-research .page-columns > * {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+  }
+
+  body.post-research .fingerprint-baseline,
+  body.post-research .table-responsive {
+    display: block;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.post-research .fingerprint-baseline > table,
+  body.post-research .table-responsive > table {
+    max-inline-size: none;
+  }
+
+  body.post-research #quarto-header,
+  body.post-research #quarto-header .navbar {
+    inline-size: 100dvw;
+    max-inline-size: 100dvw;
+  }
+
+  body.post-research #quarto-header .navbar-container,
+  body.post-research #quarto-header .navbar-collapse {
+    inline-size: 100%;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+  }
+}
