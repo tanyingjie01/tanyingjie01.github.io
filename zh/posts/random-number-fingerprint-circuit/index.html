@@ -192,7 +192,12 @@ window.Quarto = {
   <li><a href="#删除检索-head-的干预实验" id="toc-删除检索-head-的干预实验" class="nav-link" data-scroll-target="#删除检索-head-的干预实验"><span class="header-section-number">4.3</span> 回路末端截断：删除 Retrieval Head</a></li>
   </ul></li>
   <li><a href="#sec-tv-triggered-repair" id="toc-sec-tv-triggered-repair" class="nav-link" data-scroll-target="#sec-tv-triggered-repair"><span class="header-section-number">5</span> 基于 Head TV 检测的增强推理</a></li>
-  <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion"><span class="header-section-number">6</span> 总结与展望</a></li>
+  <li><a href="#sec-attention-architecture-generalization" id="toc-sec-attention-architecture-generalization" class="nav-link" data-scroll-target="#sec-attention-architecture-generalization"><span class="header-section-number">6</span> 不同注意力架构的 Head 泛化</a>
+  <ul class="collapse">
+  <li><a href="#线性注意力架构" id="toc-线性注意力架构" class="nav-link" data-scroll-target="#线性注意力架构"><span class="header-section-number">6.1</span> 线性注意力架构</a></li>
+  <li><a href="#稀疏注意力架构" id="toc-稀疏注意力架构" class="nav-link" data-scroll-target="#稀疏注意力架构"><span class="header-section-number">6.2</span> 稀疏注意力架构</a></li>
+  </ul></li>
+  <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion"><span class="header-section-number">7</span> 总结与展望</a></li>
   </ul>
 </nav>
 </nav>
@@ -243,9 +248,9 @@ window.Quarto = {
 <div class="research-question">
 <p><strong>模型内部蕴含的这种随机数指纹，在推理过程中是如何被写入的？</strong></p>
 </div>
-<p>为了研究该问题，我们从提示词<span class="inline-prompt-example">「在 1–300 中随机选择一个数」</span>出发，定位到了一类会强烈读取候选范围 <code>300</code> 的 heads。进一步的实验逐渐揭示出其更一般的作用：读取推理任务的候选集合，<span class="intro-mechanism-blue">当答案尚未被有效推理出来、模型仍需在多个候选之间进行竞争时，</span>这些 heads 写入残差流的信息会显著改变输出。</p>
-<p>而当我们在正常的推理过程中，手动截断模型的推理回路（例如删除关键推理链，或者屏蔽检索 heads），使模型陷入不确定性推理时，这类 head 的因果效应同样会被显著放大。这似乎揭示模型中存在两种相互竞争的回路：<span class="intro-mechanism-green">当模型能正常推理时，推理回路生效，而这类 heads 对应的回路被抑制；</span><span class="intro-mechanism-red">当推理回路被切断后，这种回路则产生因果效应，开始主导模型的行为。</span></p>
-<p>基于这一观察，我们将这类 heads 的表现作为模型推理是否可信的信号，并且在检测到不可信推理时，启动推理增强策略。实验证明，这种策略的确能够检测不可信推理，并增强模型的性能。</p>
+<p>为了研究该问题，我们从提示词<span class="inline-prompt-example">「在 1–300 中随机选择一个数」</span>出发，定位到了一类会强烈读取候选范围 <code>300</code> 的 heads（<a href="#写入随机数指纹的-head" class="no-external section-ref" target="_self"><strong>Sec 2</strong></a>）。进一步的实验逐渐揭示出其更一般的作用：读取推理任务的候选集合，<span class="intro-mechanism-blue">当答案尚未被有效推理出来、模型仍需在多个候选之间进行竞争时，</span>这些 heads 写入残差流的信息会显著改变输出（<a href="#sec-head-generalization" class="no-external section-ref" target="_self"><strong>Sec 3</strong></a>）。</p>
+<p>而当我们在正常的推理过程中，手动截断模型的推理回路（例如删除关键推理链，或者屏蔽 retrieval heads），使模型陷入不确定性推理时，这类 heads 的因果效应同样会被显著放大（<a href="#候选-head-回路的因果干预实验" class="no-external section-ref" target="_self"><strong>Sec 4</strong></a>）。<strong>这似乎揭示模型中存在两种相互竞争的回路：<span class="intro-mechanism-green">当模型能正常推理时，推理回路生效，而这类 heads 对应的回路被抑制；</span><span class="intro-mechanism-red">当推理回路被切断后，这种回路则产生因果效应，开始主导模型的行为。</span></strong></p>
+<p>基于此，我们将这类 heads 的表现作为模型推理是否可信的信号，并且在检测到不可信推理时，启动推理增强策略，结果表明其的确能检测到不可信推理并增强模型的性能（<a href="#sec-tv-triggered-repair" class="no-external section-ref" target="_self"><strong>Sec 5</strong></a>）。额外的实验表明，这类 heads 同样存在于线性注意力和稀疏注意力架构的模型中（<a href="#sec-attention-architecture-generalization" class="no-external section-ref" target="_self"><strong>Sec 6</strong></a>）。</p>
 <div class="article-deck">
 <p><strong>如果您对此感兴趣，请继续阅读本文，预计完整阅读时间约 30 分钟。</strong></p>
 </div>
@@ -1375,7 +1380,7 @@ Alfredo Stroessner's Paraguay
 </dd>
 </dl>
 <div class="tv-detection-metric">
-<span>Head TV</span><strong>9.551%</strong>
+<span>Head TV</span><strong>9.55%</strong>
 </div>
 <p class="tv-detection-result">
 <strong>结果</strong>：模型猜测错误且推理不确定性较高，高 TV 成功触发增强推理，最终回答正确。
@@ -1412,7 +1417,7 @@ Chargers
 </dd>
 </dl>
 <div class="tv-detection-metric">
-<span>Head TV</span><strong>3.169%</strong>
+<span>Head TV</span><strong>3.17%</strong>
 </div>
 <p class="tv-detection-result">
 <strong>结果</strong>：模型自信地给出错误答案，但 TV 未达到阈值，因此没有触发增强推理。
@@ -1479,8 +1484,117 @@ Chargers
 <p>综合看来，实验说明候选 heads 的 TV 值可以从机制分析指标，转化为有实际价值的推理门控信号。其不直接生成更准确的答案，而是<strong class="intro-mechanism-blue">帮助 Agent 系统判断何时推理不可信，需要对后续推理进行增强，以获得更可信的结果。</strong></p>
 <!-- Data source: the four-dataset TV-gated repair aggregation used for Section 5. -->
 </section>
-<section id="sec-conclusion" class="level2" data-number="6">
-<h2 data-number="6" class="anchored" data-anchor-id="sec-conclusion"><span class="header-section-number">6</span> 总结与展望</h2>
+<section id="sec-attention-architecture-generalization" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="sec-attention-architecture-generalization"><span class="header-section-number">6</span> 不同注意力架构的 Head 泛化</h2>
+<p>先前的实验都在标准注意力模型 <a href="https://huggingface.co/Qwen/Qwen3-235B-A22B">Qwen3-235B-A22B</a> 上进行，接下来我们说明，这类 heads 同样在线性注意力架构的 <a href="https://huggingface.co/Qwen/Qwen3.5-397B-A17B">Qwen3.5-397B-A17B</a> 和稀疏注意力架构的 <a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731">DeepSeek-V4-Flash-0731</a> 中同样存在。为了保持博客的可读性，我们仅展示 <a href="#sec-cross-head-generalization" class="no-external section-ref" target="_self"><strong>Sec 3.5</strong></a> 的定位 heads 的实验结果，以及 <a href="#删除关键推理链的干预实验" class="no-external section-ref" target="_self"><strong>Sec 4.2</strong></a> 删除推理链观察 heads 效应变化的结果，所以实验设置均与先前保持一致。</p>
+<section id="线性注意力架构" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="线性注意力架构"><span class="header-section-number">6.1</span> 线性注意力架构</h3>
+<p><a href="https://huggingface.co/Qwen/Qwen3.5-397B-A17B">Qwen3.5-397B-A17B</a> 采用线性注意力与全注意力混合的架构。模型共有 60 层，其中 15 层为全注意力层，我们只扫描全注意力层中的全部 480 个 heads，结果如下图所示：</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../assets/figures/random-number/qwen35_unordered_candidate_head_selection_heatmap.png" class="img-fluid figure-img" alt="Qwen3.5 十五个全注意力层中四百八十个 query heads 的筛选得分热力图，图中标出了得分最高的五个 heads。"></p>
+<figcaption>图 10：Qwen3.5-397B-A17B 全注意力层 heads 的 <span class="math inline">S(h,l)</span> 指标热图，挑选出的得分最高的 5 个 heads 已经标出。</figcaption>
+</figure>
+</div>
+</div>
+<p>我们选取得分最高的 5 个 heads（<code>L59.H07</code>、<code>L55.H31</code>、<code>L51.H13</code>、<code>L47.H02</code> 和 <code>L51.H30</code>）进行实验，比较<strong class="evidence-complete">完整推理链</strong>与<strong class="evidence-missing">缺失推理链</strong>下，删除 heads 的 TV 变化：</p>
+<div class="fingerprint-baseline evidence-ablation-table">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>数据集</th>
+<th style="text-align: right;"><span class="evidence-metric-header"><strong>成功率</strong><strong>（<span class="evidence-complete">完整推理链</span> → <span class="evidence-missing">缺失推理链</span>）</strong></span></th>
+<th style="text-align: right;"><span class="evidence-metric-header"><strong>删除 heads 的 TV</strong><strong>（<span class="evidence-complete">完整推理链</span> → <span class="evidence-missing">缺失推理链</span>）</strong></span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DROP</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">3.07%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.64%</strong></span></td>
+</tr>
+<tr class="even">
+<td>BrowseComp-Plus</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">2.99%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.89%</strong></span></td>
+</tr>
+<tr class="odd">
+<td>2WikiMultiHopQA</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">2.54%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.44%</strong></span></td>
+</tr>
+<tr class="even">
+<td>MuSiQue</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">2.40%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">5.93%</strong></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>删除关键推理链后，所有轨迹的 TV 均上升。这说明<strong class="intro-mechanism-blue">虽然模型的大部分层采用线性注意力，但搬运候选信息的 heads 仍然存在于全注意力层当中。</strong></p>
+</section>
+<section id="稀疏注意力架构" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="稀疏注意力架构"><span class="header-section-number">6.2</span> 稀疏注意力架构</h3>
+<p><a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731">DeepSeek-V4-Flash-0731</a> 采用了 DeepSeek 稀疏注意力（DeepSeek Sparse Attention，DSA）架构。模型共有 43 层，前 2 层采用滑动窗口注意力，随后 21 层压缩稀疏注意力（Compressed Sparse Attention，CSA）与 20 层高度压缩注意力（Heavily Compressed Attention，HCA）交替排列。CSA 和 HCA 的主注意力分支每层均包含 64 个 heads，其中 CSA 层每层额外包含 64 个 Indexer heads。我们只扫描所有层中的 2,752 个主注意力 heads，结果如下图所示，可以看到，得分较高的 heads 均来自 4 倍压缩的 CSA 层：</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../assets/figures/random-number/deepseek_v4_unordered_candidate_head_selection_heatmap.png" class="img-fluid figure-img" alt="DeepSeek-V4-Flash-0731 四十三层中两千七百五十二个主注意力 heads 的筛选得分热力图，图中标出了得分最高的五个 heads。"></p>
+<figcaption>图 11：DeepSeek-V4-Flash-0731 主注意力 heads 的 <span class="math inline">S(h,l)</span> 指标热图，挑选出的得分最高的 5 个 heads 已经标出。</figcaption>
+</figure>
+</div>
+</div>
+<p>我们选取得分最高的 5 个 heads（<code>L24.H00</code>、<code>L24.H13</code>、<code>L38.H10</code>、<code>L38.H13</code> 和 <code>L22.H36</code>）进行实验，比较<strong class="evidence-complete">完整推理链</strong>与<strong class="evidence-missing">缺失推理链</strong>下，删除 heads 的 TV 变化：</p>
+<div class="fingerprint-baseline evidence-ablation-table">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>数据集</th>
+<th style="text-align: right;"><span class="evidence-metric-header"><strong>成功率</strong><strong>（<span class="evidence-complete">完整推理链</span> → <span class="evidence-missing">缺失推理链</span>）</strong></span></th>
+<th style="text-align: right;"><span class="evidence-metric-header"><strong>删除 heads 的 TV</strong><strong>（<span class="evidence-complete">完整推理链</span> → <span class="evidence-missing">缺失推理链</span>）</strong></span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DROP</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.69%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.25%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">4.90%</strong></span></td>
+</tr>
+<tr class="even">
+<td>BrowseComp-Plus</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">10.00%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.48%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.01%</strong></span></td>
+</tr>
+<tr class="odd">
+<td>2WikiMultiHopQA</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.38%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">5.48%</strong></span></td>
+</tr>
+<tr class="even">
+<td>MuSiQue</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.21%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">4.40%</strong></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>删除关键推理链后，所有轨迹的 TV 均上升。这说明，<strong class="intro-mechanism-blue">在以 DeepSeek 稀疏注意力为架构的模型中，搬运候选信息的 heads 也同样存在。</strong></p>
+<!-- Data sources: code/random_number/results/QWEN35_397B_HEAD_CIRCUIT_SUMMARY.md; code/random_number/results/DEEPSEEK_V4_FLASH_HEAD_CIRCUIT_SUMMARY.md. -->
+</section>
+</section>
+<section id="sec-conclusion" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="sec-conclusion"><span class="header-section-number">7</span> 总结与展望</h2>
 <p>本文从随机数生成中稳定出现的模型指纹出发，定位出了一类负责搬运候选信息的 heads。我们最终发现，当答案尚未被唯一确定、模型仍需在多个候选之间竞争时，这类 heads 会产生显著的因果效应；这一作用不仅能够跨任务、跨表述泛化，也在多种截断正常推理回路的干预实验中稳定出现。最后，我们进一步将 Head TV 作为不可信推理的检测信号，并用它触发额外推理，从而提升模型的推理性能。</p>
 <p>当然，需要承认的是，这篇研究并没有将模型的随机数指纹这件事情研究清楚。尽管我开始注意到那篇 Linux.do 帖子的时候，是希望分析一下指纹是如何形成的，但是随后我就意识到，很难在不看数据或者不分析训练动态的情况下研究这件事情。并且，在预训练完成的情况下，仅仅需要极少的轨迹微调，即可大幅改变模型的偏好，这使得分析较为困难。</p>
 <p>意识到这一点后，我改变了我的思路，开始观察模型的信息流，并逐渐得出了博客呈现的结果。整个过程断断续续大概花了一个半月的时间，观察到的一些现象，也的确加深了我对模型的理解，其中最重要的观察可能就是信息的分散，以及模型回路之间的竞争了。至于最后的增强推理方法，有些类似于 J-Space 那一套，从模型理解出发，提出方案约束模型行为。</p>
