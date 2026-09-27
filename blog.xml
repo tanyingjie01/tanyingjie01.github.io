@@ -12,10 +12,10 @@
 <generator>quarto-1.10.18</generator>
 <lastBuildDate>Tue, 22 Sep 2026 00:00:00 GMT</lastBuildDate>
 <item>
-  <title>From a Model’s Random-Number Fingerprint: A Study of LLM Reasoning Circuits</title>
+  <title>From a Model’s Random-Number Fingerprint:A Study of LLM Reasoning Circuits</title>
   <dc:creator>Yingjie Tan</dc:creator>
   <link>https://tanyingjie01.github.io/posts/random-number-fingerprint-circuit/</link>
-  <description><![CDATA[ Starting from a stable fingerprint in random-number generation, this post identifies attention heads that transport candidate information. Their causal effect appears when the answer is unresolved, generalizes across tasks and phrasings, and persists under interventions that interrupt normal reasoning. Head TV can then detect unreliable reasoning and trigger additional reasoning to improve performance. ]]></description>
+  <description><![CDATA[ Starting from a model fingerprint that consistently emerges in random-number generation, this post identifies a class of heads that transport candidate information. When an answer has not been effectively inferred and the model must still choose among multiple candidates, these heads produce significant causal effects. Their role generalizes across candidates, tasks, and architectures, and is consistently reproduced in various intervention experiments that interrupt normal reasoning circuits. We further use these heads’ TV values as a signal for detecting unreliable reasoning and improve the model’s reasoning performance. ]]></description>
   <category>Research</category>
   <guid>https://tanyingjie01.github.io/posts/random-number-fingerprint-circuit/</guid>
   <pubDate>Tue, 22 Sep 2026 00:00:00 GMT</pubDate>

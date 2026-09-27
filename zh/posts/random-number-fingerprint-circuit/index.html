@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="本文从随机数生成中的稳定指纹出发，定位了一类搬运候选信息的注意力头。当答案尚未唯一确定时，这些头表现出跨任务、跨表述的因果作用，并在多种干预下保持稳定。进一步以 Head TV 检测不可信推理，触发额外推理以提升模型表现。">
+<meta name="description" content="本文从随机数生成中稳定出现的模型指纹出发，定位出了一类搬运候选信息的 heads，当答案未被有效推理、模型仍需在多个候选之间进行竞争时，这类 heads 会产生显著的因果效应。其作用不仅能够跨候选、跨任务、跨架构泛化，也在多种截断正常推理回路的干预实验中稳定复现。我们进一步将这类 heads 的 TV 值作为不可信推理的检测信号，并提升模型的推理性能。">
 
 <title>从模型的随机数指纹出发： 一项关于 LLM 推理回路的研究 – Yingjie Tan</title>
 <style>
@@ -42,7 +42,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-52aa7558b31972c3b5df7143b6aadf4f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-4b595544d18c3e8bfe6f30bda29a1728.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-f003f9b80c91567bafb88881074d8b54.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "language": {
     "search-no-results-text": "没有结果",
@@ -105,14 +105,14 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="从模型的随机数指纹出发：一项关于 LLM 推理回路的研究 – Yingjie Tan">
-<meta property="og:description" content="本文从随机数生成中的稳定指纹出发，定位了一类搬运候选信息的注意力头。当答案尚未唯一确定时，这些头表现出跨任务、跨表述的因果作用，并在多种干预下保持稳定。进一步以 Head TV 检测不可信推理，触发额外推理以提升模型表现。">
+<meta property="og:description" content="本文从随机数生成中稳定出现的模型指纹出发，定位出了一类搬运候选信息的 heads，当答案未被有效推理、模型仍需在多个候选之间进行竞争时，这类 heads 会产生显著的因果效应。其作用不仅能够跨候选、跨任务、跨架构泛化，也在多种截断正常推理回路的干预实验中稳定复现。我们进一步将这类 heads 的 TV 值作为不可信推理的检测信号，并提升模型的推理性能。">
 <meta property="og:image" content="https://tanyingjie01.github.io/assets/figures/random-number/all_head_tv_heatmap.png">
 <meta property="og:site_name" content="Yingjie Tan">
 <meta property="og:image:alt" content="Local heatmap of mean full-vocabulary total variation around L82.H18.">
 <meta property="og:image:height" content="1728">
 <meta property="og:image:width" content="1728">
 <meta name="twitter:title" content="从模型的随机数指纹出发：一项关于 LLM 推理回路的研究 – Yingjie Tan">
-<meta name="twitter:description" content="本文从随机数生成中的稳定指纹出发，定位了一类搬运候选信息的注意力头。当答案尚未唯一确定时，这些头表现出跨任务、跨表述的因果作用，并在多种干预下保持稳定。进一步以 Head TV 检测不可信推理，触发额外推理以提升模型表现。">
+<meta name="twitter:description" content="本文从随机数生成中稳定出现的模型指纹出发，定位出了一类搬运候选信息的 heads，当答案未被有效推理、模型仍需在多个候选之间进行竞争时，这类 heads 会产生显著的因果效应。其作用不仅能够跨候选、跨任务、跨架构泛化，也在多种截断正常推理回路的干预实验中稳定复现。我们进一步将这类 heads 的 TV 值作为不可信推理的检测信号，并提升模型的推理性能。">
 <meta name="twitter:image" content="https://tanyingjie01.github.io/assets/figures/random-number/all_head_tv_heatmap.png">
 <meta name="twitter:image:alt" content="Local heatmap of mean full-vocabulary total variation around L82.H18.">
 <meta name="twitter:image-height" content="1728">

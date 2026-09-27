@@ -1,15 +1,13 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
-<head>
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
 
-<meta charset="utf-8" />
-<meta name="generator" content="quarto-1.10.18" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-
-<meta name="dcterms.date" content="2026-09-22" />
-<meta name="description" content="Starting from a stable fingerprint in random-number generation, this post identifies attention heads that transport candidate information. Their causal effect appears when the answer is unresolved, generalizes across tasks and phrasings, and persists under interventions that interrupt normal reasoning. Head TV can then detect unreliable reasoning and trigger additional reasoning to improve performance." />
+<meta name="dcterms.date" content="2026-09-22">
+<meta name="description" content="Starting from a model fingerprint that consistently emerges in random-number generation, this post identifies a class of heads that transport candidate information. When an answer has not been effectively inferred and the model must still choose among multiple candidates, these heads produce significant causal effects. Their role generalizes across candidates, tasks, and architectures, and is consistently reproduced in various intervention experiments that interrupt normal reasoning circuits. We further use these heads’ TV values as a signal for detecting unreliable reasoning and improve the model’s reasoning performance.">
 
 <title>From a Model’s Random-Number Fingerprint: A Study of LLM Reasoning Circuits – Yingjie Tan</title>
 <style>
@@ -32,7 +30,20 @@ ul.task-list li input[type="checkbox"] {
 }
 </style>
 
-<!-- htmldependencies:E3FAD763 -->
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<link href="../../assets/favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-52aa7558b31972c3b5df7143b6aadf4f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-f003f9b80c91567bafb88881074d8b54.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "language": {
     "search-no-results-text": "No results",
@@ -50,7 +61,7 @@ ul.task-list li input[type="checkbox"] {
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
 
-  <script defer="" src="/assets/katex/katex.min.js"></script>
+  <script defer="" src="../../assets/katex/katex.min.js"></script>
   <script>document.addEventListener("DOMContentLoaded", function () {
  var mathElements = document.getElementsByClassName("math");
  var macros = [];
@@ -65,7 +76,7 @@ ul.task-list li input[type="checkbox"] {
    });
 }}});
   </script>
-  <link rel="stylesheet" href="/assets/katex/katex.min.css" />
+  <link rel="stylesheet" href="../../assets/katex/katex.min.css">
 
 <script type="text/javascript">
 const typesetMath = (el) => {
@@ -94,43 +105,55 @@ window.Quarto = {
 };
 </script>
 
+<meta property="og:title" content="From a Model’s Random-Number Fingerprint:A Study of LLM Reasoning Circuits – Yingjie Tan">
+<meta property="og:description" content="Starting from a model fingerprint that consistently emerges in random-number generation, this post identifies a class of heads that transport candidate information. When an answer has not been effectively inferred and the model must still choose among multiple candidates, these heads produce significant causal effects. Their role generalizes across candidates, tasks, and architectures, and is consistently reproduced in various intervention experiments that interrupt normal reasoning circuits. We further use these heads’ TV values as a signal for detecting unreliable reasoning and improve the model’s reasoning performance.">
+<meta property="og:image" content="https://tanyingjie01.github.io/assets/figures/random-number/all_head_tv_heatmap.png">
+<meta property="og:site_name" content="Yingjie Tan">
+<meta property="og:image:alt" content="Local heatmap of mean full-vocabulary total variation around L82.H18.">
+<meta property="og:image:height" content="1728">
+<meta property="og:image:width" content="1728">
+<meta name="twitter:title" content="From a Model’s Random-Number Fingerprint:A Study of LLM Reasoning Circuits – Yingjie Tan">
+<meta name="twitter:description" content="Starting from a model fingerprint that consistently emerges in random-number generation, this post identifies a class of heads that transport candidate information. When an answer has not been effectively inferred and the model must still choose among multiple candidates, these heads produce significant causal effects. Their role generalizes across candidates, tasks, and architectures, and is consistently reproduced in various intervention experiments that interrupt normal reasoning circuits. We further use these heads’ TV values as a signal for detecting unreliable reasoning and improve the model’s reasoning performance.">
+<meta name="twitter:image" content="https://tanyingjie01.github.io/assets/figures/random-number/all_head_tv_heatmap.png">
+<meta name="twitter:image:alt" content="Local heatmap of mean full-vocabulary total variation around L82.H18.">
+<meta name="twitter:image-height" content="1728">
+<meta name="twitter:image-width" content="1728">
+<meta name="twitter:card" content="summary_large_image">
 </head>
 
-<body>
+<body class="floating nav-fixed post-research title-date-only slimcontent quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="/index.html" class="navbar-brand navbar-brand-logo">
-    <img src="/assets/brand-mark.svg" alt="首页 / Home" class="navbar-logo light-content" />
-    <img src="/assets/brand-mark.svg" alt="首页 / Home" class="navbar-logo dark-content" />
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../assets/brand-mark.svg" alt="首页 / Home" class="navbar-logo light-content">
+    <img src="../../assets/brand-mark.svg" alt="首页 / Home" class="navbar-logo dark-content">
     </a>
   </div>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
-  aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation"
-  onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="/index.html"> 
+    <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="/blog.html"> 
+    <a class="nav-link" href="../../blog.html"> 
 <span class="menu-text">Blog</span></a>
   </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="/zh/index.html"> 
+    <a class="nav-link" href="../../zh/index.html"> 
 <span class="menu-text">中文</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="/index.html"> 
+    <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">English</span></a>
   </li>  
 </ul>
@@ -144,18 +167,51 @@ window.Quarto = {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
-    <div id="quarto-toc-target"></div>
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#background-non-random-outputs-from-llms" id="toc-background-non-random-outputs-from-llms" class="nav-link active" data-scroll-target="#background-non-random-outputs-from-llms"><span class="header-section-number">1</span> Background: Non-random Outputs from LLMs</a></li>
+  <li><a href="#the-head-that-writes-the-random-number-fingerprint" id="toc-the-head-that-writes-the-random-number-fingerprint" class="nav-link" data-scroll-target="#the-head-that-writes-the-random-number-fingerprint"><span class="header-section-number">2</span> The Head That Writes the Random-Number Fingerprint</a>
+  <ul class="collapse">
+  <li><a href="#head-localization" id="toc-head-localization" class="nav-link" data-scroll-target="#head-localization"><span class="header-section-number">2.1</span> Head localization</a></li>
+  <li><a href="#head-attention-distribution" id="toc-head-attention-distribution" class="nav-link" data-scroll-target="#head-attention-distribution"><span class="header-section-number">2.2</span> Head attention distribution</a></li>
+  <li><a href="#head-attention-intervention" id="toc-head-attention-intervention" class="nav-link" data-scroll-target="#head-attention-intervention"><span class="header-section-number">2.3</span> Head attention intervention</a></li>
+  </ul></li>
+  <li><a href="#sec-head-generalization" id="toc-sec-head-generalization" class="nav-link" data-scroll-target="#sec-head-generalization"><span class="header-section-number">3</span> Head Generalization Experiments</a>
+  <ul class="collapse">
+  <li><a href="#candidate-type-generalization-experiments" id="toc-candidate-type-generalization-experiments" class="nav-link" data-scroll-target="#candidate-type-generalization-experiments"><span class="header-section-number">3.1</span> Candidate-Type Generalization Experiments</a></li>
+  <li><a href="#candidate-constraint-generalization-experiments" id="toc-candidate-constraint-generalization-experiments" class="nav-link" data-scroll-target="#candidate-constraint-generalization-experiments"><span class="header-section-number">3.2</span> Candidate-Constraint Generalization Experiments</a></li>
+  <li><a href="#sec-task-type-generalization" id="toc-sec-task-type-generalization" class="nav-link" data-scroll-target="#sec-task-type-generalization"><span class="header-section-number">3.3</span> Task-Type Generalization Experiments</a></li>
+  <li><a href="#sec-long-thinking-generalization" id="toc-sec-long-thinking-generalization" class="nav-link" data-scroll-target="#sec-long-thinking-generalization"><span class="header-section-number">3.4</span> Generalization to Long-Form Reasoning</a></li>
+  <li><a href="#sec-cross-head-generalization" id="toc-sec-cross-head-generalization" class="nav-link" data-scroll-target="#sec-cross-head-generalization"><span class="header-section-number">3.5</span> Generalizing Candidate-Information-Transport Heads</a></li>
+  </ul></li>
+  <li><a href="#sec-candidate-circuit-interventions" id="toc-sec-candidate-circuit-interventions" class="nav-link" data-scroll-target="#sec-candidate-circuit-interventions"><span class="header-section-number">4</span> Causal Effects of Heads Under Reasoning-Circuit Interruption</a>
+  <ul class="collapse">
+  <li><a href="#removing-input-evidence" id="toc-removing-input-evidence" class="nav-link" data-scroll-target="#removing-input-evidence"><span class="header-section-number">4.1</span> Interrupting the Start of the Circuit: Removing Input Evidence</a></li>
+  <li><a href="#removing-the-key-reasoning-chain" id="toc-removing-the-key-reasoning-chain" class="nav-link" data-scroll-target="#removing-the-key-reasoning-chain"><span class="header-section-number">4.2</span> Interrupting the Middle of the Circuit: Removing the Key Reasoning Chain</a></li>
+  <li><a href="#removing-retrieval-heads" id="toc-removing-retrieval-heads" class="nav-link" data-scroll-target="#removing-retrieval-heads"><span class="header-section-number">4.3</span> Interrupting the End of the Circuit: Removing Retrieval Heads</a></li>
+  </ul></li>
+  <li><a href="#sec-tv-triggered-repair" id="toc-sec-tv-triggered-repair" class="nav-link" data-scroll-target="#sec-tv-triggered-repair"><span class="header-section-number">5</span> Improving Reasoning by Detecting Head TV</a></li>
+  <li><a href="#sec-attention-architecture-generalization" id="toc-sec-attention-architecture-generalization" class="nav-link" data-scroll-target="#sec-attention-architecture-generalization"><span class="header-section-number">6</span> Head Generalization Across Attention Architectures</a>
+  <ul class="collapse">
+  <li><a href="#linear-attention-architecture" id="toc-linear-attention-architecture" class="nav-link" data-scroll-target="#linear-attention-architecture"><span class="header-section-number">6.1</span> Linear-Attention Architecture</a></li>
+  <li><a href="#sparse-attention-architecture" id="toc-sparse-attention-architecture" class="nav-link" data-scroll-target="#sparse-attention-architecture"><span class="header-section-number">6.2</span> Sparse-Attention Architecture</a></li>
+  </ul></li>
+  <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion"><span class="header-section-number">7</span> Summary and Reflections</a></li>
+  </ul>
 </nav>
-<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" ></div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content">
+<main class="content page-columns page-full" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">From a Model’s Random-Number Fingerprint: A Study of LLM Reasoning Circuits</h1>
+<h1 class="title">From a Model’s Random-Number Fingerprint:<br>A Study of LLM Reasoning Circuits</h1>
   </div>
 
 
@@ -183,80 +239,53 @@ window.Quarto = {
 
 </header>
 
-<nav id="TOC" role="doc-toc">
-    <h2 id="toc-title">On this page</h2>
-   
-  <ul>
-  <li><a href="#background-non-random-outputs-from-llms" id="toc-background-non-random-outputs-from-llms"><span class="header-section-number">1</span> Background: Non-random Outputs from LLMs</a></li>
-  <li><a href="#the-head-that-writes-the-random-number-fingerprint" id="toc-the-head-that-writes-the-random-number-fingerprint"><span class="header-section-number">2</span> The Head That Writes the Random-Number Fingerprint</a>
-  <ul>
-  <li><a href="#head-localization" id="toc-head-localization"><span class="header-section-number">2.1</span> Head localization</a></li>
-  <li><a href="#head-attention-distribution" id="toc-head-attention-distribution"><span class="header-section-number">2.2</span> Head attention distribution</a></li>
-  <li><a href="#head-attention-intervention" id="toc-head-attention-intervention"><span class="header-section-number">2.3</span> Head attention intervention</a></li>
-  </ul></li>
-  <li><a href="#sec-head-generalization" id="toc-sec-head-generalization"><span class="header-section-number">3</span> Head Generalization Experiments</a>
-  <ul>
-  <li><a href="#candidate-type-generalization-experiments" id="toc-candidate-type-generalization-experiments"><span class="header-section-number">3.1</span> Candidate-Type Generalization Experiments</a></li>
-  <li><a href="#candidate-constraint-generalization-experiments" id="toc-candidate-constraint-generalization-experiments"><span class="header-section-number">3.2</span> Candidate-Constraint Generalization Experiments</a></li>
-  <li><a href="#sec-task-type-generalization" id="toc-sec-task-type-generalization"><span class="header-section-number">3.3</span> Task-Type Generalization Experiments</a></li>
-  <li><a href="#sec-long-thinking-generalization" id="toc-sec-long-thinking-generalization"><span class="header-section-number">3.4</span> Generalization to Long-Form Reasoning</a></li>
-  <li><a href="#sec-cross-head-generalization" id="toc-sec-cross-head-generalization"><span class="header-section-number">3.5</span> Cross-Head Functional Generalization Experiments</a></li>
-  </ul></li>
-  <li><a href="#sec-candidate-circuit-interventions" id="toc-sec-candidate-circuit-interventions"><span class="header-section-number">4</span> Causal Interventions on the Candidate-Head Circuit</a>
-  <ul>
-  <li><a href="#removing-input-evidence" id="toc-removing-input-evidence"><span class="header-section-number">4.1</span> Removing Input Evidence</a></li>
-  <li><a href="#removing-the-key-reasoning-chain" id="toc-removing-the-key-reasoning-chain"><span class="header-section-number">4.2</span> Removing the Key Reasoning Chain</a></li>
-  <li><a href="#removing-retrieval-heads" id="toc-removing-retrieval-heads"><span class="header-section-number">4.3</span> Removing Retrieval Heads</a></li>
-  </ul></li>
-  <li><a href="#sec-tv-triggered-repair" id="toc-sec-tv-triggered-repair"><span class="header-section-number">5</span> Improving Reasoning by Detecting Head TV</a></li>
-  <li><a href="#sec-conclusion" id="toc-sec-conclusion"><span class="header-section-number">6</span> Conclusion and Outlook</a></li>
-  </ul>
-</nav>
+
 <p>Discussions about GPT “getting worse” or being routed to a smaller model never really stop. A <a href="https://linux.do/t/topic/2472419">LINUX DO post</a> proposed a simple test: repeatedly ask a model to choose a random number from a fixed range, estimate its output distribution, and use that distribution as a statistical fingerprint of the model<sup class="margin-note-ref" aria-label="See Note 1 in the right margin">1</sup>.</p>
-<div class="column-margin">
+
+<div class="no-row-height column-margin column-container"><div class="">
 <p><span class="margin-label">Note 1</span></p>
 <p>Since the release of Astra, a more popular test seems to be the pelican-riding-a-bicycle prompt; see this <a href="https://linux.do/t/topic/2858863">LINUX DO post</a>.</p>
-</div>
-<p>It is easy to see why this method works and why it is useful. But it also suggests a more interesting research question:</p>
+</div></div><p>It is easy to see why this method works and why it is useful. But it also suggests a more interesting research question:</p>
 <div class="research-question">
 <p><strong>How is this random-number fingerprint written or generated inside the model?</strong></p>
 </div>
-<p>To investigate this question, we began with prompts asking the model to <span class="inline-prompt-example">“choose a random number from 1 to 300”</span>. We located heads that strongly read the candidate-range boundary <code>300</code>. Further experiments gradually revealed their more general role: reading the candidate set in a reasoning task. <span class="intro-mechanism-blue">When the answer has not yet been successfully inferred and the model must still choose among candidates,</span> the information these heads write into the residual stream markedly changes the output.</p>
-<p>When we manually interrupt the normal reasoning circuit—for example, by deleting a key reasoning chain or blocking retrieval heads—the causal effects of these candidate heads are likewise amplified. This suggests two competing circuits: <span class="intro-mechanism-green">when the model can reason normally, the reasoning circuit operates while the candidate-head circuit is suppressed;</span><span class="intro-mechanism-red">when that circuit is interrupted, the candidate circuit gains causal influence and begins to dominate behavior.</span></p>
-<p>Based on this observation, we use the candidate heads’ behavior as a signal of whether the model’s reasoning is reliable. When it indicates unreliable reasoning, we trigger additional reasoning. The experiments show that this strategy can detect such cases and improve performance.</p>
+<p>To investigate this question, we began with the prompt <span class="inline-prompt-example"><strong>「在 1–300 中随机选择一个数」</strong></span><span class="intro-mechanism-blue">(English translation: <strong style="font-weight: 700;"><em>“Choose a random number from 1 to 300”</em></strong>)</span> and located a class of heads that strongly read the candidate-range boundary <code>300</code> (<a href="#the-head-that-writes-the-random-number-fingerprint" class="no-external section-ref" target="_self"><strong>Sec 2</strong></a>). Further experiments gradually revealed their more general role: reading the candidate set in a reasoning task. <span class="intro-mechanism-blue">When the answer has not yet been successfully inferred and the model must still choose among candidates,</span> the information these heads write into the residual stream markedly changes the output (<a href="#sec-head-generalization" class="no-external section-ref" target="_self"><strong>Sec 3</strong></a>).</p>
+<p>When we manually interrupt the model’s reasoning circuit during otherwise normal reasoning—for example, by deleting a key reasoning chain or blocking retrieval heads—and thereby force the model into uncertain reasoning, the causal effects of these heads are likewise amplified (<a href="#sec-candidate-circuit-interventions" class="no-external section-ref" target="_self"><strong>Sec 4</strong></a>). <strong>This suggests that two circuits compete inside the model: <span class="intro-mechanism-green">when the model can reason normally, the reasoning circuit operates while the circuit corresponding to these heads is suppressed;</span><span class="intro-mechanism-red">when the reasoning circuit is interrupted, this other circuit gains causal influence and begins to dominate the model’s behavior.</span></strong></p>
+<p>Based on this, we use the behavior of these heads as a signal of whether the model’s reasoning is reliable and trigger a reasoning-enhancement strategy when unreliable reasoning is detected. The results show that it can indeed detect unreliable reasoning and improve model performance (<a href="#sec-tv-triggered-repair" class="no-external section-ref" target="_self"><strong>Sec 5</strong></a>). Additional experiments show that these heads also exist in models with linear-attention and sparse-attention architectures (<a href="#sec-attention-architecture-generalization" class="no-external section-ref" target="_self"><strong>Sec 6</strong></a>).</p>
 <div class="article-deck">
 <p><strong>If this question interests you, read on. The complete post will take about 30 minutes.</strong></p>
 </div>
-<section id="background-non-random-outputs-from-llms" class="level2" data-number="1">
-<h2 data-number="1"><span class="header-section-number">1</span> Background: Non-random Outputs from LLMs</h2>
+<section id="background-non-random-outputs-from-llms" class="level2 page-columns page-full" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="background-non-random-outputs-from-llms"><span class="header-section-number">1</span> Background: Non-random Outputs from LLMs</h2>
 <p>Suppose we give a language model the following prompt:</p>
 <div class="prompt-example">
-<p>Choose a random number from 1 to 300. Output only the number.</p>
+<p>请从 1–300 随机选择一个数，只输出这个数字。</p>
 </div>
+<p><span class="intro-mechanism-blue">(English translation: <strong><em>“Choose a random number from 1 to 300. Output only the number.”</em></strong>)</span></p>
 <p>The model does not literally draw a random number during its forward pass. More precisely, a language model’s forward pass is a deterministic function from the input text to the logits for the next token. The decoder then uses a temperature <span class="math inline">T</span> to turn those logits into a probability distribution:</p>
 <p><span class="math display">
 p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 </span></p>
 <p>With both the prompt and decoding configuration fixed, the model’s next-token probability distribution <span class="math inline">p</span> is fixed as well<sup class="margin-note-ref" aria-label="See Note 2 in the right margin">2</sup>.</p>
 <p>Under sampling, a pseudorandom number generator selects a token from the distribution <span class="math inline">p</span>. Individual outputs can vary, while the long-run statistical distribution should remain stable. This is why random-number choice can serve as a model fingerprint: different parameter sets assign different but stable probabilities to number tokens, and repeated sampling turns those preferences into a recognizable output distribution.</p>
-<div class="column-margin">
+
+<div class="no-row-height column-margin column-container"><div class="">
 <p><span class="margin-label">Note 2</span></p>
 <p>Real inference services are not necessarily reproducible bit for bit. Batching and parallel reductions in backends such as vLLM and SGLang can change the order of floating-point operations and introduce numerical differences. See Thinking Machines Lab’s <a href="https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/">Defeating Nondeterminism in LLM Inference</a>.</p>
-</div>
-<p>The question we really care about is: <strong>How is this probability distribution written and generated during the model’s forward pass?</strong></p>
+</div></div><p>The question we really care about is: <strong>How is this probability distribution written and generated during the model’s forward pass?</strong></p>
 </section>
-<section id="the-head-that-writes-the-random-number-fingerprint" class="level2" data-number="2">
-<h2 data-number="2"><span class="header-section-number">2</span> The Head That Writes the Random-Number Fingerprint</h2>
+<section id="the-head-that-writes-the-random-number-fingerprint" class="level2 page-columns page-full" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="the-head-that-writes-the-random-number-fingerprint"><span class="header-section-number">2</span> The Head That Writes the Random-Number Fingerprint</h2>
 <p>During an LLM forward pass, QK determines where attention reads from, while OV determines what is written into the residual stream. That information is read and processed by MoE layers before the output layer produces a logit distribution.</p>
 <p>Under this picture, a reasonable hypothesis is that some deep-layer heads encode the range <code>1–300</code>, so downstream computation can read the candidate range. That information is written into the residual stream and shapes the output; the model’s selection preference is written along the way.</p>
-<p>To test this hypothesis, we ran experiments on the MoE model Qwen3-235B-A22B. We constructed nine Chinese prompts similar to <span class="inline-prompt-example">“请从1-300随机选择一个数，只输出这个数字”</span>. All ask the model to select a random number from <code>1–300</code>, but use different semantic phrasings.</p>
+<p>To test this hypothesis, we ran experiments on the MoE model <a href="https://huggingface.co/Qwen/Qwen3-235B-A22B">Qwen3-235B-A22B</a>. We constructed multiple Chinese prompts similar to <span class="inline-prompt-example">「请从1-300随机选择一个数，只输出这个数字」</span> <span class="intro-mechanism-blue">(English translation: <strong><em>“Choose a random number from 1 to 300. Output only the number.”</em></strong>)</span>. All ask the model to select a random number from <code>1–300</code>, but use different semantic phrasings.</p>
 <p>The exact probabilities vary across prompts, but their overall structure remains stable: almost all next-token probability mass is assigned to digits, and <code>1</code> and <code>2</code> consistently form the dominant competition<sup class="margin-note-ref" aria-label="See Note 3 in the right margin">3</sup>.</p>
-<div class="column-margin">
+
+<div class="no-row-height column-margin column-container"><div class="">
 <p><span class="margin-label">Note 3</span></p>
-<p>I suspect that the high probability of <code>1</code> and <code>2</code> relative to other digits reflects the numerical distribution in the pretraining corpus. The pronounced preference between <code>1</code> and <code>2</code>, however, seems more likely to be encoded during post-training. This may explain why many models favor <code>1</code> and <code>2</code> while the exact probabilities form distinct fingerprints.</p>
-</div>
-<div class="fingerprint-baseline">
-<table class="caption-top">
+<p>I suspect that the high probability of <code>1</code> and <code>2</code> relative to other digits reflects the numerical distribution in the pretraining corpus. The pronounced preference between <code>1</code> and <code>2</code>, however, seems more likely to be encoded during post-training.</p>
+</div></div><div class="fingerprint-baseline probability-summary-table">
+<table class="caption-top table">
 <thead>
 <tr class="header">
 <th style="text-align: center;"><span class="math inline">P(1)</span></th>
@@ -276,9 +305,9 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 </table>
 </div>
 <p>We therefore use “which head most strongly disrupts this generation preference?” as the criterion for locating the key head.</p>
-<section id="head-localization" class="level3" data-number="2.1">
-<h3 data-number="2.1"><span class="header-section-number">2.1</span> Head localization</h3>
-<p>Qwen3-235B-A22B has 94 layers and 64 query heads per layer. We examined each head through ablation: immediately before the layer’s attention <code>o_proj</code>, we zeroed the target head’s 128-dimensional output slice at every input-token position while leaving all other computation unchanged.</p>
+<section id="head-localization" class="level3 page-columns page-full" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="head-localization"><span class="header-section-number">2.1</span> Head localization</h3>
+<p><a href="https://huggingface.co/Qwen/Qwen3-235B-A22B">Qwen3-235B-A22B</a> has 94 layers and 64 query heads per layer. We examined each head through ablation: immediately before the layer’s attention <code>o_proj</code>, we zeroed the target head’s 128-dimensional output slice at every input-token position while leaving all other computation unchanged.</p>
 <p>We measured the change between the original and ablated full-vocabulary distributions with total variation distance:</p>
 <div class="restored-math-font">
 <p><span class="math display">
@@ -290,7 +319,8 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 </div>
 <p>Here, <span class="math inline">p</span> is the original next-token distribution, while <span class="math inline">p^{(h,l)}</span> is the distribution after ablating head <span class="math inline">(h,l)</span>. A larger TV means that the head has a stronger causal effect on the current output distribution.</p>
 <p>We identified <code>L82.H18</code> as the most significant head. Its full-vocabulary TV reached <strong>34.0%</strong>, the strongest effect among all heads<sup class="margin-note-ref" aria-label="See Note 4 in the right margin">4</sup>.</p>
-<div class="column-margin metric-note restored-math-font">
+
+<div class="no-row-height column-margin column-container"><div class="metric-note restored-math-font">
 <p><span class="margin-label">Note 4</span></p>
 <p><code>L82.H18</code> also ranks first by centered full-vocabulary logit <span class="math inline">\operatorname{RMS}_{c}(h,l)</span>, defined as:</p>
 <p><span class="math display">
@@ -298,21 +328,20 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 \sqrt{\frac{1}{|\mathcal V|}\sum_{v\in\mathcal V}
 \left(\Delta z_v^{(h,l)}-\overline{\Delta z}^{(h,l)}\right)^2}.
 </span></p>
-<p>Here, <span class="math inline">\Delta z_v^{(h,l)}</span> is the change in token <span class="math inline">v</span>’s logit after ablating head (h,l), and <span class="math inline">\overline{\Delta z}^{(h,l)}</span> is its full-vocabulary mean. <span class="math inline">\operatorname{RMS}_{c}(h,l)</span> represents the overall effect of ablating that head on the full-vocabulary logit structure.</p>
-</div>
-<div class="analysis-figure-grid">
+<p>Here, <span class="math inline">\Delta z_v^{(h,l)}</span> is the change in token <span class="math inline">v</span>’s logit after ablating head <span class="math inline">(h,l)</span>, and <span class="math inline">\overline{\Delta z}^{(h,l)}</span> is its full-vocabulary mean. <span class="math inline">\operatorname{RMS}_{c}(h,l)</span> represents the overall effect of ablating that head on the full-vocabulary logit structure.</p>
+</div></div><div class="analysis-figure-grid">
 <div class="analysis-figure">
 <div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img src="../../assets/figures/random-number/all_head_tv_heatmap.png" class="img-fluid" alt="Local heatmap of mean full-vocabulary total variation around L82.H18." /></p>
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/all_head_tv_heatmap.png" class="img-fluid figure-img" alt="Local heatmap of mean full-vocabulary total variation around L82.H18."></p>
 <figcaption>Figure 1(a): Local TV landscape around <code>L82.H18</code>.</figcaption>
 </figure>
 </div>
 </div>
 <div class="analysis-figure">
 <div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img src="../../assets/figures/random-number/l82_h18_probability_shift.png" class="img-fluid" alt="Grouped bar chart comparing probabilities for tokens 1 and 2 in the full model and after ablating L82.H18." /></p>
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/l82_h18_probability_shift.png" class="img-fluid figure-img" alt="Grouped bar chart comparing probabilities for tokens 1 and 2 in the full model and after ablating L82.H18."></p>
 <figcaption>Figure 1(b): Changes in <span class="math inline">P(1)</span> and <span class="math inline">P(2)</span> after ablating <code>L82.H18</code>.</figcaption>
 </figure>
 </div>
@@ -322,12 +351,12 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 <p>This shows that the identified <code>L82.H18</code> does indeed write a strong preference within the set of numerical candidates.</p>
 </section>
 <section id="head-attention-distribution" class="level3" data-number="2.2">
-<h3 data-number="2.2"><span class="header-section-number">2.2</span> Head attention distribution</h3>
+<h3 data-number="2.2" class="anchored" data-anchor-id="head-attention-distribution"><span class="header-section-number">2.2</span> Head attention distribution</h3>
 <p>We next examine the attention distribution of <code>L82.H18</code>. All prompts used here contain 28 tokens and share a similar structure: <code>300</code> is split across t7–t9, the model-side <code>assistant</code> token is at t22, and the final <code>\n\n</code> before the answer is at t27.</p>
 <div class="analysis-figure">
 <div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img src="../../assets/figures/random-number/h18_prompt_token_map.png" class="img-fluid" alt="Twenty-eight token prompt map arranged in two rows, highlighting 300 at t7 through t9, assistant at t22, think-mode tokens, and the final double-newline answer boundary at t27." /></p>
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/h18_prompt_token_map.png" class="img-fluid figure-img" alt="Twenty-eight token prompt map arranged in two rows, highlighting 300 at t7 through t9, assistant at t22, think-mode tokens, and the final double-newline answer boundary at t27."></p>
 <figcaption>Figure 2: The 28-token random-number prompt after applying the chat template.</figcaption>
 </figure>
 </div>
@@ -335,8 +364,8 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 <p>The most concentrated attention connection of <code>L82.H18</code> runs from token <code>\n\n</code> at t27 to token <code>300</code> at t7–t9, with an average attention mass of <strong>99.56%</strong>. The figure below shows the attention distributions for five representative prompts.</p>
 <div class="analysis-figure">
 <div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img src="../../assets/figures/random-number/h18_q27_attention_heatmap.png" class="img-fluid" alt="L82.H18 attention across five representative prompts; each row is one prompt and 300 always occupies t7 through t9" /></p>
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/h18_q27_attention_heatmap.png" class="img-fluid figure-img" alt="L82.H18 attention across five representative prompts; each row is one prompt and 300 always occupies t7 through t9"></p>
 <figcaption>Figure 3: <code>L82.H18@q27</code> attention across five representative prompts. Each row represents one prompt, each column a token position, and token <code>300</code> always occupies t7–t9.</figcaption>
 </figure>
 </div>
@@ -344,12 +373,12 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 <p>In other words, as the model prepares its answer, <code>L82.H18</code> reads almost exclusively from the range boundary <code>300</code> and writes the resulting vector at the start of the answer.</p>
 </section>
 <section id="head-attention-intervention" class="level3" data-number="2.3">
-<h3 data-number="2.3"><span class="header-section-number">2.3</span> Head attention intervention</h3>
+<h3 data-number="2.3" class="anchored" data-anchor-id="head-attention-intervention"><span class="header-section-number">2.3</span> Head attention intervention</h3>
 <p>To determine whether the prominent attention edge actually dominates the output shift, we performed the following <code>L82.H18</code> attention interventions on the same prompts:</p>
 <div class="intervention-conditions">
 <ul>
 <li><strong>Full model</strong>: no intervention; this is the baseline.</li>
-<li><strong>Remove <code>L82.H18</code></strong>: zero the head’s output at every token position.</li>
+<li><strong>Remove <code>L82.H18</code></strong>: zero the output of <code>L82.H18</code> at every token position.</li>
 <li><strong>Remove the <code>\n\n → 300</code> attention edges</strong>: zero only the three edges from q27 to t7–t9.</li>
 <li><strong>Remove <code>L82.H18</code>, then restore the <code>\n\n → 300</code> write</strong>: first remove <code>L82.H18</code>, then add back at t27 the original residual-write vector contributed predominantly by t7–t9; the other token positions remain ablated.</li>
 </ul>
@@ -357,8 +386,8 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 <p>The first three experiments test whether the <code>\n\n → 300</code> attention edges dominate the behavior of <code>L82.H18</code>. The fourth restores the information these edges write into the residual stream, testing whether it recovers the effect of the complete head.</p>
 <div class="analysis-figure">
 <div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img src="../../assets/figures/random-number/h18_q27_attention_intervention.png" class="img-fluid" alt="Grouped vertical bar chart showing the probability of generating token 1, the probability of generating token 2, and full-vocabulary TV under four L82.H18 intervention conditions." /></p>
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/h18_q27_attention_intervention.png" class="img-fluid figure-img" alt="Grouped vertical bar chart showing the probability of generating token 1, the probability of generating token 2, and full-vocabulary TV under four L82.H18 intervention conditions."></p>
 <figcaption>Figure 4: The probabilities of generating tokens <code>1</code> and <code>2</code>, and full-vocabulary TV, under four conditions: <span class="fig4-condition-baseline">full model</span>, <span class="fig4-condition-head-ablation">remove L82.H18</span>, <span class="fig4-condition-edge-ablation">remove \n\n → 300 attention edges</span>, and <span class="fig4-condition-write-restoration">remove L82.H18 then restore the \n\n → 300 write</span>.</figcaption>
 </figure>
 </div>
@@ -367,33 +396,35 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 <p>This suggests that the main role of <code>L82.H18</code> is to transport candidate-range information to the answer position and thereby help form the model’s output fingerprint.</p>
 </section>
 </section>
-<section id="sec-head-generalization" class="level2" data-number="3">
-<h2 data-number="3"><span class="header-section-number">3</span> Head Generalization Experiments</h2>
-<p>So far, we have demonstrated the behavior of <code>L82.H18</code> when choosing a random number from 1 to 300. The next question is how well it generalizes: can it <span class="intro-mechanism-blue">aggregate and transport candidate information to help form a model fingerprint</span> in other tasks, and can it serve a more general function?</p>
+<section id="sec-head-generalization" class="level2 page-columns page-full" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="sec-head-generalization"><span class="header-section-number">3</span> Head Generalization Experiments</h2>
+<p>So far, we have demonstrated the behavior of <code>L82.H18</code> when choosing a random number from 1 to 300. The next question is how well this behavior generalizes: can <code>L82.H18</code> <span class="intro-mechanism-blue">aggregate and transport candidate information to help form a model fingerprint</span> in other tasks, and can it serve a more general function?</p>
 <p>To answer this question, we varied candidate types and constraints, downstream tasks, and reasoning length to examine the head’s function across settings.</p>
-<section id="candidate-type-generalization-experiments" class="level3" data-number="3.1">
-<h3 data-number="3.1"><span class="header-section-number">3.1</span> Candidate-Type Generalization Experiments</h3>
+<section id="candidate-type-generalization-experiments" class="level3 page-columns page-full" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="candidate-type-generalization-experiments"><span class="header-section-number">3.1</span> Candidate-Type Generalization Experiments</h3>
 <p>We began with the most direct generalization: if numerical candidates are replaced by another type of candidate, does <code>L82.H18</code> exhibit the same properties? We replaced the original <code>1–300</code> range with an alphabetic range:</p>
 <div class="prompt-example">
-<p>Choose any letter from A to D and output only that letter.</p>
+<p>请从 A 到 D 中任选一个，只输出这个字母。</p>
 </div>
+<p><span class="intro-mechanism-blue">(English translation: <strong><em>“Choose any letter from A to D and output only that letter.”</em></strong>)</span></p>
 <p>The result closely mirrors the numerical-range experiment: <code>L82.H18</code> assigns <strong>88.62%</strong> attention to the letter <code>D</code>, and deleting this prominent attention edge produces <strong>30.3%</strong> TV.</p>
 <p>We then expanded the candidates into explicit lists to test whether this property extends to general candidate sets. Every experiment used the same template:</p>
 <div class="prompt-example">
-<p>Choose any item from the candidate list 【…】 and output only the selected item.</p>
+<p>请从候选列表【……】中任选一个，只输出被选中的候选。</p>
 </div>
+<p><span class="intro-mechanism-blue">(English translation: <strong><em>“Choose any item from the candidate list 【…】 and output only the selected item.”</em></strong>)</span></p>
 <p>We constructed a range of candidate lists, including canonical and non-canonical lists.</p>
 <ul>
 <li><strong class="list-type-canonical">Canonical lists</strong>: the elements have a strong intrinsic order and are presented in that order, such as the heavenly-stem list 【甲, 乙, 丙, 丁, …】.</li>
 <li><strong class="list-type-noncanonical">Non-canonical lists</strong>: the elements have no stable intrinsic order and are arranged without a canonical sequence, such as the food list 【dumplings, noodles, rice, buns, …】.</li>
 </ul>
-<div class="fingerprint-baseline">
-<table class="caption-top">
+<div class="fingerprint-baseline list-summary-table">
+<table class="caption-top table">
 <colgroup>
-<col style="width: 20%" />
-<col style="width: 26%" />
-<col style="width: 26%" />
-<col style="width: 26%" />
+<col style="width: 20%">
+<col style="width: 26%">
+<col style="width: 26%">
+<col style="width: 26%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -419,12 +450,12 @@ p_i = \frac{\exp(z_i/T)}{\sum_j \exp(z_j/T)}.
 </tbody>
 </table>
 </div>
-<p>The results show that <code>L82.H18</code> has a substantially stronger effect on canonical lists: it assigns more attention to them, and removing its attention edges to the list produces greater TV than for non-canonical lists<sup class="margin-note-ref" aria-label="See Note 6 in the right margin">6</sup>.</p>
-<div class="column-margin">
-<p><span class="margin-label">Note 6</span></p>
+<p>The results show that <code>L82.H18</code> has a substantially stronger effect on canonical lists: it assigns more attention to them, and removing its attention edges to the list produces greater TV than for non-canonical lists<sup class="margin-note-ref" aria-label="See Note 5 in the right margin">5</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 5</span></p>
 <p>The more salient or familiar a list’s ordering relation is, the stronger the effect of <code>L82.H18</code>. For example, the numerical list <code>[1, 2, 3, 4]</code> produces a stronger effect than the seasonal list <code>[spring, summer, autumn, winter]</code>.</p>
-</div>
-<p>We further investigated whether this behavior depends on the elements’ intrinsic ordering or requires them to be presented in order. We completely reversed each list and constructed several shuffled arrangements, then observed <code>L82.H18</code>.</p>
+</div></div><p>We further investigated whether this behavior depends on the elements’ intrinsic ordering or requires them to be presented in order. We completely reversed each list and constructed several shuffled arrangements, then observed <code>L82.H18</code>.</p>
 <div class="fingerprint-baseline">
 <div class="table-responsive">
 <table class="table order-comparison-table">
@@ -516,19 +547,20 @@ Shuffled
 </div>
 <p>Overall, list order has little effect. For non-canonical lists, attention and TV remain essentially unchanged regardless of order. Among canonical lists, only complete reversal produces a noticeable decline in TV; attention and TV otherwise stay relatively high across arrangements. This suggests that <code>L82.H18</code> can recognize a candidate set’s strict intrinsic order rather than relying only on the order in which the list appears in the prompt.</p>
 </section>
-<section id="candidate-constraint-generalization-experiments" class="level3" data-number="3.2">
-<h3 data-number="3.2"><span class="header-section-number">3.2</span> Candidate-Constraint Generalization Experiments</h3>
-<p>Next, we examine generalization across candidate constraints: when we add constraints to the full candidate set and change the set of allowed choices, does <code>L82.H18</code> shift its attention to the constraints defining that set? We first run a simple experiment, retaining the original <code>1–300</code> range while additionally requiring the selected number to be less than <code>150</code>:</p>
+<section id="candidate-constraint-generalization-experiments" class="level3 page-columns page-full" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="candidate-constraint-generalization-experiments"><span class="header-section-number">3.2</span> Candidate-Constraint Generalization Experiments</h3>
+<p>Next, we examine generalization across candidate constraints: when we add constraints to the candidate set and change the set of allowed choices, <strong>does <code>L82.H18</code> shift its attention to the constraint information that defines that set?</strong> We first run a simple experiment, retaining the original <code>1–300</code> range while additionally requiring the selected number to be less than <code>150</code>:</p>
 <div class="prompt-example">
 <p>请从1-300中小于150的数里随机选择一个，只输出这个数字</p>
 </div>
-<p>In English: “Randomly choose a number less than 150 from the range 1–300. Output only that number.”</p>
-<p>At the final answer position, <code>L82.H18</code> assigns <strong>83.42%</strong> attention to <code>150</code> in the added constraint “less than 150,” while attention to the original upper bound <code>300</code> falls to <strong>9.07%</strong>. Removing this head’s write at the final answer position produces <strong>44.4%</strong> TV. This shows that its primary reading location shifts to the new candidate boundary, while its write still substantially affects the output probability distribution.</p>
-<p>We then extend the experiment to different types of canonical lists (see <a href="#candidate-type-generalization-experiments" class="no-external" target="_self">Section 3.1</a>), constructing eight active subsets for each list. We explicitly specify the set allowed for the current task using a fixed template, translated here:</p>
+<p><span class="intro-mechanism-blue">(English translation: <strong><em>“Randomly choose a number less than 150 from the range 1–300. Output only that number.”</em></strong>)</span></p>
+<p>At the final answer position, <code>L82.H18</code> assigns <strong>83.42%</strong> attention to <code>150</code> in the added constraint, while its attention to <code>300</code> falls to <strong>9.07%</strong>. Removing this head’s write at the final answer position produces <strong>44.4%</strong> TV.</p>
+<p>We then extend the experiment to the different canonical-list types in <a href="#candidate-type-generalization-experiments" class="no-external section-ref" target="_self"><strong>Sec 3.1</strong></a>. For each list, we construct multiple allowed subsets and explicitly specify the set available in the current task using the following fixed template:</p>
 <div class="prompt-example">
-<p>The full candidate set is 【…】. The allowed set for this task is 【…】. Randomly select one item from the allowed set and output only the answer.</p>
+<p>候选全集为【…】。本次允许集合为【…】。请从允许集合中随机选择一项，只输出答案</p>
 </div>
-<p>For example, given the letter list 【A, B, C, D, E, F, G, H】, we additionally specify 【A, C, E】 as the allowed set. We separately measure the attention that <code>L82.H18</code> assigns at the final answer position to the restated active set and the original full set, and the TV after jointly removing its attention edges to both sets:</p>
+<p><span class="intro-mechanism-blue">(English translation: <strong><em>“The full candidate set is 【…】. The allowed set for this task is 【…】. Randomly select one item from the allowed set and output only the answer.”</em></strong>)</span></p>
+<p>We separately measure the attention that <code>L82.H18</code> assigns at the final answer position to the restated allowed set and the original full set, and the TV after jointly removing its attention edges to both sets:</p>
 <!-- Active-subset means: code/random_number/results/qwen3_235b_h18_original_active_joint_edge_ablation_48_v1/{universe_summary,per_prompt}.csv. Eight prompts per list; TV is drop_both_list_edges_tv_mean: full-vocabulary TV after dropping the union of original-set and active-set attention edges and renormalizing the remaining attention. -->
 <div class="fingerprint-baseline active-subset-comparison">
 <div class="table-responsive" role="region" tabindex="0" aria-label="Active-subset results; scroll horizontally">
@@ -626,7 +658,7 @@ Months
 Scale
 </th>
 <td class="active-subset-elements">
-do, re, mi, fa,<br>sol, la, si, 高音do
+do, re, mi, fa,<br>sol, la, si
 </td>
 <td>
 53.49%
@@ -659,48 +691,47 @@ Zodiac
 </table>
 </div>
 </div>
-<p>Across list types, <code>L82.H18</code> assigns more attention on average to the active set than to the original full set, with overall means of <strong>57.06%</strong> and <strong>17.17%</strong>, respectively. This shows that additional constraints do redirect its primary attention toward the candidates currently allowed. Jointly removing its attention edges to the original full set and the active set produces an overall mean TV of <strong>8.1%</strong>, showing that reading candidate information from these two locations jointly influences the output probability distribution.</p>
-<p>We further construct more complex rule-based list-selection tasks. Instead of directly listing the active candidate set, we provide the full list and a filtering rule, asking the model to choose any candidate satisfying that rule. The rules include internal interval, midpoint neighborhood, distance shell, closer to the end, compound exclusion, and pair-sum membership. The bar chart below shows mean <code>L82.H18</code> attention to the list and rule, together with the corresponding edge-ablation TV, for each task type.</p>
+<p>Across list types, <code>L82.H18</code> assigns more attention on average to the allowed set than to the original full set, with overall means of <strong class="list-type-canonical">57.06%</strong> and <strong class="list-type-noncanonical">17.17%</strong>, respectively. This shows that additional constraints do redirect the primary attention of <code>L82.H18</code> toward the candidates currently allowed.</p>
+<p>We further construct more complex rule-based list-selection tasks. Rather than listing the active candidate set directly, we <span class="intro-mechanism-blue">provide the full list and a filtering rule, asking the model to choose any candidate that satisfies the rule.</span> The bar chart below shows the mean attention of <code>L82.H18</code> to the list and rule in each task type, together with the TV after removing the corresponding edges.</p>
 <div class="analysis-figure">
 <div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img src="../../assets/figures/random-number/h18_rule_attention_and_tv.png" class="img-fluid" alt="Six paired bar groups, ordered as internal interval, midpoint neighborhood, distance shell, closer to the end, compound exclusion, and pair-sum membership; solid bars show joint list-and-rule attention, and hatched bars show joint-edge ablation TV." /></p>
-<figcaption>Figure 5: Mean attention and joint-edge ablation TV for <code>L82.H18</code> across six rule-based selection tasks. Solid bars show total attention to list and rule tokens (left axis); hatched bars show full-vocabulary TV after removing the corresponding attention edges (right axis).</figcaption>
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/h18_rule_attention_and_tv.png" class="img-fluid figure-img" alt="Six paired bar groups, ordered as internal interval, midpoint neighborhood, distance shell, closer to the end, compound exclusion, and pair-sum membership; solid blue bars show joint list-and-rule attention, and hatched orange bars show full-vocabulary TV after removing the corresponding attention edges."></p>
+<figcaption>Figure 5: Attention and edge-ablation TV for <code>L82.H18</code> across six rule-based selection tasks. <span class="figure-key-blue">Solid blue bars</span> show total attention to the list and rule descriptions (left axis), while <span class="figure-key-orange">hatched orange bars</span> show full-vocabulary TV after removing the corresponding attention edges (right axis).</figcaption>
 </figure>
 </div>
 </div>
-<p>The results are similar to the earlier experiments: <code>L82.H18</code> allocates most of its attention to the list and rule descriptions. Removing its attention edges to these positions and renormalizing attention over the remaining sources produces mean TV values of <strong>3.2%–10.0%</strong> across task types, showing that these reads have a substantial causal effect on the output probability distribution.</p>
-<p>In addition, during these experiments, we also observed functional differentiation between heads. Although the preceding experiments focus on <code>L82.H18</code>, it is not the only head with similar properties. For another head with similar functionality in the same layer, <code>L82.H29</code><sup class="margin-note-ref" aria-label="See Note 8 in the right margin">8</sup>, we find different reading emphases in constrained-choice tasks: <code>L82.H18</code> focuses more on the constraints defining the candidate range, whereas <code>L82.H29</code> focuses more on the final candidate in the original list.</p>
-<div class="column-margin metric-note">
-<p><span class="margin-label">Note 8</span></p>
-<p>This head was localized using a full-head screening and independent-validation approach similar to <a href="#head-localization" class="no-external" target="_self">Section 2.1</a>. On the original <code>1–300</code> random-number task, its mean attention to <code>300</code> ranks first among all 6,016 heads. Its centered full-vocabulary logit <span class="math inline">\operatorname{RMS}_{c}(h,l)</span> ranks second among all heads.</p>
-</div>
-<p>The following prompt provides an intuitive example. We retain the original Chinese text to match the token positions in the experiment: <span class="inline-prompt-example">“给定有序字母列表【A，B，C，D，E，F，G】。B、E与F均不可选择；请在其余字母中任选一项。只输出所选字母，不要解释。答案：”</span> The prompt gives the ordered list <code>A–G</code>, excludes <code>B/E/F</code>, and asks for any remaining letter without explanation. At the same final answer position, <code>q61</code>, <code>L82.H18</code> assigns <strong>57.60%</strong> total attention to the constraint tokens (such as <code>B/E/F</code>). In contrast, <code>L82.H29</code> assigns <strong>45.33%</strong> attention to the final list item <code>G</code>. Removing their corresponding high-attention edges produces TV values of <strong>23.9%</strong> and <strong>5.0%</strong>, respectively.</p>
+<p>The results are similar to the earlier experiments: <code>L82.H18</code> allocates most of its attention to the list and rule descriptions. Removing its attention edges to these positions produces an average TV of <strong>6.2%</strong> across task types.</p>
+<p>We also observe functional differentiation among heads. Although the preceding experiments focus on <code>L82.H18</code>, it is not the only head with a similar function. For another such head, <code>L82.H29</code><sup class="margin-note-ref" aria-label="See Note 6 in the right margin">6</sup>, the two heads exhibit different reading emphases: <code>L82.H18</code> focuses more on the rule description that defines the candidate range, whereas <code>L82.H29</code> focuses more on the final candidate in the original list.</p>
+
+<div class="no-row-height column-margin column-container"><div class="metric-note">
+<p><span class="margin-label">Note 6</span></p>
+<p>This head was localized using a method similar to <a href="#head-localization" class="no-external section-ref" target="_self"><strong>Sec 2.1</strong></a>. On the <code>1–300</code> random-number task, its mean attention to <code>300</code> ranks first among all heads, while its centered full-vocabulary logit <span class="math inline">\operatorname{RMS}_{c}(h,l)</span> ranks second.</p>
+</div></div><p>The figure below gives an intuitive example: <span class="inline-prompt-example"><strong>「给定有序字母列表【A，B，C，D，E，F，G】。B、E与F均不可选择；请在其余字母中任选一项。只输出所选字母，不要解释。答案：」</strong></span> <span class="intro-mechanism-blue">(English translation: <strong><em>“Given the ordered letter list 【A, B, C, D, E, F, G】, neither B, E, nor F may be selected. Choose any item from the remaining letters. Output only the selected letter, without explanation. Answer:”</em></strong>)</span>. At the same final answer position, <code>L82.H18</code> assigns <strong>57.60%</strong> total attention to the constraint tokens (<code>B/E/F</code>), while <code>L82.H29</code> assigns <strong>45.33%</strong> attention to the final item <code>G</code> in the original list.</p>
 <!-- Exact example: latin_grid_exclude_bef in code/random_number/results/qwen3_235b_h18_h29_latin_exclusion_grid_v1/{prompt_results,tokenization}.jsonl. Figure: code/random_number/figures/plot_h18_h29_exclusion_attention.py. Cross-prompt limitation: analysis_v1/dynamic_role_audit.md. -->
 <!-- Statistics retain the original intervention scopes: H18 rule-group attention and edge ablation at positions 24,26,28,29,30,31; H29 eligible-list edge ablation at positions 9,13,15,21. Red boxes highlight attention peaks, not the full ablation groups. -->
 <div class="analysis-figure">
 <div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img src="../../assets/figures/random-number/h18_h29_exclusion_attention.png" class="img-fluid" alt="Two-row, ten-column attention heatmap: H18 focuses on B, E, and F in the constraint, while H29 peaks at G in the original list. Each column labels the letter and its original token position; both heads share a 0%–50% color scale." /></p>
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/h18_h29_exclusion_attention.png" class="img-fluid figure-img" alt="Two-row, ten-column attention heatmap: H18 focuses on B, E, and F in the constraint, while H29 peaks at G in the original list. Each column labels the letter and its original token position; both heads share a 0%–50% color scale."></p>
 <figcaption>Figure 6: Attention from the final answer position <code>q61</code> for <code>L82.H18</code> (top row) and <code>L82.H29</code> (bottom row) on the same prompt. Each column is an actual source token: <code>A–G</code> from the original list on the left, and the repeated <code>B/E/F</code> from the constraint on the right. Original token positions appear below the letters.</figcaption>
 </figure>
 </div>
 </div>
-<p>This example demonstrates differences between heads in their reading locations and causal contributions. It suggests that the model contains multiple computational circuits carrying different aspects of information, which may converge in subsequent deeper computation to jointly influence the downstream task.</p>
 </section>
 <section id="sec-task-type-generalization" class="level3" data-number="3.3">
-<h3 data-number="3.3"><span class="header-section-number">3.3</span> Task-Type Generalization Experiments</h3>
+<h3 data-number="3.3" class="anchored" data-anchor-id="sec-task-type-generalization"><span class="header-section-number">3.3</span> Task-Type Generalization Experiments</h3>
 <p>We next ask whether the behavior of <code>L82.H18</code> generalizes to downstream tasks rather than being limited to random selection. We keep the input range fixed at <code>1–300</code>, construct a variety of downstream tasks, and observe the head’s behavior. Initial experiments suggest that the head’s effectiveness is related to the number of valid candidates allowed by the task. Specifically, we divide the tasks into two groups:</p>
 <ul>
 <li><strong class="task-type-nonunique">Non-unique tasks</strong>: the task admits multiple valid answers, and outputting any one of those candidates satisfies the task requirements.</li>
 <li><strong class="task-type-unique">Unique tasks</strong>: the task has a unique valid answer, and only that candidate satisfies the task requirements.</li>
 </ul>
-<div class="fingerprint-baseline">
-<table class="caption-top">
+<div class="fingerprint-baseline task-type-table">
+<table class="caption-top table">
 <colgroup>
-<col style="width: 27%" />
-<col style="width: 36%" />
-<col style="width: 36%" />
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -712,29 +743,21 @@ Zodiac
 <tbody>
 <tr class="odd">
 <td><strong class="task-type-nonunique">Non-unique tasks</strong></td>
-<td style="text-align: right;">92.231%</td>
+<td style="text-align: right;">92.23%</td>
 <td style="text-align: right;">13.7%</td>
 </tr>
 <tr class="even">
 <td><strong class="task-type-unique">Unique tasks</strong></td>
-<td style="text-align: right;">58.862%</td>
+<td style="text-align: right;">58.86%</td>
 <td style="text-align: right;">0.5%</td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>In both groups, <code>L82.H18</code> shows substantial attention to <code>300</code>. However, ablating the head produces a substantial TV change only in the non-unique tasks<sup class="margin-note-ref" aria-label="See Note 9 in the right margin">9</sup>.</p>
-<div class="column-margin">
-<p><span class="margin-label">Note 9</span></p>
-<p>Not every non-unique task produces a substantial TV change. For example, in the task “choose a number greater than 250 from 1–300,” the TV effect is only 0.3%. One plausible explanation is that although the task admits multiple valid candidates, the first output token of every valid candidate must be <code>2</code>, so it is unaffected.</p>
-</div>
-<p>Therefore, <code>L82.H18</code> cannot simply be described as a head that operates only in random-selection tasks. It still attends to the candidate boundary in unique-answer tasks, indicating that it transports range information to the answer position. It appears, however, that downstream tasks use this information strongly only when the answer has not yet been fixed and the model must still distribute probability among valid candidates<sup class="margin-note-ref" aria-label="See Note 10 in the right margin">10</sup>.</p>
-<div class="column-margin">
-<p><span class="margin-label">Note 10</span></p>
-<p>In fact, I did not recognize this distinction at first and mistakenly thought that the head became effective whenever the output required global information. Further experiments ruled out that hypothesis. The mistaken inference arose because many non-unique tasks require global information to determine the valid candidates.</p>
-</div>
-<p>We further test this claim with a straightforward intuition: if the substantial effect of <code>L82.H18</code> indeed arises when the model remains uncertain about the answer, then the head should also have a substantial effect on a sufficiently difficult task with a unique answer whenever the model cannot infer that answer effectively on its own.</p>
-<p>We therefore ran a controlled comparison using two classes of unique-answer tasks that both require global information, with one class designed to be <strong class="task-difficulty-simple">simple</strong> and the other <strong class="task-difficulty-difficult">difficult</strong>. We kept their wording and length as similar as possible to reduce confounding from prompt length and presentation. As in the preceding experiments, the model remained in non-thinking mode throughout. We compared accuracy and list attention on ordered and shuffled lists, together with the TV produced by removing the attention edges to the list elements.</p>
+<p>In both groups, <code>L82.H18</code> shows substantial attention to <code>300</code>, but only in non-unique tasks does removing the head produce a substantial TV change.</p>
+<p>Therefore, <code>L82.H18</code> cannot simply be described as a head that operates only in random-selection tasks. It still attends to the candidate range in other tasks, which means it transports range information to the answer position; <strong class="intro-mechanism-blue">yet downstream computation appears to use that information only when the answer has not yet been determined and the model must still distribute probability among multiple candidates.</strong></p>
+<p>We further test this claim. A simple intuition is that if the substantial effect of <code>L82.H18</code> indeed arises because <span class="intro-mechanism-red">“the model remains uncertain about the answer,”</span> then <code>L82.H18</code> should also be effective on sufficiently difficult tasks with a unique answer whenever the model cannot infer that answer effectively on its own.</p>
+<p>We therefore construct two classes of unique-answer tasks, one <strong class="task-difficulty-simple">simple</strong> and the other <strong class="task-difficulty-difficult">difficult</strong>. Their wording and length are kept as similar as possible, and, as in the preceding experiments, thinking mode is disabled. We compare their accuracy, list attention, and TV after removing attention edges to the list under ordered and shuffled list conditions.</p>
 <div class="fingerprint-baseline">
 <div class="table-responsive">
 <table class="table task-difficulty-table">
@@ -822,21 +845,20 @@ List-edge TV
 </table>
 </div>
 </div>
-<p>The results are broadly consistent with this prediction. Accuracy on the simple tasks reaches <strong>100%</strong>, indicating that the model has already fixed the answer before responding; attention to the list is low, and list-edge TV is also only about <strong>0.24%</strong>. In contrast, accuracy on the difficult tasks is only about <strong>52%</strong>, indicating that the model cannot reliably infer the unique answer; here, list attention rises to roughly <strong>60%</strong>, while list-edge TV reaches <strong>5.39%</strong>. Thus, when the answer has not been successfully inferred, <code>L82.H18</code> continues to read more information from the original list and has a stronger causal effect: the candidate information it transports substantially alters the output probability distribution.</p>
-<p>To test whether this relationship holds across a broader range of difficulty, we ran additional tasks and summarize each task’s success rate and list-edge TV in the scatter plot below. Each point represents one task. As the plot shows, more difficult tasks do indeed exhibit higher TV. Their correlation coefficient is -0.84.</p>
+<p>The results match the prediction. Accuracy on the simple tasks reaches <strong>100%</strong>; attention to the list is low, and list-edge TV is only about <strong>0.24%</strong>. By contrast, accuracy on the difficult tasks is only about <strong>52%</strong>, meaning that the model cannot reason reliably; list attention rises to about <strong>60%</strong>, while list-edge TV reaches <strong>5.39%</strong>. This shows that when the answer has not been effectively inferred, <code>L82.H18</code> reads more information from the original list and has a stronger causal effect.</p>
+<p>We ran additional tasks of varying difficulty and summarize each task’s success rate and list-edge TV in the scatter plot below. Each point represents one task. As the plot shows, <span class="intro-mechanism-blue">more difficult tasks do indeed exhibit higher TV.</span></p>
 <!-- Data sources: code/random_number/results/qwen3_235b_h18_content_vs_structure_v1/main_task_summary.csv and the subsequent task-sweep summary supplied for this section. -->
 <div class="h18-task-scatter" data-lang="en">
 
 </div>
-<script src="/assets/h18-task-accuracy-tv-scatter.js"></script>
+<script src="../../assets/h18-task-accuracy-tv-scatter.js"></script>
 <p class="h18-task-scatter-caption">
 Figure 7: Task success rate and <code>L82.H18</code> list-edge TV. The x-axis shows task success rate; the y-axis shows full-vocabulary TV after removing the final-position <code>L82.H18</code> attention edges to all list elements.
 </p>
-<p>At this point, our claim about the conditions under which <code>L82.H18</code> becomes effective appears to have preliminary support.</p>
 </section>
-<section id="sec-long-thinking-generalization" class="level3" data-number="3.4">
-<h3 data-number="3.4"><span class="header-section-number">3.4</span> Generalization to Long-Form Reasoning</h3>
-<p>The experiments in <a href="#sec-task-type-generalization" class="no-external" target="_self">Section 3.3</a> all disabled thinking mode. To test whether the claim above about the conditions under which <code>L82.H18</code> becomes effective generalizes to long-form reasoning, we enabled thinking mode, let the model first generate a complete reasoning trace and then output the answer directly when the answer phase began, and finally measured the metrics of <code>L82.H18</code> at the final answer position after <code>&lt;/think&gt;</code>. We selected several representative tasks spanning multiple accuracy levels; the comparison between non-thinking and thinking modes is shown below.</p>
+<section id="sec-long-thinking-generalization" class="level3 page-columns page-full" data-number="3.4">
+<h3 data-number="3.4" class="anchored" data-anchor-id="sec-long-thinking-generalization"><span class="header-section-number">3.4</span> Generalization to Long-Form Reasoning</h3>
+<p>We next enable thinking mode to test whether <code>L82.H18</code> retains the same properties under long-form reasoning. We select representative tasks spanning multiple success rates from <a href="#sec-task-type-generalization" class="no-external section-ref" target="_self"><strong>Sec 3.3</strong></a>; the comparison between thinking disabled and enabled is shown below.</p>
 <div class="fingerprint-baseline">
 <div class="table-responsive">
 <table class="table thinking-comparison-table">
@@ -1039,19 +1061,25 @@ Displayed item 5
 </table>
 </div>
 </div>
-<p>With thinking enabled, task accuracy rises to nearly 100%, while list-edge TV falls to almost 0% across all tasks; at the same time, attention assigned to the original list drops sharply. This mirrors the earlier observation: once long-form reasoning has inferred the answer, the model’s response relies very little on <code>L82.H18</code> to transport information from the original list<sup class="margin-note-ref" aria-label="See Note 11 in the right margin">11</sup>.</p>
-<div class="column-margin">
-<p><span class="margin-label">Note 11</span></p>
-<p>Another point worth noting is that the higher a task’s success rate, the less attention <code>L82.H18</code> assigns to the list. It is currently unclear whether reduced attention directly causes the smaller TV, or whether attention and TV changing together with task difficulty reflects a deeper circuit mechanism. I personally favor the latter interpretation.</p>
-</div>
-<p>Thinking mode, however, inserts a long reasoning trace between the input list and the final answer. The reduction in TV might therefore be caused merely by the increased distance between the list and the answer position. To rule out this explanation, we ran a controlled experiment that held the input list and task fixed while constructing four strictly length-matched combinations: the Cartesian product of <strong class="condition-mode-nothink">no-think</strong> versus <strong class="condition-mode-think">forced-think</strong> and <strong class="condition-content-correct">correct reasoning</strong> versus a <strong class="condition-content-placeholder">length-matched placeholder</strong>. Here, <strong class="condition-mode-think">forced-think</strong> means enabling model reasoning and filling the reasoning segment with prepared information; <strong class="condition-content-correct">correct reasoning</strong> is a reasoning process that helps derive the answer, whereas the <strong class="condition-content-placeholder">length-matched placeholder</strong> contains task-irrelevant content of exactly the same length. The final answer position has the same sequence length in every condition.</p>
-<div class="fingerprint-baseline">
-<table class="caption-top">
+<p>With thinking enabled, task accuracy rises to nearly 100%, while list-edge TV falls to almost 0% across all tasks; at the same time, attention assigned to the original list drops sharply. This shows that once the answer has been inferred in thinking mode, the model’s response relies very little on the list information transported by <code>L82.H18</code><sup class="margin-note-ref" aria-label="See Note 7 in the right margin">7</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 7</span></p>
+<p>Another point worth noting is that the higher a task’s success rate, the less attention <code>L82.H18</code> assigns to the list. However, further intervention experiments show that TV is not determined by the amount of list attention: intervening on attention barely affects TV. The two appear instead to be different manifestations of some circuit signal in the model.</p>
+</div></div><p>Thinking mode, however, inserts a long reasoning trace between the input list and the final answer, so the decline in attention and TV might simply result from the greater distance. To investigate further, we hold the input list and task fixed and construct four strictly length-matched combinations: <strong class="condition-mode-nothink">no-think</strong> / <strong class="condition-mode-think">forced-think</strong> crossed with <strong class="condition-content-correct">correct information</strong> / <strong class="condition-content-placeholder">length-matched placeholder</strong>.</p>
+<ul>
+<li><strong class="condition-mode-nothink">no-think</strong>: disable thinking mode and pad the input to the target length.</li>
+<li><strong class="condition-mode-think">forced-think</strong>: retain the <code>&lt;think&gt;</code> structure and pad the reasoning segment.</li>
+<li><strong class="condition-content-correct">correct information</strong>: insert correct input or reasoning information sufficient to determine the answer.</li>
+<li><strong class="condition-content-placeholder">length-matched placeholder</strong>: insert task-irrelevant placeholder text of the same length as the correct information.</li>
+</ul>
+<div class="fingerprint-baseline information-control-table">
+<table class="caption-top table">
 <colgroup>
-<col style="width: 20%" />
-<col style="width: 26%" />
-<col style="width: 26%" />
-<col style="width: 26%" />
+<col style="width: 20%">
+<col style="width: 26%">
+<col style="width: 26%">
+<col style="width: 26%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1063,89 +1091,93 @@ Displayed item 5
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong class="condition-mode-nothink">No-think</strong> + <strong class="condition-content-correct">correct information</strong></td>
+<td><strong class="condition-mode-nothink">no-think</strong><br>+ <strong class="condition-content-correct">correct information</strong></td>
 <td style="text-align: right;">100%</td>
-<td style="text-align: right;">5.897%</td>
-<td style="text-align: right;">0.140%</td>
+<td style="text-align: right;">5.90%</td>
+<td style="text-align: right;">0.14%</td>
 </tr>
 <tr class="even">
-<td><strong class="condition-mode-nothink">No-think</strong> + <strong class="condition-content-placeholder">length-matched placeholder</strong></td>
+<td><strong class="condition-mode-nothink">no-think</strong><br>+ <strong class="condition-content-placeholder">length-matched placeholder</strong></td>
 <td style="text-align: right;">25.0%</td>
-<td style="text-align: right;">57.133%</td>
-<td style="text-align: right;">8.197%</td>
+<td style="text-align: right;">57.13%</td>
+<td style="text-align: right;">8.20%</td>
 </tr>
 <tr class="odd">
-<td><strong class="condition-mode-think">Forced-think</strong> + <strong class="condition-content-correct">correct reasoning</strong></td>
+<td><strong class="condition-mode-think">forced-think</strong><br>+ <strong class="condition-content-correct">correct information</strong></td>
 <td style="text-align: right;">100%</td>
-<td style="text-align: right;">6.358%</td>
-<td style="text-align: right;">0.009%</td>
+<td style="text-align: right;">6.36%</td>
+<td style="text-align: right;">0.01%</td>
 </tr>
 <tr class="even">
-<td><strong class="condition-mode-think">Forced-think</strong> + <strong class="condition-content-placeholder">length-matched placeholder</strong></td>
+<td><strong class="condition-mode-think">forced-think</strong><br>+ <strong class="condition-content-placeholder">length-matched placeholder</strong></td>
 <td style="text-align: right;">23.6%</td>
-<td style="text-align: right;">61.551%</td>
-<td style="text-align: right;">5.266%</td>
+<td style="text-align: right;">61.55%</td>
+<td style="text-align: right;">5.27%</td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>The length of the prompt or reasoning does not disable <code>L82.H18</code>: list-edge TV remains above 5% in both length-matched placeholder conditions. Only when the context includes reasoning sufficient to determine the answer does accuracy rise to 100% while list attention and TV fall sharply together. The change is therefore driven neither by long-range distance nor by whether thinking is enabled, but by whether the answer has already been fixed by the context.</p>
-<p>These results further strengthen the argument in <a href="#sec-task-type-generalization" class="no-external" target="_self">Section 3.3</a>: whenever the answer has not been successfully inferred or otherwise determined, the candidate information transported by <code>L82.H18</code> substantially affects the output distribution.</p>
+<p>The results show that length is not the determining factor: under the length-matched placeholder conditions, list-edge TV remains above <strong>5%</strong>. List attention and TV fall sharply only after reasoning sufficient to determine the answer is added. The change is therefore unrelated to distance or to whether thinking is enabled.</p>
+<p>These results further strengthen the argument in <a href="#sec-task-type-generalization" class="no-external section-ref" target="_self"><strong>Sec 3.3</strong></a>: <strong class="intro-mechanism-blue">only when the answer has not been effectively inferred or determined does the candidate information transported by <code>L82.H18</code> substantially affect the output distribution.</strong></p>
 <!-- Data sources: code/random_number/results/qwen3_235b_h18_content_tasks_thinking_v1, qwen3_235b_h18_difficulty_spectrum_thinking_v1, qwen3_235b_h18_difficulty_spectrum_thinking_high_attention_v1, and qwen3_235b_h18_information_length_controls_v1. -->
 </section>
-<section id="sec-cross-head-generalization" class="level3" data-number="3.5">
-<h3 data-number="3.5"><span class="header-section-number">3.5</span> Cross-Head Functional Generalization Experiments</h3>
-<p>The preceding experiments focus primarily on <code>L82.H18</code>. As <a href="#candidate-type-generalization-experiments" class="no-external" target="_self">Section 3.1</a> shows, however, these heads have a strong causal effect only when the list has a pronounced internal order, which limits the range of settings in which they operate.</p>
-<p>A natural question is whether lists with weaker order relations still recruit a family of heads with a similar function. From the perspective of head specialization and Transformer circuits, such heads should exist<sup class="margin-note-ref" aria-label="See Note 12 in the right margin">12</sup>. We therefore test whether comparable heads can be found on general lists.</p>
-<div id="note-head-information-dispersion" class="column-margin">
-<p><span class="margin-label">Note 12</span></p>
-<p>At a higher level, I prefer to view this as a form of distributed information, especially as models become larger and more capable. Multiple heads may perform similar functions while differing in the specific settings in which they become active.</p>
-</div>
-<p>Following the setup of <a href="#the-head-that-writes-the-random-number-fingerprint" class="no-external" target="_self">Section 2</a>, we construct random unordered lists of Chinese single-token candidates and run both random-choice and deterministic-choice tasks. We then scan all 6,016 query heads, ablating each output slice immediately before the attention <code>o_proj</code>. Based on the preceding observations, we define the selection score as</p>
+<section id="sec-cross-head-generalization" class="level3 page-columns page-full" data-number="3.5">
+<h3 data-number="3.5" class="anchored" data-anchor-id="sec-cross-head-generalization"><span class="header-section-number">3.5</span> Generalizing Candidate-Information-Transport Heads</h3>
+<p>The preceding experiments use <code>L82.H18</code> as their subject. As noted in <a href="#candidate-type-generalization-experiments" class="no-external section-ref" target="_self"><strong>Sec 3.1</strong></a>, however, this group of heads has a strong causal effect only when a list has a pronounced internal order.</p>
+<p>Do lists with weaker order relations also have a family of heads with a similar function? From the perspective of <a href="https://www.transformer-circuits.pub/2023/may-update/index.html">Transformer circuits</a>, such heads should exist<sup class="margin-note-ref" aria-label="See Note 8 in the right margin">8</sup>. We therefore test whether comparable heads can be found on general lists.</p>
+
+<div class="no-row-height column-margin column-container"><div id="note-head-information-dispersion" class="">
+<p><span class="margin-label">Note 8</span></p>
+<p>Because the circuit responsible for a function is distributed across multiple layers and heads, a family of heads may perform similar functions while differing in the specific settings in which they become effective or active.</p>
+</div></div><p>Following the setup of <a href="#the-head-that-writes-the-random-number-fingerprint" class="no-external section-ref" target="_self"><strong>Sec 2</strong></a>, we construct multiple random unordered candidate lists and run both random-choice and deterministic-choice tasks. We then scan every head in the model, zeroing its output slice immediately before the attention <code>o_proj</code>. We define the selection score as</p>
 <div class="restored-math-font">
 <p><span class="math display">
 S(h,l)=\max\!\left(\Delta \operatorname{TV}(h,l),0\right)\times A(h,l),
 </span></p>
 </div>
-<p>where <span class="math inline">\Delta \operatorname{TV}(h,l)</span> is the head-ablation TV difference between random and deterministic choice, and <span class="math inline">A(h,l)</span> is attention to the candidate list under random choice. The score requires both candidate-list reading and a causal effect concentrated in the unresolved condition, reducing interference from biases such as syntactic or ICL heads.</p>
-<p>The six highest-scoring heads are <code>L80.H42</code>, <code>L82.H21</code>, <code>L85.H49</code>, <code>L89.H53</code>, <code>L87.H14</code>, and <code>L88.H13</code>. They are also the only heads with <span class="math inline">S(h,l)&gt;1</span> pp.</p>
+<p>where <span class="math inline">\Delta \operatorname{TV}(h,l)</span> is the difference in head-ablation <span class="math inline">\operatorname{TV}</span> between random and deterministic choice, and <span class="math inline">A(h,l)</span> is attention to the candidate list under random choice. The score requires both candidate-list reading and a causal effect concentrated in the unresolved condition, reducing interference from biases such as syntactic or ICL heads.</p>
+<p>The full-model heatmap of <span class="math inline">S(h,l)</span> is shown below. We select the six highest-scoring heads—<code>L80.H42</code>, <code>L82.H21</code>, <code>L85.H49</code>, <code>L89.H53</code>, <code>L87.H14</code>, and <code>L88.H13</code>—as representative heads.</p>
 <div class="analysis-figure">
 <div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img src="../../assets/figures/random-number/unordered_candidate_head_selection_heatmap.png" class="img-fluid" alt="A 94-layer by 64-query-head heatmap of selection scores. High scores concentrate in the late layers, and the six highest-scoring strictly revalidated heads are labeled." /></p>
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/unordered_candidate_head_selection_heatmap.png" class="img-fluid figure-img" alt="A 94-layer by 64-query-head heatmap of selection scores. High scores concentrate in the late layers, and the six highest-scoring strictly revalidated heads are labeled."></p>
 <figcaption>Figure 8: Full-model heatmap of <span class="math inline">S(h,l)</span>, with the six highest-scoring heads labeled.</figcaption>
 </figure>
 </div>
 </div>
-<p>The higher-scoring heads all lie in deep layers, while shallow and middle-layer heads are almost entirely white. This is consistent with the view that the ability to aggregate information streams and influence downstream computation appears mainly in deep layers. Beyond the selected heads, many late-layer heads also have weaker but visible <span class="math inline">S(h,l)</span> responses, producing a dispersed functional pattern. This is another instance of the distributed information described in <a href="#note-head-information-dispersion" class="no-external" target="_self">Note 12</a>.</p>
-<p>Further experiments show that these heads have effects similar to <code>L82.H18</code>: while the answer remains unresolved, they focus on the candidate list and their ablation substantially changes the output distribution; once the answer is determined, their causal effect nearly disappears. To keep this post readable, we do not detail those experiments here. In the next section, we use these more general heads in intervention experiments to examine their mechanism and information circuit.</p>
+<p>Further experiments show that these heads have effects similar to <code>L82.H18</code>: <span class="intro-mechanism-red">while the answer remains unresolved, they read the candidate list and their ablation substantially changes the output distribution;</span><span class="intro-mechanism-green">once the answer is determined, their causal effect nearly disappears.</span> To keep the post readable, we do not detail those experiments here. In <a href="#sec-candidate-circuit-interventions" class="no-external section-ref" target="_self"><strong>Sec 4</strong></a>, we use these more general heads in further experiments to reveal their mechanism and information circuit.</p>
 <!-- Data source: code/random_number/results/qwen3_235b_unordered_candidate_heads_combined_v1/report.md. -->
 </section>
 </section>
-<section id="sec-candidate-circuit-interventions" class="level2" data-number="4">
-<h2 data-number="4"><span class="header-section-number">4</span> Causal Interventions on the Candidate-Head Circuit</h2>
-<p>The experiments in <a href="#sec-head-generalization" class="no-external" target="_self">Section 3</a> identified a family of heads with similar functions and suggested an initial account of their role:</p>
+<section id="sec-candidate-circuit-interventions" class="level2 page-columns page-full" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="sec-candidate-circuit-interventions"><span class="header-section-number">4</span> Causal Effects of Heads Under Reasoning-Circuit Interruption</h2>
+<p>The experiments in <a href="#sec-head-generalization" class="no-external section-ref" target="_self"><strong>Sec 3</strong></a> identified a family of heads with the following function:</p>
 <div class="research-question circuit-claim">
-<p><strong>When the answer has not yet been successfully inferred and the model must still choose among multiple candidates, downstream computation relies strongly on the candidate information transported by these heads.</strong></p>
+<p><strong>When the answer has not yet been successfully inferred and the model must still choose among multiple candidates,</strong><br><strong>downstream computation relies strongly on the candidate information transported by these heads.</strong></p>
 </div>
 <p>This behavior generalizes across candidate lists, constraints on the candidate set, task types, and answers that involve long-form thinking.</p>
 <p>We can also view this result through the lens of Transformer circuits. A model’s forward pass is not determined by one signal: multiple circuits write different signals into the residual stream, and those signals jointly shape the output. One useful way to understand their interaction is:</p>
 <div class="prompt-example circuit-principle">
 <p>Ordinarily, the strongest signal dominates the model’s behavior. Other signals remain present but are suppressed in the competition. If the dominant circuit weakens or is interrupted, a weaker circuit may gain relative weight and compensate for the missing information. This competition may be especially apparent in larger models whose information representations are more distributed.</p>
 </div>
-<p>From this perspective, the heads we found participate in a broad candidate-competition circuit. When the model can reason normally, the signal that determines the answer dominates, and removing the candidate heads produces little TV. When that reasoning signal weakens or its circuit is interrupted, the candidate heads’ writes gain causal influence, and their ablation produces much larger TV.</p>
-<p>The experiments in <a href="#sec-long-thinking-generalization" class="no-external" target="_self">Section 3.4</a> and <a href="#sec-cross-head-generalization" class="no-external" target="_self">Section 3.5</a> provide initial support for this account. We now test it with active interventions at three points in the reasoning pathway: the input evidence, the intermediate reasoning chain, and the retrieval heads that carry the answer to the output.</p>
+<p>From this perspective, the heads we found jointly participate in a circuit: <span class="intro-mechanism-green">when the model can reason normally, the deterministic reasoning signal dominates, the writes of this circuit have little effect on the final output, and removing them produces little TV;</span><span class="intro-mechanism-red">when the normal reasoning signal weakens or its circuit is interrupted, this circuit gains greater causal influence and removing it produces substantially larger TV.</span></p>
+<p>The experiments in <a href="#sec-task-type-generalization" class="no-external section-ref" target="_self"><strong>Sec 3.3</strong></a> and <a href="#sec-long-thinking-generalization" class="no-external section-ref" target="_self"><strong>Sec 3.4</strong></a> already provide initial support for this account. We now test it with active interventions, using multiple methods to damage the model’s normal reasoning circuit and observing whether the causal effect of the candidate heads grows as expected.</p>
 <section id="removing-input-evidence" class="level3" data-number="4.1">
-<h3 data-number="4.1"><span class="header-section-number">4.1</span> Removing Input Evidence</h3>
+<h3 data-number="4.1" class="anchored" data-anchor-id="removing-input-evidence"><span class="header-section-number">4.1</span> Interrupting the Start of the Circuit: Removing Input Evidence</h3>
 <p>One direct way to disrupt normal reasoning is to remove the decisive evidence from the input, thereby damaging the start of the reasoning pathway.</p>
-<p>We construct counterfactual question-answer cases from DROP, BrowseComp-Plus, 2WikiMultiHopQA, and MuSiQue. Each question is rewritten so that the correct answer and other candidates are replaced by randomly generated temporary codes. Neither the spelling nor the numbers in the codes reveal a pattern, preventing the model from answering through parametric memory.</p>
-<p>Each case has a <strong class="evidence-complete">complete-evidence</strong> version and a <strong class="evidence-missing">missing-evidence</strong> version. The question, candidate list, and correct code are identical. The sole difference is that the missing-evidence version removes the key input facts needed to identify the correct candidate uniquely. At the point where thinking ends and the first final-answer token begins, we jointly ablate the writes of the heads identified in <a href="#sec-cross-head-generalization" class="no-external" target="_self">Section 3.5</a> and measure the full-vocabulary TV between the original and intervened distributions.</p>
+<p>We construct counterfactual question-answer cases from <a href="https://allenai.org/open-data">DROP</a>, <a href="https://texttron.github.io/BrowseComp-Plus/">BrowseComp-Plus</a>, <a href="https://github.com/Alab-NII/2wikimultihop">2WikiMultiHopQA</a>, and <a href="https://github.com/StonyBrookNLP/musique">MuSiQue</a>. Each question is rewritten so that the correct answer and other candidates are replaced by randomly generated temporary codes. Neither the spelling nor the numbers in the codes reveal a pattern, preventing the model from answering through parametric memory.</p>
+<p>Each case has a <strong class="evidence-complete">complete-evidence</strong> version and a <strong class="evidence-missing">missing-evidence</strong> version:</p>
+<ul>
+<li><strong class="evidence-complete">Complete evidence</strong>: retain all evidence in the input so the model can reason normally.</li>
+<li><strong class="evidence-missing">Missing evidence</strong>: remove the key evidence required for reasoning so the model cannot infer the correct answer.</li>
+</ul>
+<p>At the start of the answer, we jointly ablate the writes of the heads selected in <a href="#sec-cross-head-generalization" class="no-external section-ref" target="_self"><strong>Sec 3.5</strong></a> and measure the full-vocabulary TV.</p>
 <div class="fingerprint-baseline evidence-ablation-table">
-<table class="caption-top">
+<table class="caption-top table">
 <colgroup>
-<col style="width: 27%" />
-<col style="width: 36%" />
-<col style="width: 36%" />
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1158,39 +1190,44 @@ S(h,l)=\max\!\left(\Delta \operatorname{TV}(h,l),0\right)\times A(h,l),
 <tr class="odd">
 <td>DROP</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.69%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.639%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.129%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.64%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.13%</strong></span></td>
 </tr>
 <tr class="even">
 <td>BrowseComp-Plus</td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">90%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">3.33%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.797%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.153%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">91.92%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">3.33%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.80%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.15%</strong></span></td>
 </tr>
 <tr class="odd">
 <td>2WikiMultiHopQA</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">90.48%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">2.006%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.732%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">2.01%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.73%</strong></span></td>
 </tr>
 <tr class="even">
 <td>MuSiQue</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">94.44%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.130%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.466%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.13%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.47%</strong></span></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>The pattern is consistent across all four datasets. With complete evidence, success is close to <strong>100%</strong> and head-ablation TV is small. Removing decisive evidence sharply lowers success, leaving the model almost unable to infer the answer, while TV rises substantially. This is consistent with the candidate information carried by these heads gaining weight when the input to the normal reasoning circuit is cut off.</p>
+<p>All datasets show the same pattern: <span class="intro-mechanism-green">with complete evidence, the model’s reasoning almost always succeeds and TV after removing the heads is small;</span><span class="intro-mechanism-red">after key evidence is removed, the model is almost unable to reason and TV rises substantially.</span> The result matches our expectation: <span class="intro-mechanism-blue">when the beginning of the reasoning circuit is interrupted, the candidate information transported by these heads has a substantial causal effect.</span></p>
 <!-- Data source: code/random_number/results/qwen3_235b_all_four_counterfactual_missing_path_fourhead_v1/counterfactual_report.md. -->
 </section>
 <section id="removing-the-key-reasoning-chain" class="level3" data-number="4.2">
-<h3 data-number="4.2"><span class="header-section-number">4.2</span> Removing the Key Reasoning Chain</h3>
-<p>Next we intervene on the model’s reasoning itself. We delete the part of the reasoning trace that identifies the correct answer and ask whether the candidate heads become more causally important. This intervention damages the middle of the reasoning pathway.</p>
-<p>We use the same counterfactual datasets and candidate heads as above. For each case, we construct a <strong class="evidence-complete">complete-reasoning</strong> version and a <strong class="evidence-missing">missing-reasoning</strong> version. The complete version inserts several segments of agent-style reasoning generated by the model with full evidence. In the missing version, we delete the continuous span from the first to the last mention of the correct code within that reasoning. Both versions end with “I have finished reasoning and know the answer,” after which the model produces its final answer. Again, we measure the heads’ effect at the first final-answer token.</p>
+<h3 data-number="4.2" class="anchored" data-anchor-id="removing-the-key-reasoning-chain"><span class="header-section-number">4.2</span> Interrupting the Middle of the Circuit: Removing the Key Reasoning Chain</h3>
+<p>Next, we remove the key chain in the model’s thinking that makes it possible to infer the answer, then observe how the heads’ causal effects change. This can be viewed as disrupting the middle of the reasoning circuit.</p>
+<p>We use the counterfactual datasets from <a href="#removing-input-evidence" class="no-external section-ref" target="_self"><strong>Sec 4.1</strong></a> and the heads localized in <a href="#sec-cross-head-generalization" class="no-external section-ref" target="_self"><strong>Sec 3.5</strong></a>, constructing a <strong class="evidence-complete">complete-reasoning-chain</strong> version and a <strong class="evidence-missing">missing-reasoning-chain</strong> version:</p>
+<ul>
+<li><strong class="evidence-complete">Complete reasoning chain</strong>: inject multiple segments of agent-style reasoning generated by the model under complete evidence.</li>
+<li><strong class="evidence-missing">Missing reasoning chain</strong>: delete one key reasoning path from the reasoning trajectory.</li>
+</ul>
+<p>Both versions end with <strong class="intro-mechanism-blue">「我已经完成推理并且已经知道答案」</strong> <span class="intro-mechanism-blue">(English translation: <strong><em>“I have finished reasoning and already know the answer”</em></strong>)</span>, after which the model produces the formal answer. We again observe the heads’ effects at the start of the answer.</p>
 <div class="fingerprint-baseline evidence-ablation-table">
-<table class="caption-top">
+<table class="caption-top table">
 <colgroup>
-<col style="width: 27%" />
-<col style="width: 36%" />
-<col style="width: 36%" />
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1203,120 +1240,120 @@ S(h,l)=\max\!\left(\Delta \operatorname{TV}(h,l),0\right)\times A(h,l),
 <tr class="odd">
 <td>DROP</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.133%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.428%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.13%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.43%</strong></span></td>
 </tr>
 <tr class="even">
 <td>BrowseComp-Plus</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.098%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">5.304%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.10%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">5.30%</strong></span></td>
 </tr>
 <tr class="odd">
 <td>2WikiMultiHopQA</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.910%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.956%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.91%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.96%</strong></span></td>
 </tr>
 <tr class="even">
 <td>MuSiQue</td>
 <td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
-<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.454%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.282%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">1.45%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.28%</strong></span></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>After part of the reasoning chain is removed, successful reasoning turns into failure on every trajectory. The mean TV of candidate-head ablation rises from <strong>1.133%</strong> to <strong>7.277%</strong>. This again matches the prediction: interrupting the middle of the reasoning circuit increases the causal weight of candidate information.</p>
+<p>After the reasoning path is removed, the model changes from success to failure on every trajectory, and the average TV from removing the candidate heads rises substantially. The result again matches our expectation, showing that <span class="intro-mechanism-blue">when the middle of the reasoning circuit is interrupted, the information transported by the heads gains a more substantial effect.</span></p>
 <!-- Data source: code/random_number/results/qwen3_235b_real_four_dataset_cot_gap_fourhead_v1/{report.md,paired_summary.csv,completion_audit.json}. -->
 </section>
-<section id="removing-retrieval-heads" class="level3" data-number="4.3">
-<h3 data-number="4.3"><span class="header-section-number">4.3</span> Removing Retrieval Heads</h3>
-<p>The preceding interventions damage the input and the reasoning chain. We now cut off the end of the reasoning circuit: keep the question and evidence intact, but ablate the retrieval heads that bring the answer from context to the output<sup class="margin-note-ref" aria-label="See Note 13 in the right margin">13</sup>. Although the evidence remains available, the model loses a pathway for using it. We test whether the candidate heads’ TV rises under this condition.</p>
-<div class="column-margin">
-<p><span class="margin-label">Note 13</span></p>
+<section id="removing-retrieval-heads" class="level3 page-columns page-full" data-number="4.3">
+<h3 data-number="4.3" class="anchored" data-anchor-id="removing-retrieval-heads"><span class="header-section-number">4.3</span> Interrupting the End of the Circuit: Removing Retrieval Heads</h3>
+<p>The preceding interventions interrupt the beginning and middle of the reasoning circuit. We now consider its end: keep the question and input evidence intact, but block the retrieval heads responsible for transporting the answer from context<sup class="margin-note-ref" aria-label="See Note 9 in the right margin">9</sup>. Although the answer evidence remains, the model loses the ability to use it.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 9</span></p>
 <p>For the definition and role of retrieval heads, see <a href="https://arxiv.org/abs/2404.15574">Retrieval Head Mechanistically Explains Long-Context Factuality</a>. Some of my recent experiments suggest that, at the end of a reasoning circuit, retrieval heads transport an answer already identified by the model from context to the decoding position.</p>
-</div>
-<p>Following the method in that paper, we identify the top 20 retrieval heads, about 0.3% of all heads:</p>
+</div></div><p>We first identify the model’s top 20 retrieval heads, about 0.3% of all heads:</p>
 <div class="retrieval-head-list">
 <p><code>L81.H53</code>, <code>L81.H61</code>, <code>L79.H52</code>, <code>L81.H34</code>, <code>L85.H29</code>, <code>L79.H59</code>, <code>L81.H51</code>, <code>L83.H08</code>, <code>L61.H51</code>, <code>L61.H61</code>, <code>L81.H54</code>, <code>L76.H39</code>, <code>L81.H45</code>, <code>L06.H16</code>, <code>L79.H63</code>, <code>L59.H59</code>, <code>L61.H54</code>, <code>L82.H25</code>, <code>L83.H05</code>, and <code>L83.H10</code>.</p>
 </div>
-<p>Let <span class="math inline">R</span> denote these retrieval heads and <span class="math inline">C</span> the previously identified candidate-information heads. We compare four conditions: the intact model (<code>clean</code>), removal of only the retrieval circuit (<code>−R</code>), removal of only the candidate circuit (<code>−C</code>), and removal of both (<code>−R−C</code>).</p>
-<p>On the same counterfactual datasets, we retain only trajectories answered correctly under <code>clean</code> but incorrectly under <code>−R</code>. For each trajectory, we examine three TV quantities:</p>
+<p>Let <span class="math inline">R</span> denote these retrieval heads and <span class="math inline">C</span> the previously identified candidate-information heads. We compare four conditions: the intact model <code>full</code>, removal of only the retrieval circuit <code class="retrieval-condition-r">−R</code>, removal of only the candidate circuit <code class="retrieval-condition-c">−C</code>, and removal of both <code class="retrieval-condition-rc"><span class="retrieval-condition-r-part">−R</span><span class="retrieval-condition-c-part">−C</span></code>.</p>
+<p>We again use the counterfactual datasets from <a href="#removing-input-evidence" class="no-external section-ref" target="_self"><strong>Sec 4.1</strong></a>, retaining only trajectories answered correctly under <code>full</code> but incorrectly under <code class="retrieval-condition-r">−R</code>. For each trajectory, we examine three TV quantities:</p>
 <div class="intervention-conditions retrieval-tv-conditions">
 <ul>
-<li><span class="math inline">\operatorname{TV}(\mathit{clean},-R)</span> measures the effect of removing retrieval heads. Because the answer changes from correct to incorrect, we expect this value to be very large.</li>
-<li><span class="math inline">\operatorname{TV}(\mathit{clean},-C)</span> measures the effect of removing candidate heads. With the reasoning circuit intact, we expect it to be small.</li>
-<li><span class="math inline">\operatorname{TV}(-R,-R-C)</span> measures the effect of removing candidate heads after disrupting the reasoning circuit. We expect it to be substantially larger than <span class="math inline">\operatorname{TV}(\mathit{clean},-C)</span>.</li>
+<li><span class="math inline">\operatorname{TV}(\mathit{full},\color{#b84949}{-R})</span> measures the effect of removing retrieval heads. Because the model changes from successful reasoning to failed reasoning, we expect this TV to be very large.</li>
+<li><span class="math inline">\operatorname{TV}(\mathit{full},\color{#4857d6}{-C})</span> measures the effect of removing candidate-information heads. Because the intact reasoning circuit determines the answer, we expect this TV to be small.</li>
+<li><span class="math inline">\operatorname{TV}(\color{#b84949}{-R},\color{#b84949}{-R}\color{#4857d6}{-C})</span> measures the effect of removing candidate-information heads after the reasoning circuit has been interrupted. We expect this TV to be substantially larger than <span class="math inline">\operatorname{TV}(\mathit{full},\color{#4857d6}{-C})</span>.</li>
 </ul>
 </div>
 <div class="fingerprint-baseline evidence-ablation-table retrieval-ablation-table">
-<table class="caption-top">
+<table class="caption-top table">
 <colgroup>
-<col style="width: 20%" />
-<col style="width: 26%" />
-<col style="width: 26%" />
-<col style="width: 26%" />
+<col style="width: 20%">
+<col style="width: 26%">
+<col style="width: 26%">
+<col style="width: 26%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Dataset</th>
-<th style="text-align: right;"><span class="math inline">\operatorname{TV}(\mathit{clean},-R)</span></th>
-<th style="text-align: right;"><span class="math inline">\operatorname{TV}(\mathit{clean},-C)</span></th>
-<th style="text-align: right;"><span class="math inline">\operatorname{TV}(-R,-R-C)</span></th>
+<th style="text-align: right;"><span class="math inline">\operatorname{TV}(\mathit{full},\color{#b84949}{-R})</span></th>
+<th style="text-align: right;"><span class="math inline">\operatorname{TV}(\mathit{full},\color{#4857d6}{-C})</span></th>
+<th style="text-align: right;"><span class="math inline">\operatorname{TV}(\color{#b84949}{-R},\color{#b84949}{-R}\color{#4857d6}{-C})</span></th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>DROP</td>
-<td style="text-align: right;"><strong>65.507%</strong></td>
-<td style="text-align: right;"><strong>2.442%</strong></td>
-<td style="text-align: right;"><strong>7.459%</strong></td>
+<td style="text-align: right;"><strong>65.51%</strong></td>
+<td style="text-align: right;"><strong>2.44%</strong></td>
+<td style="text-align: right;"><strong>7.46%</strong></td>
 </tr>
 <tr class="even">
 <td>BrowseComp-Plus</td>
-<td style="text-align: right;"><strong>41.133%</strong></td>
-<td style="text-align: right;"><strong>2.376%</strong></td>
-<td style="text-align: right;"><strong>17.158%</strong></td>
+<td style="text-align: right;"><strong>41.13%</strong></td>
+<td style="text-align: right;"><strong>2.38%</strong></td>
+<td style="text-align: right;"><strong>17.16%</strong></td>
 </tr>
 <tr class="odd">
 <td>2WikiMultiHopQA</td>
-<td style="text-align: right;"><strong>54.411%</strong></td>
-<td style="text-align: right;"><strong>1.868%</strong></td>
-<td style="text-align: right;"><strong>10.483%</strong></td>
+<td style="text-align: right;"><strong>54.41%</strong></td>
+<td style="text-align: right;"><strong>1.87%</strong></td>
+<td style="text-align: right;"><strong>10.48%</strong></td>
 </tr>
 <tr class="even">
 <td>MuSiQue</td>
-<td style="text-align: right;"><strong>34.428%</strong></td>
-<td style="text-align: right;"><strong>2.713%</strong></td>
-<td style="text-align: right;"><strong>5.042%</strong></td>
+<td style="text-align: right;"><strong>34.43%</strong></td>
+<td style="text-align: right;"><strong>2.71%</strong></td>
+<td style="text-align: right;"><strong>5.04%</strong></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>The results match our expectation. <span class="math inline">\operatorname{TV}(\mathit{clean},-R)</span> is very large on all four datasets, confirming that the retrieval pathway has been effectively disrupted. Once retrieval heads are ablated, candidate-head TV rises substantially, by between <strong>2.329%</strong> and <strong>14.782%</strong>. The candidate information gains influence after the answer-transport function at the end of the reasoning circuit has been cut off.</p>
-<p>Together, these experiments further support competition among circuits. The candidate circuit is suppressed when the normal reasoning circuit is strong, but has a greater effect on the final output when that circuit fails.</p>
+<p>The results match our expectation. <span class="math inline">\operatorname{TV}(\mathit{full},\color{#b84949}{-R})</span> is very large on every dataset. After the retrieval heads are blocked, candidate-information-head TV rises substantially, by between <strong>2.33%</strong> and <strong>14.78%</strong>. <span class="intro-mechanism-blue">These results show that after the dominant endpoint of the reasoning circuit is interrupted, the information transported by the candidate heads gains a more substantial effect.</span></p>
+<p>Overall, these experiments further reveal competition among circuits: <span class="intro-mechanism-green">when the normal reasoning circuit is strong, the signal represented by the candidate heads is suppressed;</span><span class="intro-mechanism-red">when the reasoning circuit fails, the candidate-head circuit affects the output more strongly.</span></p>
 <!-- Data sources: code/mix_head/outputs/qwen_context_head_analysis_v1/retrieval_heads.csv; code/random_number/results/qwen3_235b_old_r_hard_flip_cgain_min3_v1/{selected_factorial_all.jsonl,dataset_summary.json,experiment_manifest.json,completion_audit.json}. -->
 </section>
 </section>
-<section id="sec-tv-triggered-repair" class="level2" data-number="5">
-<h2 data-number="5"><span class="header-section-number">5</span> Improving Reasoning by Detecting Head TV</h2>
-<p>The preceding experiments clarify the mechanism of these heads: their causal effect on the output distribution becomes much stronger when an answer has not been inferred reliably. This suggests a practical question. Can we use that signal to improve the model’s reasoning performance?</p>
+<section id="sec-tv-triggered-repair" class="level2 page-columns page-full" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="sec-tv-triggered-repair"><span class="header-section-number">5</span> Improving Reasoning by Detecting Head TV</h2>
+<p>The preceding experiments clarify the function of the candidate-information heads: <strong>when the answer has not been effectively inferred, their effect on the output distribution grows substantially.</strong> Can we use this mechanism to improve the model’s reasoning performance? Specifically, can we enhance performance as follows?</p>
 <div class="research-question circuit-claim">
-<p><strong>After an ordinary reasoning pass produces an answer, measure the candidate heads’ TV. If it exceeds a threshold, spend additional computation to continue reasoning.</strong></p>
+<p><strong>After normal reasoning produces an answer, measure the candidate heads’ TV,</strong><br><strong>and, if TV exceeds a threshold, spend additional resources to strengthen reasoning.</strong></p>
 </div>
-<p>We test this on DROP, BrowseComp-Plus, 2WikiMultiHopQA, and MuSiQue. An agent-style workflow asks the model to reason from incomplete information returned by Search. Once it has reasoned and produced an answer, we ablate candidate-head writes at the position where the final response begins and measure the full-vocabulary TV before and after ablation<sup class="margin-note-ref" aria-label="See Note 14 in the right margin">14</sup>.</p>
-<div class="column-margin">
-<p><span class="margin-label">Note 14</span></p>
-<p>Only the final <code>\n\n</code> position before the formal answer needs intervention. Earlier tokens can reuse the prefix cache, keeping detection inexpensive. In our implementation, <code>llm.collective_rpc</code> in vLLM switches the model into the intervention state.</p>
-</div>
-<p>Based on <a href="#sec-candidate-circuit-interventions" class="no-external" target="_self">Section 4</a>, we set the TV threshold empirically to <strong>6%</strong>. When TV exceeds it, the agent continues its workflow: Search supplies more information, and a new user prompt tells the model that its previous answer may lack evidence and asks it to reason further and revise the answer.</p>
+<p>We again test on <a href="https://allenai.org/open-data">DROP</a>, <a href="https://texttron.github.io/BrowseComp-Plus/">BrowseComp-Plus</a>, <a href="https://github.com/Alab-NII/2wikimultihop">2WikiMultiHopQA</a>, and <a href="https://github.com/StonyBrookNLP/musique">MuSiQue</a>, constructing an agent-style workflow in which the model reasons from retrieved information. After reasoning ends and the answer is produced, we ablate the heads’ writes at the position where the final response begins and measure the full-vocabulary TV<sup class="margin-note-ref" aria-label="See Note 10 in the right margin">10</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 10</span></p>
+<p>Because intervention is required only at the final <code>\n\n</code> position before the formal answer, all preceding tokens can reuse the prefix cache, keeping TV detection inexpensive. In our implementation, vLLM’s <code>llm.collective_rpc()</code> calls <code>set_rag_tv_probe()</code> on each worker to switch candidate-head ablation on and off.</p>
+</div></div><p>Based on the results in <a href="#sec-candidate-circuit-interventions" class="no-external section-ref" target="_self"><strong>Sec 4</strong></a>, we empirically fix the TV threshold at <strong class="intro-mechanism-red">6%</strong>. When TV exceeds this threshold, the agent continues the workflow, supplies the model with more retrieved information, and appends a new user prompt stating that the previous output may lack evidence and asking the model to continue reasoning and determine the answer.</p>
 <div class="analysis-figure">
 <div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img src="../../assets/figures/random-number/head_tv_gated_reasoning_improvement.png" class="img-fluid" alt="Four groups of bars for 2WikiMultiHopQA, BrowseComp-Plus, DROP, and MuSiQue, comparing baseline success, the frequency of TV exceeding the threshold, and success after additional reasoning." /></p>
-<figcaption>Figure 9: Head-TV-gated reasoning enhancement, showing baseline success rate, frequency of TV exceeding the threshold, and success rate after additional reasoning on each dataset.</figcaption>
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/head_tv_gated_reasoning_improvement.png" class="img-fluid figure-img" alt="Four groups of bars for 2WikiMultiHopQA, BrowseComp-Plus, DROP, and MuSiQue, comparing baseline reasoning success, the frequency of TV exceeding the threshold, and success after reasoning enhancement."></p>
+<figcaption>Figure 9: Head-TV-gated reasoning enhancement on each dataset, showing the <span class="figure-key-gray">baseline reasoning success rate</span>, <span class="figure-key-orange">frequency of TV exceeding the threshold</span>, and <span class="figure-key-blue">success rate after reasoning enhancement</span>.</figcaption>
 </figure>
 </div>
 </div>
-<p>Across all four datasets, TV identifies trajectories that the model has not reasoned through reliably, and the additional reasoning strategy improves success. Candidate-head TV can thus serve as a signal of unreliable reasoning and trigger a partial repair.</p>
-<p>The method has an important limit. It detects unreliable reasoning when the model itself has not formed a stable circuit. If the model reaches a wrong answer through a reasoning path it considers reliable, Head TV may remain low and the error will be missed.</p>
+<p>Across all four datasets, TV detection identifies trajectories that have not been reasoned through effectively, and reasoning enhancement improves success rates. TV detection can therefore serve as a proxy for unreliable reasoning and provide a degree of repair.</p>
+<p>An important qualification is that <span class="intro-mechanism-blue">the method can detect only unreliable reasoning in which the model has not formed a stable internal reasoning circuit;</span><span class="intro-mechanism-red">reasoning that the model considers reliable but that is in fact wrong cannot be detected through TV.</span></p>
 <div class="tv-detection-examples" aria-label="Examples of successful and missed Head TV detection">
 <article class="tv-detection-case tv-detection-hit">
 <header class="tv-detection-case-header">
@@ -1344,12 +1381,12 @@ Alfredo Stroessner's Paraguay
 <dt>
 Model’s reasoning
 </dt>
-<dd class="tv-detection-reasoning">
-“Given the available evidence, the answer might be Confederate Gen. John Bell Hood.”
+<dd class="tv-detection-reasoning intro-mechanism-blue">
+“Given the available evidence, the answer might be Confederate Gen.&nbsp;John Bell Hood.”
 </dd>
 </dl>
 <div class="tv-detection-metric">
-<span>Head TV</span><strong>9.551%</strong>
+<span>Head TV</span><strong>9.55%</strong>
 </div>
 <p class="tv-detection-result">
 <strong>Outcome:</strong> The model guessed incorrectly and its reasoning was uncertain. High TV triggered additional reasoning, which produced the correct answer.
@@ -1381,28 +1418,32 @@ Chargers
 <dt>
 Model’s reasoning
 </dt>
-<dd class="tv-detection-reasoning">
+<dd class="tv-detection-reasoning tv-detection-reasoning-red">
 “The Panthers had two touchdowns, by Gamble and Rosario, so the answer should be the Panthers.”
 </dd>
 </dl>
 <div class="tv-detection-metric">
-<span>Head TV</span><strong>3.169%</strong>
+<span>Head TV</span><strong>3.17%</strong>
 </div>
 <p class="tv-detection-result">
 <strong>Outcome:</strong> The model confidently gave a wrong answer. TV did not reach the threshold, so no extra reasoning was triggered.
 </p>
 </article>
 </div>
-<p>These two real trajectories illustrate the boundary. In A, the model’s reasoning already contained a tentative guess. Head TV reached <code>9.551%</code>, so the system detected it and successfully triggered additional reasoning. In B, the model formed a coherent but incorrect reasoning chain. Despite the wrong answer, Head TV stayed below the threshold and the error was missed.</p>
-<p>Head TV can thus serve as a proxy for unreliable reasoning. Uncertainty may also appear in a model’s natural-language reasoning, but our experiments suggest that Head TV captures signals not expressed in words. Other measures, such as output-token entropy, can also respond to unreliable reasoning. Yet such token-level proxies are local and often become informative only later in the thinking process; Head TV can detect uncertainty in the reasoning process as a whole.</p>
+<p>These two real trajectories illustrate this boundary. In trajectory A, the model’s reasoning already contains signs of guessing, and TV exceeds the threshold, so it is detected and successfully triggers enhanced reasoning. In trajectory B, the model forms a complete and definite reasoning chain; although the answer is wrong, TV does not reach the threshold and the error is missed<sup class="margin-note-ref" aria-label="See Note 11 in the right margin">11</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div id="note-tv-implicit-uncertainty" class="">
+<p><span class="margin-label">Note 11</span></p>
+<p>Even so, experiments show that reasoning trajectories like B still have substantially higher TV than reliable and correct trajectories. This suggests that some unreliable or uncertain signals, although absent from the model’s natural-language output, still alter the representation space and can therefore be detected through TV.</p>
+</div></div><p>Candidate-information-head TV can therefore be viewed as a proxy for unreliable reasoning. <strong class="figure-key-gray">Of course, unreliable signals may also appear in the model’s reasoning chain, but TV can additionally detect signals that are not expressed in natural language (as described in </strong><a href="#note-tv-implicit-uncertainty" class="no-external section-ref" target="_self"><strong>Note 11</strong></a><strong class="figure-key-gray">). Other measures, such as the distribution entropy of generated tokens, can also capture related signals, but these token-level metrics are local proxies and cannot identify uncertainty across the full reasoning process as TV can.</strong></p>
 <div class="fingerprint-baseline tv-repair-cost-table">
-<table class="caption-top">
+<table class="caption-top table">
 <colgroup>
-<col style="width: 15%" />
-<col style="width: 21%" />
-<col style="width: 21%" />
-<col style="width: 21%" />
-<col style="width: 21%" />
+<col style="width: 15%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1445,48 +1486,133 @@ Model’s reasoning
 </tbody>
 </table>
 </div>
-<p>We also measure computation cost: tokens and time spent on baseline and extra reasoning, and the extra cost as a percentage of the baseline. Across all results, an additional <strong class="evidence-missing">11.1%</strong> in tokens and <strong class="evidence-missing">14.9%</strong> in time yield a <strong class="evidence-complete">5.9%</strong> relative performance gain. Head-TV detection itself takes only about <strong class="evidence-missing">1.9 s</strong> per trajectory on average. The extra reasoning remains somewhat costly, but detection is lightweight.</p>
-<p>This experiment turns Head TV from a retrospective mechanistic measure into a useful reasoning gate. It does not generate a better answer directly. Rather, it helps an agent identify when reasoning is unreliable and decide when to change its subsequent strategy to obtain a more trustworthy answer.</p>
+<p>We also measure computation cost. Across all results, reasoning enhancement uses an additional <strong class="evidence-missing">11.1%</strong> in tokens and <strong class="evidence-missing">14.9%</strong> in time while improving performance by an average of <strong class="evidence-complete">5.2 percentage points</strong>. Head-TV detection itself takes only about <strong class="evidence-missing">1.9 s</strong> per trajectory on average. The additional cost remains somewhat high, but TV detection itself is lightweight.</p>
+<p>Taken together, the experiment shows that candidate-head TV can be transformed from a mechanistic-analysis metric into a practically useful reasoning-gating signal. It does not directly generate a more accurate answer; rather, it <strong class="intro-mechanism-blue">helps an agent system decide when reasoning is unreliable and when subsequent reasoning should be enhanced to obtain a more trustworthy result.</strong></p>
 <!-- Data source: the four-dataset TV-gated repair aggregation used for Section 5. -->
 </section>
-<section id="sec-conclusion" class="level2" data-number="6">
-<h2 data-number="6"><span class="header-section-number">6</span> Conclusion and Outlook</h2>
-<p>Starting from the stable fingerprint in a model’s random-number outputs, we identified a family of heads that transport candidate information. Their causal effect becomes pronounced when the answer has not been uniquely determined and the model must still choose among candidates. This role generalizes across tasks and phrasings, and appears consistently under several interventions that interrupt normal reasoning circuits. Finally, we used Head TV as a signal of unreliable reasoning to trigger additional computation and improve the model’s reasoning performance.</p>
-<p>This study does not fully explain how the random-number fingerprint itself is formed. When I first noticed the LINUX DO post, I hoped to trace that formation. But I realized that without examining the training data or training dynamics, the question would be difficult to answer. Even after pretraining, a very small amount of trajectory fine-tuning can greatly change a model’s preferences, further complicating the analysis.</p>
-<p>I therefore shifted from the origin of the fingerprint to the model’s information flow, gradually arriving at the results presented here. The work unfolded intermittently over about a month and a half. The most important observations for my own understanding were perhaps the dispersion of information and competition among circuits. The final reasoning-enhancement method is somewhat akin to J-Space: begin with an understanding of the model, then devise a way to constrain its behavior.</p>
-<p>Many questions remain. Why does ablating a head have such a large causal effect after the reasoning circuit is interrupted? Softmax is sensitive to logit perturbations: a difference of one logit unit can change the probability distribution substantially. From the perspective of a linear map, however, a one-unit difference in the output logit is only a small perturbation. This seemingly counterintuitive relationship suggests that normal reasoning may somehow stabilize a decision boundary that would otherwise be fragile. Once the reasoning circuit is damaged, that fragility may become visible again.</p>
-<p>Understanding such effects is part of understanding the model. So is asking whether the circuits identified here persist under sparse attention or linear attention. These questions remain for future work.</p>
-<div id="quarto-navigation-envelope" class="hidden">
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyLXRpdGxl">Yingjie Tan</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXItdGl0bGU=">Yingjie Tan</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6SG9tZQ==">Home</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2luZGV4Lmh0bWw=">/index.html</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6QmxvZw==">Blog</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2Jsb2cuaHRtbA==">/blog.html</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI65Lit5paH">中文</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L3poL2luZGV4Lmh0bWw=">/zh/index.html</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6RW5nbGlzaA==">English</span></p>
-<div class="hidden quarto-markdown-envelope-contents" data-render-id="Zm9vdGVyLWxlZnQ=">
-<p>© 2026 Yingjie Tan</p>
-</div>
-<div class="hidden quarto-markdown-envelope-contents" data-render-id="Zm9vdGVyLXJpZ2h0">
-<p><a href="mailto:tanyj23@mails.tsinghua.edu.cn">Contact me</a></p>
+<section id="sec-attention-architecture-generalization" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="sec-attention-architecture-generalization"><span class="header-section-number">6</span> Head Generalization Across Attention Architectures</h2>
+<p>The preceding experiments all use the standard-attention model <a href="https://huggingface.co/Qwen/Qwen3-235B-A22B">Qwen3-235B-A22B</a>. We next show that the same kind of heads also exists in the linear-attention model <a href="https://huggingface.co/Qwen/Qwen3.5-397B-A17B">Qwen3.5-397B-A17B</a> and the sparse-attention model <a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731">DeepSeek-V4-Flash-0731</a>. To keep the post readable, we present only the head-localization results from <a href="#sec-cross-head-generalization" class="no-external section-ref" target="_self"><strong>Sec 3.5</strong></a> and the change in head effects after removing the reasoning chain, as in <a href="#removing-the-key-reasoning-chain" class="no-external section-ref" target="_self"><strong>Sec 4.2</strong></a>; the experimental setups are otherwise unchanged.</p>
+<section id="linear-attention-architecture" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="linear-attention-architecture"><span class="header-section-number">6.1</span> Linear-Attention Architecture</h3>
+<p><a href="https://huggingface.co/Qwen/Qwen3.5-397B-A17B">Qwen3.5-397B-A17B</a> uses a hybrid architecture combining linear attention and full attention. The model has 60 layers, 15 of which use full attention. We scan all 480 heads in those full-attention layers; the results are shown below.</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/qwen35_unordered_candidate_head_selection_heatmap.png" class="img-fluid figure-img" alt="A screening-score heatmap of 480 query heads across the 15 full-attention layers of Qwen3.5-397B-A17B, with the five highest-scoring heads labeled."></p>
+<figcaption>Figure 10: Heatmap of <span class="math inline">S(h,l)</span> for the heads in the full-attention layers of Qwen3.5-397B-A17B, with the five highest-scoring heads labeled.</figcaption>
+</figure>
 </div>
 </div>
-<div id="quarto-meta-markdown" class="hidden">
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW1ldGF0aXRsZQ==">From a Model’s Random-Number Fingerprint: A Study of LLM Reasoning Circuits – Yingjie Tan</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLXR3aXR0ZXJjYXJkdGl0bGU=">From a Model’s Random-Number Fingerprint: A Study of LLM Reasoning Circuits – Yingjie Tan</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW9nY2FyZHRpdGxl">From a Model’s Random-Number Fingerprint: A Study of LLM Reasoning Circuits – Yingjie Tan</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW1ldGFzaXRlbmFtZQ==">Yingjie Tan</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLXR3aXR0ZXJjYXJkZGVzYw==">Starting from a stable fingerprint in random-number generation, this post identifies attention heads that transport candidate information. Their causal effect appears when the answer is unresolved, generalizes across tasks and phrasings, and persists under interventions that interrupt normal reasoning. Head TV can then detect unreliable reasoning and trigger additional reasoning to improve performance.</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW9nY2FyZGRkZXNj">Starting from a stable fingerprint in random-number generation, this post identifies attention heads that transport candidate information. Their causal effect appears when the answer is unresolved, generalizes across tasks and phrasings, and persists under interventions that interrupt normal reasoning. Head TV can then detect unreliable reasoning and trigger additional reasoning to improve performance.</span></p>
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW1ldGFzaXRlZGVzYw==">Research notes on language models, interpretability, long-context reasoning, and efficient inference.</span></p>
+<p>We select the five highest-scoring heads (<code>L59.H07</code>, <code>L55.H31</code>, <code>L51.H13</code>, <code>L47.H02</code>, and <code>L51.H30</code>) and compare the TV from deleting these heads under <strong class="evidence-complete">complete reasoning chains</strong> and <strong class="evidence-missing">missing reasoning chains</strong>:</p>
+<div class="fingerprint-baseline evidence-ablation-table">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Dataset</th>
+<th style="text-align: right;"><span class="evidence-metric-header"><strong>Success rate</strong><strong>(<span class="evidence-complete">complete reasoning</span> → <span class="evidence-missing">missing reasoning</span>)</strong></span></th>
+<th style="text-align: right;"><span class="evidence-metric-header"><strong>TV from deleting heads</strong><strong>(<span class="evidence-complete">complete reasoning</span> → <span class="evidence-missing">missing reasoning</span>)</strong></span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DROP</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">3.07%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.64%</strong></span></td>
+</tr>
+<tr class="even">
+<td>BrowseComp-Plus</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">2.99%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">8.89%</strong></span></td>
+</tr>
+<tr class="odd">
+<td>2WikiMultiHopQA</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">2.54%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.44%</strong></span></td>
+</tr>
+<tr class="even">
+<td>MuSiQue</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">2.40%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">5.93%</strong></span></td>
+</tr>
+</tbody>
+</table>
 </div>
+<p>After the key reasoning chain is removed, TV rises on every trajectory. This shows that <strong class="intro-mechanism-blue">although most layers of the model use linear attention, heads that transport candidate information still exist in its full-attention layers.</strong></p>
+</section>
+<section id="sparse-attention-architecture" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="sparse-attention-architecture"><span class="header-section-number">6.2</span> Sparse-Attention Architecture</h3>
+<p><a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731">DeepSeek-V4-Flash-0731</a> uses the DeepSeek Sparse Attention (DSA) architecture. The model has 43 layers: the first two use sliding-window attention, followed by 21 Compressed Sparse Attention (CSA) layers alternating with 20 Heavily Compressed Attention (HCA) layers. The main attention branch in every CSA and HCA layer contains 64 heads, and every CSA layer additionally contains 64 Indexer heads. We scan only the 2,752 main-attention heads across all layers. As the heatmap below shows, the higher-scoring heads all come from the CSA layers with 4× compression:</p>
+<div class="analysis-figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../assets/figures/random-number/deepseek_v4_unordered_candidate_head_selection_heatmap.png" class="img-fluid figure-img" alt="A screening-score heatmap of 2,752 main-attention heads across the 43 layers of DeepSeek-V4-Flash-0731, with the five highest-scoring heads labeled."></p>
+<figcaption>Figure 11: Heatmap of <span class="math inline">S(h,l)</span> for the main-attention heads of DeepSeek-V4-Flash-0731, with the five highest-scoring heads labeled.</figcaption>
+</figure>
+</div>
+</div>
+<p>We select the five highest-scoring heads (<code>L24.H00</code>, <code>L24.H13</code>, <code>L38.H10</code>, <code>L38.H13</code>, and <code>L22.H36</code>) and compare the TV from deleting these heads under <strong class="evidence-complete">complete reasoning chains</strong> and <strong class="evidence-missing">missing reasoning chains</strong>:</p>
+<div class="fingerprint-baseline evidence-ablation-table">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Dataset</th>
+<th style="text-align: right;"><span class="evidence-metric-header"><strong>Success rate</strong><strong>(<span class="evidence-complete">complete reasoning</span> → <span class="evidence-missing">missing reasoning</span>)</strong></span></th>
+<th style="text-align: right;"><span class="evidence-metric-header"><strong>TV from deleting heads</strong><strong>(<span class="evidence-complete">complete reasoning</span> → <span class="evidence-missing">missing reasoning</span>)</strong></span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>DROP</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">7.69%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.25%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">4.90%</strong></span></td>
+</tr>
+<tr class="even">
+<td>BrowseComp-Plus</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">10.00%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.48%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">6.01%</strong></span></td>
+</tr>
+<tr class="odd">
+<td>2WikiMultiHopQA</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.38%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">5.48%</strong></span></td>
+</tr>
+<tr class="even">
+<td>MuSiQue</td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">100%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">0%</strong></span></td>
+<td style="text-align: right;"><span class="evidence-pair"><strong class="evidence-complete">0.21%</strong><span class="evidence-arrow">→</span><strong class="evidence-missing">4.40%</strong></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>After the key reasoning chain is removed, TV rises on every trajectory. This shows that <strong class="intro-mechanism-blue">heads that transport candidate information also exist in models built on DeepSeek Sparse Attention.</strong></p>
+<!-- Data sources: code/random_number/results/QWEN35_397B_HEAD_CIRCUIT_SUMMARY.md; code/random_number/results/DEEPSEEK_V4_FLASH_HEAD_CIRCUIT_SUMMARY.md. -->
+</section>
+</section>
+<section id="sec-conclusion" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="sec-conclusion"><span class="header-section-number">7</span> Summary and Reflections</h2>
+<p>Starting from the model fingerprint that appears consistently in random-number selection tasks, this post identifies a class of heads that transport candidate information. We find that when the answer has not been effectively inferred and the model must still choose among multiple candidates, these heads exert a substantial causal effect. Their role generalizes across candidates, tasks, and architectures, and is reproduced consistently in multiple intervention experiments that interrupt the normal reasoning circuit. We further use the TV of these heads as a detection signal for unreliable reasoning and use it to trigger additional reasoning enhancement, thereby improving the model’s reasoning performance.</p>
+<p>Of course, this post does not fully explain how the model’s fingerprint is formed. I initially hoped to analyze how the random-number fingerprint emerges, but I subsequently realized that this question is difficult to study without examining the training data or training dynamics. Moreover, only a small number of trajectories during post-training can substantially alter a model’s preferences, making the analysis even harder. After realizing this, I changed direction, began observing the model’s information flow, and gradually arrived at the results presented in this post.</p>
+<p>Among all the experimental phenomena, the most thought-provoking is the competition between information circuits in the model: <strong class="intro-mechanism-blue">why does the TV produced by ablating candidate-information heads increase after the reasoning circuit is interrupted?</strong> One direct view is that the signal strength of these heads remains unchanged, but interrupting the reasoning circuit increases the model’s perplexity and makes the logits and probability distribution more uniform, so the impact of a fixed-strength signal grows accordingly.</p>
+<p>This view is not necessarily wrong, but an account based only on logits or softmax is too post hoc to explain many observations. Logits themselves do not change in a consistent direction, nor do the heads affect logits consistently. In the experiments in <a href="#sec-tv-triggered-repair" class="no-external section-ref" target="_self"><strong>Sec 5</strong></a>, there are also several cases in which the model’s output distribution is extremely sharp during unreliable reasoning, yet TV remains substantial. Nor can we explain why only the localized heads have a large effect on the output distribution when their absolute effect on the logits is small and sometimes even slight. Judging from the ablation results, <strong class="intro-mechanism-blue">the heads writing more information, the network propagating the same write more strongly, and the final softmax becoming more sensitive</strong> seem to occur simultaneously and remain coupled.</p>
+<p>Even so, the current findings are already sufficient to improve reasoning performance. This is also the point of understanding models, or of interpretability work: it should solve concrete problems or be useful enough, rather than explain merely for explanation’s sake, and it must especially consider different levels of generalization. Work such as <a href="https://www.anthropic.com/research/global-workspace">J-Space</a> similarly begins with an understanding of the model and ultimately proposes a method that constrains model behavior. How to understand the model better within the current framework remains a question for future study.</p>
+
+
 </section>
 
-</main> <!-- /main -->
-<script src="/assets/language-switch.js?v=20260922-navbar"></script>
-<script id = "quarto-html-after-body" type="application/javascript">
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script src="../../assets/language-switch.js?v=20260922-navbar"></script>
+<script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
     const anchorJS = new window.AnchorJS();
@@ -1895,17 +2021,19 @@ Model’s reasoning
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-      <div class='footer-contents'>© 2026 Yingjie Tan</div>  
-    </div>   
+<p>© 2026 Yingjie Tan</p>
+</div>   
     <div class="nav-footer-center">
       &nbsp;
     </div>
     <div class="nav-footer-right">
-      <div class='footer-contents'>[Contact me](mailto:tanyj23@mails.tsinghua.edu.cn)</div>  
-    </div>
+<p><a href="mailto:tanyj23@mails.tsinghua.edu.cn">Contact me</a></p>
+</div>
   </div>
 </footer>
 
-</body>
 
-</html>
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
