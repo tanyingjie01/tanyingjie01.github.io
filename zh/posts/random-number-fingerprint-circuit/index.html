@@ -197,7 +197,7 @@ window.Quarto = {
   <li><a href="#线性注意力架构" id="toc-线性注意力架构" class="nav-link" data-scroll-target="#线性注意力架构"><span class="header-section-number">6.1</span> 线性注意力架构</a></li>
   <li><a href="#稀疏注意力架构" id="toc-稀疏注意力架构" class="nav-link" data-scroll-target="#稀疏注意力架构"><span class="header-section-number">6.2</span> 稀疏注意力架构</a></li>
   </ul></li>
-  <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion"><span class="header-section-number">7</span> 总结与展望</a></li>
+  <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion"><span class="header-section-number">7</span> 总结与思考</a></li>
   </ul>
 </nav>
 </nav>
@@ -1594,12 +1594,12 @@ Chargers
 </section>
 </section>
 <section id="sec-conclusion" class="level2" data-number="7">
-<h2 data-number="7" class="anchored" data-anchor-id="sec-conclusion"><span class="header-section-number">7</span> 总结与展望</h2>
-<p>本文从随机数生成中稳定出现的模型指纹出发，定位出了一类负责搬运候选信息的 heads。我们最终发现，当答案尚未被唯一确定、模型仍需在多个候选之间竞争时，这类 heads 会产生显著的因果效应；这一作用不仅能够跨任务、跨表述泛化，也在多种截断正常推理回路的干预实验中稳定出现。最后，我们进一步将 Head TV 作为不可信推理的检测信号，并用它触发额外推理，从而提升模型的推理性能。</p>
-<p>当然，需要承认的是，这篇研究并没有将模型的随机数指纹这件事情研究清楚。尽管我开始注意到那篇 Linux.do 帖子的时候，是希望分析一下指纹是如何形成的，但是随后我就意识到，很难在不看数据或者不分析训练动态的情况下研究这件事情。并且，在预训练完成的情况下，仅仅需要极少的轨迹微调，即可大幅改变模型的偏好，这使得分析较为困难。</p>
-<p>意识到这一点后，我改变了我的思路，开始观察模型的信息流，并逐渐得出了博客呈现的结果。整个过程断断续续大概花了一个半月的时间，观察到的一些现象，也的确加深了我对模型的理解，其中最重要的观察可能就是信息的分散，以及模型回路之间的竞争了。至于最后的增强推理方法，有些类似于 J-Space 那一套，从模型理解出发，提出方案约束模型行为。</p>
-<p>其实这里还有不少值得思考的点，比如博客中提到的信息回路之间的竞争：为什么推理回路被截断后，对 Head 消融产生的因果效应就会很大？理论上来说，softmax 对于 logit 的扰动其实是很敏感的，logit 相差 1 对于概率分布的影响可能相当大，但是从线性映射的角度，输出 logit 相差 1 基本只是一个小的扰动。这种某种意义上反线性代数的现象，说明正常推理的时候，模型似乎有种机制框定了本应该脆弱的决策边界；而当推理回路被破坏的时候，决策边界才重新恢复脆弱性。</p>
-<p>这些问题在我看来都是理解模型的一部分，不管是上面提到的，还是说一些更延伸的，比如我们定位的回路在稀疏注意力或者线性注意力中是否存在。当然，这些都是后续要继续探究的事情了。</p>
+<h2 data-number="7" class="anchored" data-anchor-id="sec-conclusion"><span class="header-section-number">7</span> 总结与思考</h2>
+<p>本文从随机数选择任务中稳定出现的模型指纹出发，定位出了一类搬运候选信息的 heads。我们发现，当答案未被有效推理出来、模型仍需在多个候选之间进行竞争时，这类 heads 会产生显著的因果效应。其作用不仅能够跨候选、跨任务、跨架构泛化，也在多种截断正常推理回路的干预实验中稳定复现。我们进一步将这类 heads 的 TV 值作为不可信推理的检测信号，并用它触发额外推理增强，从而提升模型的推理性能。</p>
+<p>当然，需要承认的是，博客并没有将模型的指纹是如何产生的这一问题研究清楚。尽管我最开始是希望分析一下随机数指纹是如何形成的，但是随后我意识到，很难在不看训练数据或者训练动态的情况下研究这件事情。并且，后训练时仅需要少量的轨迹，就可以大幅改变模型的偏好，这也使得分析较为困难。意识到这一点后，我改变了思路，开始观察模型的信息流，并逐渐得出了目前博客的结果。</p>
+<p>在所有实验现象中，最值得思考的就是模型中信息回路之间的竞争：<strong class="intro-mechanism-blue">为什么推理回路被截断后，对搬运候选信息 heads 消融产生的 TV 值就会变大？</strong>一个直接的观点是：这类 heads 的信号强度是不变的，但是推理回路被截断后，模型的困惑度变高，导致 logit 和概率分布变均匀了，因此固定的信号强度带来的影响随之增大。</p>
+<p>这种看法不能说是错的，但是只从 logit 或者 softmax 的角度来看，太偏向事后分析了，无法解释很多现象。本身 logit 就不具备一致的变化倾向，heads 对于 logit 的影响也不是一致的；在 <a href="#sec-tv-triggered-repair" class="no-external section-ref" target="_self"><strong>Sec 5</strong></a> 的实验中，也出现了多处模型在不可信推理的回答时，输出概率分布极度尖锐，但还是具有相当大的 TV 值的现象；此外，我们也无法解释为什么只有定位出来的 heads 对输出分布有较大影响，其对 logit 的绝对值影响是不大的，有时候甚至很轻微。从消融实验的结果来看，<strong class="intro-mechanism-blue">heads 写入了更多信息、网络对相同的写入产生了更大的传播、最终的 softmax 变得更敏感</strong>似乎会同时发生，相互耦合。</p>
+<p>尽管如此，目前的一些发现倒也足以提高推理性能了。理解模型或者说做可解释性的目的也在于此，需要解决具体的问题或者足够实用，不能单纯为了解释而解释，尤其是必须考虑泛化性层次的一些东西。一些工作比如 <a href="https://www.anthropic.com/research/global-workspace">J-Space</a>，也是从模型理解出发，最终提出方案约束模型行为。当然，如何能够在目前的框架下，更好的理解模型，那就是后续需要继续探究的事情了。</p>
 
 
 </section>
