@@ -3728,6 +3728,10 @@ img {
     min-inline-size: 43rem;
   }
 
+  html[lang^="zh"] body.post-research .fingerprint-baseline.tv-repair-cost-table table.table {
+    min-inline-size: 43rem;
+  }
+
   body.post-research #quarto-header,
   body.post-research #quarto-header .navbar {
     inline-size: 100dvw;
