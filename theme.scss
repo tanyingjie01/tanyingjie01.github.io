@@ -3724,6 +3724,10 @@ img {
     max-inline-size: none;
   }
 
+  html[lang^="zh"] body.post-research .fingerprint-baseline table.thinking-comparison-table {
+    min-inline-size: 43rem;
+  }
+
   body.post-research #quarto-header,
   body.post-research #quarto-header .navbar {
     inline-size: 100dvw;
