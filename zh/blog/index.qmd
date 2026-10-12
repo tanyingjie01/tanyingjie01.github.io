@@ -10,7 +10,7 @@ body-classes: blog-page zh-page
 show-blog-triad: false
 listing:
   id: blog-posts-zh
-  contents: posts
+  contents: "*/index.qmd"
   include:
     lang: zh-CN
   sort: "date desc"

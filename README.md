@@ -42,11 +42,11 @@ The generated static website is written to `_site/`.
 ## Add a post
 
 ```bash
-mkdir -p posts/my-new-post
-$EDITOR posts/my-new-post/index.qmd
-mkdir -p zh/posts/my-new-post
-$EDITOR zh/posts/my-new-post/index.qmd
-quarto render posts/my-new-post/index.qmd
+mkdir -p blog/my-new-post
+$EDITOR blog/my-new-post/index.qmd
+mkdir -p zh/blog/my-new-post
+$EDITOR zh/blog/my-new-post/index.qmd
+quarto render blog/my-new-post/index.qmd
 quarto render
 ```
 
@@ -74,10 +74,13 @@ orange, or green visual language.
 The two directories ending in `-preview` are deliberately short layout
 previews. Replace or remove them when real articles are ready.
 
-English posts inherit `lang: en`; posts under `zh/posts/` inherit `lang:
-zh-CN`. The two blog listings filter on that metadata so the languages do not
-mix. Keep paired translations at `posts/<slug>/index.qmd` and
-`zh/posts/<slug>/index.qmd` to preserve same-page language switching.
+English posts inherit `lang: en`; Chinese posts should set `lang: zh-CN` in
+their front matter or directory metadata. The two blog listings filter on that
+metadata so the languages do not mix. Keep paired translations at
+`blog/<slug>/index.qmd` and `zh/blog/<slug>/index.qmd` to preserve same-page
+language switching. Put article-only settings in each post directory's
+`_metadata.yml`, as in `blog/random-number-fingerprint-circuit/`, so they do
+not also apply to the blog listing pages.
 
 Do not edit `_site/` manually. It is generated from the QMD, YAML, SCSS, and
 asset source files.

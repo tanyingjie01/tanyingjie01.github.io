@@ -22,11 +22,11 @@ The enclosing panel retains its midnight background palette.
 ## Show or hide the panel
 
 The panel is currently hidden from the Chinese blog listing. Its complete
-markup stays in `zh/blog.qmd`; the artwork, stylesheet, and interaction script
+markup stays in `zh/blog/index.qmd`; the artwork, stylesheet, and interaction script
 stay in `assets/`.
 
 To restore it, change `show-blog-triad: false` to `show-blog-triad: true` in
-`zh/blog.qmd`, then render and publish the site. When the setting is `false`,
+`zh/blog/index.qmd`, then render and publish the site. When the setting is `false`,
 Quarto omits the panel and its CSS/JavaScript references from the generated
 page, so it does not leave an empty panel or load the interactive artwork.
 

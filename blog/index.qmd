@@ -9,7 +9,7 @@ body-classes: blog-page
 show-blog-tree: false
 listing:
   id: blog-posts
-  contents: posts
+  contents: "*/index.qmd"
   include:
     lang: en
   sort: "date desc"

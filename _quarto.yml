@@ -3,8 +3,9 @@ project:
   output-dir: _site
   render:
     - "*.qmd"
-    - "posts/**/*.qmd"
+    - "blog/**/*.qmd"
     - "zh/**/*.qmd"
+  post-render: scripts/pretty_blog_urls.py
   resources:
     - "assets/**"
   preview:
@@ -29,7 +30,7 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: blog.qmd
+      - href: blog/index.qmd
         text: Blog
     right:
       - href: zh/index.qmd
