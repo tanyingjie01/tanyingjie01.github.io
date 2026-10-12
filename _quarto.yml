@@ -8,6 +8,7 @@ project:
   post-render: scripts/pretty_blog_urls.py
   resources:
     - "assets/**"
+    - "googleee941952e163a930.html"
   preview:
     host: 127.0.0.1
     port: 4200
