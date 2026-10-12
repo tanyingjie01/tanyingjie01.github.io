@@ -6,18 +6,18 @@
       version="2.0">
 <channel>
 <title>Yingjie Tan</title>
-<link>https://tanyingjie01.github.io/zh/blog.html</link>
-<atom:link href="https://tanyingjie01.github.io/zh/blog.xml" rel="self" type="application/rss+xml"/>
+<link>https://tanyingjie01.github.io/zh/blog/</link>
+<atom:link href="https://tanyingjie01.github.io/zh/blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>记录关于 AI 的研究、思考与观察。</description>
 <generator>quarto-1.10.18</generator>
 <lastBuildDate>Tue, 22 Sep 2026 00:00:00 GMT</lastBuildDate>
 <item>
   <title>从模型的随机数指纹出发：一项关于 LLM 推理回路的研究</title>
   <dc:creator>Yingjie Tan</dc:creator>
-  <link>https://tanyingjie01.github.io/zh/posts/random-number-fingerprint-circuit/</link>
+  <link>https://tanyingjie01.github.io/zh/blog/random-number-fingerprint-circuit/</link>
   <description><![CDATA[ 本文从随机数生成中稳定出现的模型指纹出发，定位出了一类搬运候选信息的 heads，当答案未被有效推理、模型仍需在多个候选之间进行竞争时，这类 heads 会产生显著的因果效应。其作用不仅能够跨候选、跨任务、跨架构泛化，也在多种截断正常推理回路的干预实验中稳定复现。我们进一步将这类 heads 的 TV 值作为不可信推理的检测信号，并提升模型的推理性能。 ]]></description>
   <category>研究</category>
-  <guid>https://tanyingjie01.github.io/zh/posts/random-number-fingerprint-circuit/</guid>
+  <guid>https://tanyingjie01.github.io/zh/blog/random-number-fingerprint-circuit/</guid>
   <pubDate>Tue, 22 Sep 2026 00:00:00 GMT</pubDate>
 </item>
 </channel>

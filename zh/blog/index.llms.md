@@ -3,7 +3,7 @@
 # 博客
 
 ### [从模型的随机数指纹出发：\
-一项关于 LLM 推理回路的研究](../zh/posts/random-number-fingerprint-circuit/index.llms.md)
+一项关于 LLM 推理回路的研究](../../zh/blog/random-number-fingerprint-circuit/index.llms.md)
 
 本文从随机数生成中稳定出现的模型指纹出发，定位出了一类搬运候选信息的 heads，当答案未被有效推理、模型仍需在多个候选之间进行竞争时，这类 heads 会产生显著的因果效应。其作用不仅能够跨候选、跨任务、跨架构泛化，也在多种截断正常推理回路的干预实验中稳定复现。我们进一步将这类 heads 的 TV 值作为不可信推理的检测信号，并提升模型的推理性能。
 

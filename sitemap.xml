@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://tanyingjie01.github.io/zh/posts/random-number-fingerprint-circuit/index.html</loc>
-    <lastmod>2026-09-27T15:48:31.353Z</lastmod>
+    <loc>https://tanyingjie01.github.io/zh/index.html</loc>
+    <lastmod>2026-10-12T07:33:14.804Z</lastmod>
   </url>
   <url>
-    <loc>https://tanyingjie01.github.io/zh/blog.html</loc>
-    <lastmod>2026-09-22T11:58:14.163Z</lastmod>
+    <loc>https://tanyingjie01.github.io/zh/blog/</loc>
+    <lastmod>2026-10-12T07:33:14.792Z</lastmod>
   </url>
   <url>
-    <loc>https://tanyingjie01.github.io/index.html</loc>
-    <lastmod>2026-09-23T07:56:36.821Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tanyingjie01.github.io/blog.html</loc>
-    <lastmod>2026-09-23T07:56:47.397Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tanyingjie01.github.io/posts/random-number-fingerprint-circuit/index.html</loc>
+    <loc>https://tanyingjie01.github.io/blog/random-number-fingerprint-circuit/</loc>
     <lastmod>2026-09-27T15:51:55.492Z</lastmod>
   </url>
   <url>
-    <loc>https://tanyingjie01.github.io/zh/index.html</loc>
-    <lastmod>2026-09-23T07:29:55.439Z</lastmod>
+    <loc>https://tanyingjie01.github.io/blog/</loc>
+    <lastmod>2026-10-12T07:33:14.790Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tanyingjie01.github.io/index.html</loc>
+    <lastmod>2026-10-12T07:33:14.801Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tanyingjie01.github.io/zh/blog/random-number-fingerprint-circuit/</loc>
+    <lastmod>2026-09-27T15:48:31.353Z</lastmod>
   </url>
 </urlset>

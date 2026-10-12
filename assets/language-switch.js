@@ -257,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.documentElement.lang = "zh-CN";
 
-  const chineseNavPaths = ["/zh/", "/zh/blog.html"];
+  const chineseNavPaths = ["/zh/", "/zh/blog/"];
   primaryLinks.slice(0, navLabels.length).forEach((link, index) => {
     const label = link.querySelector(".menu-text") || link;
     if (navLabels[index]) label.textContent = navLabels[index];

@@ -1,14 +1,14 @@
 [
   {
-    "listing": "/zh/blog.html",
+    "listing": "/zh/blog/",
     "items": [
-      "/zh/posts/random-number-fingerprint-circuit/index.html"
+      "/zh/blog/random-number-fingerprint-circuit/"
     ]
   },
   {
-    "listing": "/blog.html",
+    "listing": "/blog/",
     "items": [
-      "/posts/random-number-fingerprint-circuit/index.html"
+      "/blog/random-number-fingerprint-circuit/"
     ]
   }
 ]
