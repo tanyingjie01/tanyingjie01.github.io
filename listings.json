@@ -1,5 +1,12 @@
 [
   {
+    "listing": "/zh/index.html",
+    "items": [
+      "/zh/blog/dsa-auto-compact/",
+      "/zh/blog/random-number-fingerprint-circuit/"
+    ]
+  },
+  {
     "listing": "/zh/blog/",
     "items": [
       "/zh/blog/dsa-auto-compact/",

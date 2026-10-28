@@ -31,6 +31,8 @@ ul.task-list li input[type="checkbox"] {
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
 <link href="../assets/favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../site_libs/quarto-listing/list.min.js"></script>
+<script src="../site_libs/quarto-listing/quarto-listing.js"></script>
 <script src="../site_libs/clipboard/clipboard.min.js"></script>
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -40,7 +42,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-52aa7558b31972c3b5df7143b6aadf4f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-b95da8dc9492f0846292fc6e26583b3c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-8edd7d80c55b14136120c0729af42dad.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "language": {
     "search-no-results-text": "没有结果",
@@ -56,8 +58,80 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "搜索"
   }
 }</script>
+<script>
+
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    const listingTargetEl = window.document.querySelector('#listing-recent-posts .list');
+    if (!listingTargetEl) {
+      // No listing discovered, do not attach.
+      return; 
+    }
+
+    const options = {
+      valueNames: ['listing-title','listing-date',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-title-sort'] }],
+      
+      searchColumns: ["listing-date","listing-title","listing-author"],
+    };
+
+    window['quarto-listings'] = window['quarto-listings'] || {};
+    window['quarto-listings']['listing-recent-posts'] = new List('listing-recent-posts', options);
+
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  });
+
+  window.addEventListener('hashchange',() => {
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  })
+  </script>
 <style>html{ scroll-behavior: smooth; }</style>
 
+  <script defer="" src="../assets/katex/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <link rel="stylesheet" href="../assets/katex/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <meta property="og:title" content="Yingjie Tan">
 <meta property="og:description" content="Research notes on language models, interpretability, long-context reasoning, and efficient inference.">
@@ -127,6 +201,51 @@ ul.task-list li input[type="checkbox"] {
 <h1>个人简介</h1>
 <p>我是清华大学的博士生。我的研究兴趣在于理解机器学习模型与神经网络。 我从观察到的现象出发，分析模型行为的根本原因，并致力于开发高效且具有泛化能力的实用学习方法。 近期，我主要研究 DeepSeek 稀疏注意力（DSA）架构的上下文压缩，以及训练稳定性。 欢迎阅读我的<a href="../zh/blog/">个人博客</a>。</p>
 </section>
+<section id="最新文章" class="level2 recent-posts">
+<h2 data-anchor-id="最新文章">最新文章</h2>
+<div id="listing-recent-posts" class="quarto-listing quarto-listing-container-table">
+<table class="quarto-listing-table table">
+<thead>
+<tr>
+
+<th>
+文章
+</th>
+
+<th>
+发布日期
+</th>
+
+</tr>
+</thead>
+<tbody class="list">
+
+<tr data-index="0" data-categories="JUU3JUEwJTk0JUU3JUE5JUI2" data-listing-date-sort="1793145600000" data-listing-file-modified-sort="1793174285132" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="17" data-listing-word-count-sort="3233" data-listing-title-sort="DeepSeek 稀疏注意力架构下的上下文压缩" data-listing-filename-sort="index.qmd">
+<td>
+<a href="../zh/blog/dsa-auto-compact/" class="title listing-title">DeepSeek 稀疏注意力架构下的上下文压缩</a>
+</td>
+<td>
+<span class="listing-date">2026年10月28日</span>
+</td>
+
+</tr>
+
+<tr data-index="1" data-categories="JUU3JUEwJTk0JUU3JUE5JUI2" data-listing-date-sort="1790035200000" data-listing-file-modified-sort="1793174285136" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2437" data-listing-title-sort="从模型的随机数指纹出发：<br>一项关于 LLM 推理回路的研究" data-listing-filename-sort="index.qmd">
+<td>
+<a href="../zh/blog/random-number-fingerprint-circuit/" class="title listing-title">从模型的随机数指纹出发：<br>一项关于 LLM 推理回路的研究</a>
+</td>
+<td>
+<span class="listing-date">2026年9月22日</span>
+</td>
+
+</tr>
+
+</tbody>
+</table>
+<div class="listing-no-matching d-none">没有匹配内容</div>
+</div>
+</section>
+
 
 
 
