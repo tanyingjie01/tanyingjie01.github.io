@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">Transformer circuit</title>
+  <desc id="desc">Signals move from input tokens through attention and feed-forward modules toward an output state.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#111528"/><stop offset=".56" stop-color="#090c15"/><stop offset="1" stop-color="#151126"/></linearGradient>
+    <linearGradient id="violet" x2="1"><stop stop-color="#91a0ff"/><stop offset="1" stop-color="#7455ff"/></linearGradient>
+    <linearGradient id="lime" x2="1"><stop stop-color="#d8ff83"/><stop offset="1" stop-color="#75e6b2"/></linearGradient>
+    <radialGradient id="halo"><stop stop-color="#705cff" stop-opacity=".28"/><stop offset="1" stop-color="#705cff" stop-opacity="0"/></radialGradient>
+    <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30" fill="none" stroke="#b8c0ff" stroke-opacity=".05"/></pattern>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <clipPath id="clip"><rect x="1" y="1" width="1198" height="678" rx="34"/></clipPath>
+  </defs>
+  <style>
+    .trace{stroke-dasharray:12 14;animation:trace 7s linear infinite}.fast{animation-duration:4.8s}.pulse{transform-box:fill-box;transform-origin:center;animation:pulse 2.8s ease-in-out infinite}.d1{animation-delay:-.7s}.d2{animation-delay:-1.4s}.d3{animation-delay:-2.1s}.scan{animation:scan 5s ease-in-out infinite}.matrix{animation:matrix 3.6s ease-in-out infinite}.matrix.d2{animation-delay:-1.8s}
+    @keyframes trace{to{stroke-dashoffset:-260}}@keyframes pulse{50%{transform:scale(1.45);opacity:1}0%,100%{transform:scale(.8);opacity:.48}}@keyframes scan{0%,100%{transform:translateY(0);opacity:.08}50%{transform:translateY(250px);opacity:.38}}@keyframes matrix{0%,100%{opacity:.24}50%{opacity:.86}}
+    @media(prefers-reduced-motion:reduce){.trace,.pulse,.scan,.matrix{animation:none}}
+  </style>
+  <g clip-path="url(#clip)">
+    <rect width="1200" height="680" rx="34" fill="url(#bg)"/><rect width="1200" height="680" fill="url(#grid)"/><circle cx="680" cy="270" r="390" fill="url(#halo)"/>
+    <path d="M0 566C208 465 339 637 563 535S931 432 1200 520" fill="none" stroke="#7c68ff" stroke-opacity=".055" stroke-width="90"/>
+    <g fill="none" stroke="#9ca7ff" stroke-opacity=".28">
+      <path d="M92 153L187 105 246 175 166 230 92 153Z"/><path d="M92 274L166 230 246 306 166 380 92 342Z"/><path d="M92 451L166 380 246 465 187 530Z"/>
+      <path d="M92 153V274M92 342V451M187 105L166 230M246 175V306M246 306V465M166 380L187 530"/>
+    </g>
+    <g fill="#9ba7ff" filter="url(#glow)"><circle cx="92" cy="153" r="6" class="pulse"/><circle cx="187" cy="105" r="5" class="pulse d1"/><circle cx="246" cy="175" r="6" class="pulse d2"/><circle cx="166" cy="230" r="5" class="pulse d3"/><circle cx="92" cy="274" r="6" class="pulse d1"/><circle cx="246" cy="306" r="6" class="pulse"/><circle cx="92" cy="342" r="5" class="pulse d2"/><circle cx="166" cy="380" r="6" class="pulse d3"/><circle cx="92" cy="451" r="6" class="pulse"/><circle cx="246" cy="465" r="6" class="pulse d1"/><circle cx="187" cy="530" r="5" class="pulse d2"/></g>
+    <g fill="none" stroke-linecap="round"><path d="M250 306H1060" stroke="#8492ff" stroke-opacity=".28" stroke-width="2"/><path d="M250 306H1060" stroke="url(#violet)" stroke-width="4" class="trace"/><path d="M250 465C307 465 293 566 360 566H965C1030 566 1015 392 1080 392" stroke="#9bffa9" stroke-opacity=".24" stroke-width="2"/><path d="M250 465C307 465 293 566 360 566H965C1030 566 1015 392 1080 392" stroke="url(#lime)" stroke-width="3" class="trace fast"/></g>
+    <g>
+      <rect x="312" y="105" width="205" height="395" rx="24" fill="#f2f3ff" fill-opacity=".045" stroke="#aab3ff" stroke-opacity=".25"/>
+      <rect x="332" y="132" width="165" height="132" rx="17" fill="#7b86ff" fill-opacity=".1" stroke="#9aa5ff" stroke-opacity=".25"/>
+      <g fill="#a8b1ff" class="matrix"><circle cx="360" cy="162" r="5"/><circle cx="395" cy="162" r="3"/><circle cx="430" cy="162" r="6"/><circle cx="465" cy="162" r="3"/><circle cx="360" cy="197" r="3"/><circle cx="395" cy="197" r="6"/><circle cx="430" cy="197" r="3"/><circle cx="465" cy="197" r="5"/><circle cx="360" cy="232" r="6"/><circle cx="395" cy="232" r="3"/><circle cx="430" cy="232" r="5"/><circle cx="465" cy="232" r="3"/></g>
+      <rect x="332" y="285" width="165" height="184" rx="17" fill="#98ffba" fill-opacity=".07" stroke="#9fffc0" stroke-opacity=".2"/><path d="M356 433L379 331 403 414 429 320 451 403 473 349" fill="none" stroke="url(#lime)" stroke-width="4"/>
+      <rect x="332" y="132" width="165" height="20" rx="10" fill="url(#violet)" opacity=".25" class="scan"/>
+    </g>
+    <g>
+      <rect x="555" y="82" width="205" height="442" rx="24" fill="#f2f3ff" fill-opacity=".052" stroke="#aab3ff" stroke-opacity=".28"/>
+      <rect x="575" y="112" width="165" height="154" rx="17" fill="#7b86ff" fill-opacity=".13" stroke="#9aa5ff" stroke-opacity=".3"/>
+      <g fill="#b7beff" class="matrix d2"><circle cx="605" cy="146" r="4"/><circle cx="640" cy="146" r="7"/><circle cx="675" cy="146" r="3"/><circle cx="710" cy="146" r="5"/><circle cx="605" cy="185" r="7"/><circle cx="640" cy="185" r="3"/><circle cx="675" cy="185" r="6"/><circle cx="710" cy="185" r="3"/><circle cx="605" cy="226" r="3"/><circle cx="640" cy="226" r="5"/><circle cx="675" cy="226" r="3"/><circle cx="710" cy="226" r="7"/></g>
+      <rect x="575" y="289" width="165" height="202" rx="17" fill="#98ffba" fill-opacity=".075" stroke="#9fffc0" stroke-opacity=".22"/><path d="M600 452L620 333 647 429 670 319 697 443 716 358" fill="none" stroke="url(#lime)" stroke-width="4"/>
+      <rect x="575" y="112" width="165" height="21" rx="10" fill="url(#violet)" opacity=".28" class="scan"/>
+    </g>
+    <g>
+      <rect x="798" y="105" width="205" height="395" rx="24" fill="#f2f3ff" fill-opacity=".045" stroke="#aab3ff" stroke-opacity=".25"/>
+      <rect x="818" y="132" width="165" height="132" rx="17" fill="#7b86ff" fill-opacity=".1" stroke="#9aa5ff" stroke-opacity=".25"/>
+      <path d="M840 226C870 174 898 233 927 165S965 216 974 151" fill="none" stroke="url(#violet)" stroke-width="4" class="trace fast"/>
+      <rect x="818" y="285" width="165" height="184" rx="17" fill="#98ffba" fill-opacity=".07" stroke="#9fffc0" stroke-opacity=".2"/><g fill="#9fffc0"><circle cx="850" cy="326" r="5" class="pulse"/><circle cx="900" cy="378" r="7" class="pulse d1"/><circle cx="954" cy="337" r="4" class="pulse d2"/><circle cx="854" cy="430" r="4" class="pulse d3"/><circle cx="954" cy="423" r="6" class="pulse"/></g><path d="M850 326L900 378 954 337M900 378L854 430M900 378L954 423" fill="none" stroke="#9fffc0" stroke-opacity=".45"/>
+    </g>
+    <g><circle cx="1090" cy="306" r="55" fill="#0c101c" stroke="#91a0ff" stroke-opacity=".5" stroke-width="2"/><circle cx="1090" cy="306" r="29" fill="url(#violet)" filter="url(#glow)" class="pulse d1"/><path d="M1090 230V195M1090 417V382M1014 306H980M1200 306H1166" stroke="#9ca7ff" stroke-opacity=".4"/></g>
+    <g fill="#dbe0ff" opacity=".45"><circle cx="47" cy="73" r="2"/><circle cx="289" cy="49" r="2"/><circle cx="540" cy="52" r="2"/><circle cx="780" cy="52" r="2"/><circle cx="1139" cy="77" r="2"/><circle cx="1080" cy="601" r="2"/><circle cx="706" cy="622" r="2"/><circle cx="345" cy="615" r="2"/></g>
+  </g>
+  <rect x="1" y="1" width="1198" height="678" rx="34" fill="none" stroke="#9da8ff" stroke-opacity=".2"/>
+</svg>

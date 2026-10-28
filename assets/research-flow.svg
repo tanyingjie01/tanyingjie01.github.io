@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="430" viewBox="0 0 1120 430" role="img" aria-labelledby="title desc">
+  <title id="title">Research signals in motion</title>
+  <desc id="desc">A scientific visualization of signals moving through a model and branching into two streams.</desc>
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#171a28"/>
+      <stop offset="0.55" stop-color="#11131d"/>
+      <stop offset="1" stop-color="#0b0d14"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#92a0ff"/>
+      <stop offset="1" stop-color="#4d63ff"/>
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#ffd199"/>
+      <stop offset="1" stop-color="#ef7d67"/>
+    </linearGradient>
+    <radialGradient id="core" cx="45%" cy="40%" r="60%">
+      <stop stop-color="#d7dcff"/>
+      <stop offset="0.36" stop-color="#7180ff"/>
+      <stop offset="1" stop-color="#3e4bc3"/>
+    </radialGradient>
+    <radialGradient id="halo-blue">
+      <stop stop-color="#6677ff" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#6677ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="halo-coral">
+      <stop stop-color="#ef8d6d" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#ef8d6d" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M28 0H0V28" fill="none" stroke="#e7e9ff" stroke-opacity="0.055" stroke-width="1"/>
+    </pattern>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="frame"><rect x="1" y="1" width="1118" height="428" rx="28"/></clipPath>
+  </defs>
+
+  <style>
+    .flow { animation: flow 9s linear infinite; }
+    .flow.fast { animation-duration: 6s; }
+    .orbit { transform-box: view-box; transform-origin: 500px 215px; animation: orbit 18s linear infinite; }
+    .orbit.reverse { animation-direction: reverse; animation-duration: 12s; }
+    .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 3.2s ease-in-out infinite; }
+    .pulse.two { animation-delay: -1.05s; }
+    .pulse.three { animation-delay: -2.1s; }
+    .scan { animation: scan 5.5s ease-in-out infinite; }
+    .spark { animation: sparkle 2.7s ease-in-out infinite; }
+    .spark.b { animation-delay: -.8s; }
+    .spark.c { animation-delay: -1.6s; }
+    .wave { stroke-dasharray: 210 350; animation: wave 7s ease-in-out infinite; }
+    @keyframes flow { to { stroke-dashoffset: -220; } }
+    @keyframes orbit { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100% { transform: scale(.82); opacity: .52; } 50% { transform: scale(1.18); opacity: 1; } }
+    @keyframes scan { 0%,100% { transform: translateX(0); opacity: .05; } 50% { transform: translateX(288px); opacity: .36; } }
+    @keyframes sparkle { 0%,100% { opacity: .18; } 50% { opacity: .9; } }
+    @keyframes wave { 0%,100% { stroke-dashoffset: 220; } 50% { stroke-dashoffset: -90; } }
+    @media (prefers-reduced-motion: reduce) {
+      .flow,.orbit,.pulse,.scan,.spark,.wave { animation: none; }
+    }
+  </style>
+
+  <g clip-path="url(#frame)">
+    <rect width="1120" height="430" rx="28" fill="url(#panel)"/>
+    <rect width="1120" height="430" fill="url(#grid)"/>
+    <circle cx="890" cy="82" r="245" fill="url(#halo-blue)"/>
+    <circle cx="945" cy="385" r="220" fill="url(#halo-coral)"/>
+    <path d="M0 350C180 285 264 447 448 360S774 250 1120 324" fill="none" stroke="#8b96ff" stroke-opacity=".055" stroke-width="74"/>
+
+    <g opacity=".8">
+      <circle cx="70" cy="113" r="5" fill="#9da8ff" class="pulse"/>
+      <circle cx="70" cy="168" r="5" fill="#9da8ff" class="pulse two"/>
+      <circle cx="70" cy="223" r="5" fill="#9da8ff" class="pulse three"/>
+      <circle cx="70" cy="278" r="5" fill="#9da8ff" class="pulse"/>
+      <circle cx="148" cy="84" r="4" fill="#6f7fff" class="spark"/>
+      <circle cx="166" cy="136" r="4" fill="#6f7fff" class="spark b"/>
+      <circle cx="145" cy="192" r="4" fill="#6f7fff" class="spark c"/>
+      <circle cx="171" cy="252" r="4" fill="#6f7fff" class="spark"/>
+      <circle cx="148" cy="310" r="4" fill="#6f7fff" class="spark b"/>
+      <g fill="none" stroke="#7f8cff" stroke-opacity=".38">
+        <path d="M75 113L148 84 166 136 145 192 70 168 75 113Z"/>
+        <path d="M70 168L145 192 171 252 70 223Z"/>
+        <path d="M70 223L171 252 148 310 70 278Z"/>
+        <path d="M148 84L240 128M166 136L240 170M145 192L240 210M171 252L240 252M148 310L240 294"/>
+      </g>
+    </g>
+
+    <g>
+      <rect x="240" y="87" width="320" height="256" rx="22" fill="#f5f6ff" fill-opacity=".035" stroke="#b8c0ff" stroke-opacity=".16"/>
+      <rect x="258" y="105" width="50" height="220" rx="13" fill="#6979f8" fill-opacity=".12" stroke="#99a5ff" stroke-opacity=".25"/>
+      <rect x="325" y="105" width="50" height="220" rx="13" fill="#6979f8" fill-opacity=".16" stroke="#99a5ff" stroke-opacity=".3"/>
+      <rect x="392" y="105" width="50" height="220" rx="13" fill="#6979f8" fill-opacity=".2" stroke="#99a5ff" stroke-opacity=".36"/>
+      <rect x="459" y="105" width="82" height="220" rx="18" fill="#6979f8" fill-opacity=".11" stroke="#a7b0ff" stroke-opacity=".28"/>
+      <rect x="258" y="105" width="22" height="220" fill="url(#blue)" opacity=".16" class="scan"/>
+      <g fill="#aab3ff" opacity=".75">
+        <circle cx="283" cy="142" r="4"/><circle cx="283" cy="179" r="3"/><circle cx="283" cy="216" r="5"/><circle cx="283" cy="254" r="3"/><circle cx="283" cy="290" r="4"/>
+        <circle cx="350" cy="131" r="3"/><circle cx="350" cy="172" r="5"/><circle cx="350" cy="220" r="3"/><circle cx="350" cy="266" r="5"/><circle cx="350" cy="301" r="3"/>
+        <circle cx="417" cy="146" r="5"/><circle cx="417" cy="187" r="3"/><circle cx="417" cy="228" r="4"/><circle cx="417" cy="271" r="3"/>
+      </g>
+      <circle cx="500" cy="215" r="34" fill="url(#core)" filter="url(#glow)"/>
+      <circle cx="500" cy="215" r="73" fill="none" stroke="#9aa5ff" stroke-opacity=".26" stroke-dasharray="5 10" class="orbit"/>
+      <ellipse cx="500" cy="215" rx="96" ry="48" fill="none" stroke="#7180ff" stroke-opacity=".24" stroke-dasharray="18 9" class="orbit reverse"/>
+      <circle cx="500" cy="142" r="5" fill="#dce0ff" class="pulse two"/>
+      <circle cx="596" cy="215" r="4" fill="#9ba7ff" class="pulse three"/>
+    </g>
+
+    <g fill="none" stroke-linecap="round">
+      <path d="M560 215C640 215 660 142 748 142S850 116 925 116" stroke="url(#blue)" stroke-width="3" stroke-dasharray="11 12" class="flow"/>
+      <path d="M560 215C640 215 662 286 748 286S846 316 925 316" stroke="url(#coral)" stroke-width="3" stroke-dasharray="11 12" class="flow fast"/>
+      <path d="M560 215H710" stroke="#e6e8ff" stroke-opacity=".16"/>
+    </g>
+
+    <g>
+      <circle cx="748" cy="142" r="15" fill="#111522" stroke="#7787ff" stroke-width="2"/>
+      <circle cx="748" cy="142" r="5" fill="#91a0ff" filter="url(#glow)" class="pulse"/>
+      <rect x="782" y="74" width="270" height="136" rx="20" fill="#f5f6ff" fill-opacity=".045" stroke="#8e9aff" stroke-opacity=".25"/>
+      <path d="M810 164L842 143 872 151 903 111 934 128 966 96 1020 116" fill="none" stroke="url(#blue)" stroke-width="3" class="wave"/>
+      <g fill="#8694ff">
+        <circle cx="842" cy="143" r="4"/><circle cx="903" cy="111" r="4"/><circle cx="966" cy="96" r="4"/><circle cx="1020" cy="116" r="4"/>
+      </g>
+      <path d="M810 181H1020" stroke="#dbe0ff" stroke-opacity=".11"/><path d="M810 91H900" stroke="#dbe0ff" stroke-opacity=".16" stroke-width="7" stroke-linecap="round"/>
+    </g>
+
+    <g>
+      <circle cx="748" cy="286" r="15" fill="#17131a" stroke="#ef9678" stroke-width="2"/>
+      <circle cx="748" cy="286" r="5" fill="#ffc18e" filter="url(#glow)" class="pulse two"/>
+      <rect x="782" y="238" width="270" height="136" rx="20" fill="#fff8f1" fill-opacity=".04" stroke="#f0a181" stroke-opacity=".24"/>
+      <g fill="none" stroke="url(#coral)" stroke-width="3" stroke-linecap="round">
+        <path d="M813 337C846 286 871 342 904 291S967 342 1021 274" class="wave"/>
+      </g>
+      <g fill="#ffc08f">
+        <circle cx="813" cy="337" r="4" class="spark"/><circle cx="904" cy="291" r="4" class="spark b"/><circle cx="1021" cy="274" r="4" class="spark c"/>
+      </g>
+      <path d="M810 355H1020" stroke="#ffe8d7" stroke-opacity=".1"/><path d="M810 255H918" stroke="#ffe8d7" stroke-opacity=".16" stroke-width="7" stroke-linecap="round"/>
+    </g>
+
+    <g fill="#e9ebff" opacity=".34">
+      <circle cx="1080" cy="52" r="2" class="spark"/><circle cx="1055" cy="214" r="2" class="spark b"/><circle cx="677" cy="71" r="2" class="spark c"/>
+      <circle cx="629" cy="364" r="2" class="spark"/><circle cx="207" cy="54" r="2" class="spark b"/><circle cx="91" cy="362" r="2" class="spark c"/>
+    </g>
+  </g>
+  <rect x="1" y="1" width="1118" height="428" rx="28" fill="none" stroke="#9ea8ff" stroke-opacity=".2"/>
+</svg>
