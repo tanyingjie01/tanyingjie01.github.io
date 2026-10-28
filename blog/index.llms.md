@@ -6,7 +6,7 @@
 
 An exploration of KV cache compaction for agents with growing histories: query-independent reference construction, cache selection and value merging, and query-guided recovery. Single-compaction, budget, and multi-round LongBench-v2 experiments illustrate the tradeoffs between memory quality, active cache capacity, and computation.
 
-Oct 24, 2026
+Oct 28, 2026
 
 Reading time: about 25 minutes
 

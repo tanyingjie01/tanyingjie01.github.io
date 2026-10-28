@@ -4,7 +4,7 @@ Author
 
 Published
 
-October 24, 2026
+October 28, 2026
 
 An LLM agent accumulates history as it reads code, calls tools, runs experiments, and processes their results. A short initial request can become a long sequence of constraints, plans, file contents, errors, repairs, and intermediate findings. Eventually, the agent must make room for new information to continue working within its available context capacity.
 
