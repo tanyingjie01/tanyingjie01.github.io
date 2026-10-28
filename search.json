@@ -14,11 +14,11 @@
     "text": "博客\n\n\n\n\n\n\n\n    \n      \n      \n    \n\n\n\n\n\nDeepSeek 稀疏注意力架构下的上下文压缩\n\n\n\n研究\n\n\n\n面向 LLM Agent 工作流中的上下文自动压缩，提出适配 DSA 架构的 KV Cache 原生压缩方法。通过语义监督筛选高价值缓存，并在具体 Query 到达后按需恢复局部细节；结合 DeepSeek-V4-Flash-0731 与 GLM-5.3-Flash 的实验，考察约 60% 保留率下的任务表现与额外开销。\n\n\n\n\n\n2026年10月28日\n\n\n阅读时间：约45分钟\n\n\n\n\n\n\n\n从模型的随机数指纹出发：一项关于 LLM 推理回路的研究\n\n\n\n研究\n\n\n\n本文从随机数生成中稳定出现的模型指纹出发，定位出了一类搬运候选信息的 heads，当答案未被有效推理、模型仍需在多个候选之间进行竞争时，这类 heads 会产生显著的因果效应。其作用不仅能够跨候选、跨任务、跨架构泛化，也在多种截断正常推理回路的干预实验中稳定复现。我们进一步将这类 heads 的 TV 值作为不可信推理的检测信号，并提升模型的推理性能。\n\n\n\n\n\n2026年9月22日\n\n\n阅读时间：30分钟\n\n\n\n\n\n没有匹配内容\n 返回顶部"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
+    "objectID": "index.html#latest-articles",
+    "href": "index.html#latest-articles",
     "title": "Yingjie Tan",
-    "section": "",
-    "text": "Personal Profile\nI am a Ph.D. student at Tsinghua University. My research interests lie in understanding machine learning models and neural networks. Starting from observed phenomena, I analyze the root causes of model behavior and aim to develop practical learning methods that are efficient and generalizable. Recently, I have focused on context compression for DeepSeek Sparse Attention (DSA) architectures and on training stability. You can read my personal blog.\n\n\n\n\n Back to top"
+    "section": "Latest articles",
+    "text": "Latest articles\n\n\n\n\n\n\nArticle\n\n\n\nPublished\n\n\n\n\n\n\n\n\nContext Compression for DeepSeek Sparse Attention Architectures\n\n\nOct 28, 2026\n\n\n\n\n\n\nFrom a Model’s Random-Number Fingerprint:A Study of LLM Reasoning Circuits\n\n\nSep 22, 2026\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "blog/",
