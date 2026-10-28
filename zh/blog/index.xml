@@ -10,7 +10,16 @@
 <atom:link href="https://tanyingjie01.github.io/zh/blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>记录关于 AI 的研究、思考与观察。</description>
 <generator>quarto-1.10.18</generator>
-<lastBuildDate>Tue, 22 Sep 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 24 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>DeepSeek 稀疏注意力架构下的上下文压缩</title>
+  <dc:creator>Yingjie Tan</dc:creator>
+  <link>https://tanyingjie01.github.io/zh/blog/dsa-auto-compact/</link>
+  <description><![CDATA[ 面向 LLM Agent 工作流中的上下文自动压缩，提出适配 DSA 架构的 KV Cache 原生压缩方法。通过语义监督筛选高价值缓存，并在具体 Query 到达后按需恢复局部细节；结合 DeepSeek-V4-Flash-0731 与 GLM-5.3-Flash 的实验，考察约 60% 保留率下的任务表现与额外开销。 ]]></description>
+  <category>研究</category>
+  <guid>https://tanyingjie01.github.io/zh/blog/dsa-auto-compact/</guid>
+  <pubDate>Sat, 24 Oct 2026 00:00:00 GMT</pubDate>
+</item>
 <item>
   <title>从模型的随机数指纹出发：一项关于 LLM 推理回路的研究</title>
   <dc:creator>Yingjie Tan</dc:creator>

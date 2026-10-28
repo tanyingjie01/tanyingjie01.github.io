@@ -6,7 +6,9 @@
 
 - [Yingjie Tan](https://tanyingjie01.github.io/zh/index.llms.md)
 - [博客](https://tanyingjie01.github.io/zh/blog/index.llms.md)
-- [From a Model’s Random-Number Fingerprint:<br>A Study of LLM Reasoning Circuits](https://tanyingjie01.github.io/blog/random-number-fingerprint-circuit/index.llms.md)
-- [Blog](https://tanyingjie01.github.io/blog/index.llms.md)
 - [Yingjie Tan](https://tanyingjie01.github.io/index.llms.md)
+- [Blog](https://tanyingjie01.github.io/blog/index.llms.md)
+- [Context Compression for DeepSeek Sparse Attention Architectures](https://tanyingjie01.github.io/blog/dsa-auto-compact/index.llms.md)
+- [From a Model’s Random-Number Fingerprint:<br>A Study of LLM Reasoning Circuits](https://tanyingjie01.github.io/blog/random-number-fingerprint-circuit/index.llms.md)
+- [DeepSeek 稀疏注意力架构下的上下文压缩](https://tanyingjie01.github.io/zh/blog/dsa-auto-compact/index.llms.md)
 - [从模型的随机数指纹出发：<br>一项关于 LLM 推理回路的研究](https://tanyingjie01.github.io/zh/blog/random-number-fingerprint-circuit/index.llms.md)

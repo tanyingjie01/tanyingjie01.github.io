@@ -10,7 +10,16 @@
 <atom:link href="https://tanyingjie01.github.io/blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>Research, thinking, and observations on AI.</description>
 <generator>quarto-1.10.18</generator>
-<lastBuildDate>Tue, 22 Sep 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 24 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Context Compression for DeepSeek Sparse Attention Architectures</title>
+  <dc:creator>Yingjie Tan</dc:creator>
+  <link>https://tanyingjie01.github.io/blog/dsa-auto-compact/</link>
+  <description><![CDATA[ An exploration of KV cache compaction for agents with growing histories: query-independent reference construction, cache selection and value merging, and query-guided recovery. Single-compaction, budget, and multi-round LongBench-v2 experiments illustrate the tradeoffs between memory quality, active cache capacity, and computation. ]]></description>
+  <category>Research</category>
+  <guid>https://tanyingjie01.github.io/blog/dsa-auto-compact/</guid>
+  <pubDate>Sat, 24 Oct 2026 00:00:00 GMT</pubDate>
+</item>
 <item>
   <title>From a Model’s Random-Number Fingerprint:A Study of LLM Reasoning Circuits</title>
   <dc:creator>Yingjie Tan</dc:creator>

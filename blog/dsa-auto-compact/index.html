@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-10-24">
+<meta name="description" content="An exploration of KV cache compaction for agents with growing histories: query-independent reference construction, cache selection and value merging, and query-guided recovery. Single-compaction, budget, and multi-round LongBench-v2 experiments illustrate the tradeoffs between memory quality, active cache capacity, and computation.">
+
+<title>Context Compression for DeepSeek Sparse Attention Architectures – Yingjie Tan</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<link href="../../assets/favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-52aa7558b31972c3b5df7143b6aadf4f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-1be76643667e0f0009609ba21c622e25.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script defer="" src="../../assets/katex/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <link rel="stylesheet" href="../../assets/katex/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Context Compression for DeepSeek Sparse Attention Architectures – Yingjie Tan">
+<meta property="og:description" content="An exploration of KV cache compaction for agents with growing histories: query-independent reference construction, cache selection and value merging, and query-guided recovery. Single-compaction, budget, and multi-round LongBench-v2 experiments illustrate the tradeoffs between memory quality, active cache capacity, and computation.">
+<meta property="og:image" content="https://tanyingjie01.github.io/assets/figures/dsa-auto-compact/pipeline-en.svg">
+<meta property="og:site_name" content="Yingjie Tan">
+<meta name="twitter:title" content="Context Compression for DeepSeek Sparse Attention Architectures – Yingjie Tan">
+<meta name="twitter:description" content="An exploration of KV cache compaction for agents with growing histories: query-independent reference construction, cache selection and value merging, and query-guided recovery. Single-compaction, budget, and multi-round LongBench-v2 experiments illustrate the tradeoffs between memory quality, active cache capacity, and computation.">
+<meta name="twitter:image" content="https://tanyingjie01.github.io/assets/figures/dsa-auto-compact/pipeline-en.svg">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="floating nav-fixed post-research title-date-only slimcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../assets/brand-mark.svg" alt="首页 / Home" class="navbar-logo light-content">
+    <img src="../../assets/brand-mark.svg" alt="首页 / Home" class="navbar-logo dark-content">
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog/"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../zh/index.html"> 
+<span class="menu-text">中文</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">English</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sec-auto-compact" id="toc-sec-auto-compact" class="nav-link active" data-scroll-target="#sec-auto-compact"><span class="header-section-number">1</span> What Auto Compact Should Remember</a>
+  <ul class="collapse">
+  <li><a href="#a-running-task-has-several-kinds-of-state" id="toc-a-running-task-has-several-kinds-of-state" class="nav-link" data-scroll-target="#a-running-task-has-several-kinds-of-state"><span class="header-section-number">1.1</span> A running task has several kinds of state</a></li>
+  <li><a href="#text-summaries-and-cache-memory" id="toc-text-summaries-and-cache-memory" class="nav-link" data-scroll-target="#text-summaries-and-cache-memory"><span class="header-section-number">1.2</span> Text summaries and cache memory</a></li>
+  <li><a href="#known-questions-and-unknown-future-inputs" id="toc-known-questions-and-unknown-future-inputs" class="nav-link" data-scroll-target="#known-questions-and-unknown-future-inputs"><span class="header-section-number">1.3</span> Known questions and unknown future inputs</a></li>
+  </ul></li>
+  <li><a href="#sec-dsa" id="toc-sec-dsa" class="nav-link" data-scroll-target="#sec-dsa"><span class="header-section-number">2</span> Why Compact a Sparse Attention Cache</a>
+  <ul class="collapse">
+  <li><a href="#sparse-access-and-total-storage" id="toc-sparse-access-and-total-storage" class="nav-link" data-scroll-target="#sparse-access-and-total-storage"><span class="header-section-number">2.1</span> Sparse access and total storage</a></li>
+  <li><a href="#shared-mla-latents-constrain-value-merging" id="toc-shared-mla-latents-constrain-value-merging" class="nav-link" data-scroll-target="#shared-mla-latents-constrain-value-merging"><span class="header-section-number">2.2</span> Shared MLA latents constrain value merging</a></li>
+  <li><a href="#v4-has-heterogeneous-native-rows" id="toc-v4-has-heterogeneous-native-rows" class="nav-link" data-scroll-target="#v4-has-heterogeneous-native-rows"><span class="header-section-number">2.3</span> V4 has heterogeneous native rows</a></li>
+  </ul></li>
+  <li><a href="#sec-reference" id="toc-sec-reference" class="nav-link" data-scroll-target="#sec-reference"><span class="header-section-number">3</span> Constructing Reference Queries</a>
+  <ul class="collapse">
+  <li><a href="#collecting-q-through-an-additional-forward-pass" id="toc-collecting-q-through-an-additional-forward-pass" class="nav-link" data-scroll-target="#collecting-q-through-an-additional-forward-pass"><span class="header-section-number">3.1</span> Collecting Q through an additional forward pass</a></li>
+  <li><a href="#relating-the-q-budget-to-retained-rows" id="toc-relating-the-q-budget-to-retained-rows" class="nav-link" data-scroll-target="#relating-the-q-budget-to-retained-rows"><span class="header-section-number">3.2</span> Relating the Q budget to retained rows</a></li>
+  <li><a href="#coverage-remains-approximate" id="toc-coverage-remains-approximate" class="nav-link" data-scroll-target="#coverage-remains-approximate"><span class="header-section-number">3.3</span> Coverage remains approximate</a></li>
+  </ul></li>
+  <li><a href="#sec-method" id="toc-sec-method" class="nav-link" data-scroll-target="#sec-method"><span class="header-section-number">4</span> Cache Selection and Value Merging</a>
+  <ul class="collapse">
+  <li><a href="#a-selects-representatives-within-each-block" id="toc-a-selects-representatives-within-each-block" class="nav-link" data-scroll-target="#a-selects-representatives-within-each-block"><span class="header-section-number">4.1</span> A selects representatives within each block</a></li>
+  <li><a href="#e1-merges-values-while-retaining-key-scoring" id="toc-e1-merges-values-while-retaining-key-scoring" class="nav-link" data-scroll-target="#e1-merges-values-while-retaining-key-scoring"><span class="header-section-number">4.2</span> E1 merges values while retaining key scoring</a></li>
+  <li><a href="#retained-row-ratio-is-only-one-cost-measure" id="toc-retained-row-ratio-is-only-one-cost-measure" class="nav-link" data-scroll-target="#retained-row-ratio-is-only-one-cost-measure"><span class="header-section-number">4.3</span> Retained-row ratio is only one cost measure</a></li>
+  </ul></li>
+  <li><a href="#sec-runtime" id="toc-sec-runtime" class="nav-link" data-scroll-target="#sec-runtime"><span class="header-section-number">5</span> Making the Cache Rewrite Usable</a>
+  <ul class="collapse">
+  <li><a href="#update-both-cache-streams-and-the-scheduler" id="toc-update-both-cache-streams-and-the-scheduler" class="nav-link" data-scroll-target="#update-both-cache-streams-and-the-scheduler"><span class="header-section-number">5.1</span> Update both cache streams and the scheduler</a></li>
+  <li><a href="#preserve-original-positional-coordinates" id="toc-preserve-original-positional-coordinates" class="nav-link" data-scroll-target="#preserve-original-positional-coordinates"><span class="header-section-number">5.2</span> Preserve original positional coordinates</a></li>
+  <li><a href="#rewind-temporary-reference-and-probe-state" id="toc-rewind-temporary-reference-and-probe-state" class="nav-link" data-scroll-target="#rewind-temporary-reference-and-probe-state"><span class="header-section-number">5.3</span> Rewind temporary reference and probe state</a></li>
+  </ul></li>
+  <li><a href="#sec-recovery" id="toc-sec-recovery" class="nav-link" data-scroll-target="#sec-recovery"><span class="header-section-number">6</span> Recovering Details After a Question Arrives</a>
+  <ul class="collapse">
+  <li><a href="#freeze-generic-memory-before-probing" id="toc-freeze-generic-memory-before-probing" class="nav-link" data-scroll-target="#freeze-generic-memory-before-probing"><span class="header-section-number">6.1</span> Freeze generic memory before probing</a></li>
+  <li><a href="#read-window-signals-from-four-mla-heads" id="toc-read-window-signals-from-four-mla-heads" class="nav-link" data-scroll-target="#read-window-signals-from-four-mla-heads"><span class="header-section-number">6.2</span> Read window signals from four MLA heads</a></li>
+  <li><a href="#additive-and-fixed-budget-restoration" id="toc-additive-and-fixed-budget-restoration" class="nav-link" data-scroll-target="#additive-and-fixed-budget-restoration"><span class="header-section-number">6.3</span> Additive and fixed-budget restoration</a></li>
+  <li><a href="#recovery-needs-a-surviving-source" id="toc-recovery-needs-a-surviving-source" class="nav-link" data-scroll-target="#recovery-needs-a-surviving-source"><span class="header-section-number">6.4</span> Recovery needs a surviving source</a></li>
+  </ul></li>
+  <li><a href="#sec-results" id="toc-sec-results" class="nav-link" data-scroll-target="#sec-results"><span class="header-section-number">7</span> Single-Compaction Results</a>
+  <ul class="collapse">
+  <li><a href="#dataset-and-evaluation-conditions" id="toc-dataset-and-evaluation-conditions" class="nav-link" data-scroll-target="#dataset-and-evaluation-conditions"><span class="header-section-number">7.1</span> Dataset and evaluation conditions</a></li>
+  <li><a href="#generic-memory-and-query-guided-recovery" id="toc-generic-memory-and-query-guided-recovery" class="nav-link" data-scroll-target="#generic-memory-and-query-guided-recovery"><span class="header-section-number">7.2</span> Generic memory and query-guided recovery</a></li>
+  <li><a href="#task-aware-ae1-comparisons" id="toc-task-aware-ae1-comparisons" class="nav-link" data-scroll-target="#task-aware-ae1-comparisons"><span class="header-section-number">7.3</span> Task-aware A/E1 comparisons</a></li>
+  <li><a href="#changes-differ-by-task-family" id="toc-changes-differ-by-task-family" class="nav-link" data-scroll-target="#changes-differ-by-task-family"><span class="header-section-number">7.4</span> Changes differ by task family</a></li>
+  </ul></li>
+  <li><a href="#sec-budget" id="toc-sec-budget" class="nav-link" data-scroll-target="#sec-budget"><span class="header-section-number">8</span> Reference Length and Recovery Budget</a>
+  <ul class="collapse">
+  <li><a href="#a60-suffix-and-window-sweeps" id="toc-a60-suffix-and-window-sweeps" class="nav-link" data-scroll-target="#a60-suffix-and-window-sweeps"><span class="header-section-number">8.1</span> A60 suffix and window sweeps</a></li>
+  <li><a href="#longer-references-are-not-uniformly-better-at-a50" id="toc-longer-references-are-not-uniformly-better-at-a50" class="nav-link" data-scroll-target="#longer-references-are-not-uniformly-better-at-a50"><span class="header-section-number">8.2</span> Longer references are not uniformly better at A50</a></li>
+  </ul></li>
+  <li><a href="#sec-cost" id="toc-sec-cost" class="nav-link" data-scroll-target="#sec-cost"><span class="header-section-number">9</span> Compaction Costs</a>
+  <ul class="collapse">
+  <li><a href="#stage-times-for-single-compaction" id="toc-stage-times-for-single-compaction" class="nav-link" data-scroll-target="#stage-times-for-single-compaction"><span class="header-section-number">9.1</span> Stage times for single compaction</a></li>
+  <li><a href="#agent-costs-span-subsequent-steps" id="toc-agent-costs-span-subsequent-steps" class="nav-link" data-scroll-target="#agent-costs-span-subsequent-steps"><span class="header-section-number">9.2</span> Agent costs span subsequent steps</a></li>
+  </ul></li>
+  <li><a href="#sec-streaming" id="toc-sec-streaming" class="nav-link" data-scroll-target="#sec-streaming"><span class="header-section-number">10</span> Multi-Round Streaming Beyond a Single Window</a>
+  <ul class="collapse">
+  <li><a href="#read-compact-and-append" id="toc-read-compact-and-append" class="nav-link" data-scroll-target="#read-compact-and-append"><span class="header-section-number">10.1</span> Read, compact, and append</a></li>
+  <li><a href="#cpu-archives-support-final-restoration" id="toc-cpu-archives-support-final-restoration" class="nav-link" data-scroll-target="#cpu-archives-support-final-restoration"><span class="header-section-number">10.2</span> CPU archives support final restoration</a></li>
+  <li><a href="#results-on-30-over-capacity-questions" id="toc-results-on-30-over-capacity-questions" class="nav-link" data-scroll-target="#results-on-30-over-capacity-questions"><span class="header-section-number">10.3</span> Results on 30 over-capacity questions</a></li>
+  </ul></li>
+  <li><a href="#sec-agent" id="toc-sec-agent" class="nav-link" data-scroll-target="#sec-agent"><span class="header-section-number">11</span> Toward Sustained Agent Tasks</a>
+  <ul class="collapse">
+  <li><a href="#trigger-policies-and-protected-capacity" id="toc-trigger-policies-and-protected-capacity" class="nav-link" data-scroll-target="#trigger-policies-and-protected-capacity"><span class="header-section-number">11.1</span> Trigger policies and protected capacity</a></li>
+  <li><a href="#forgetting-can-accumulate-across-rounds" id="toc-forgetting-can-accumulate-across-rounds" class="nav-link" data-scroll-target="#forgetting-can-accumulate-across-rounds"><span class="header-section-number">11.2</span> Forgetting can accumulate across rounds</a></li>
+  <li><a href="#what-to-evaluate-next" id="toc-what-to-evaluate-next" class="nav-link" data-scroll-target="#what-to-evaluate-next"><span class="header-section-number">11.3</span> What to evaluate next</a></li>
+  </ul></li>
+  <li><a href="#sec-references" id="toc-sec-references" class="nav-link" data-scroll-target="#sec-references"><span class="header-section-number">12</span> Data and References</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Context Compression for DeepSeek Sparse Attention Architectures</h1>
+  </div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p> </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 24, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>An LLM agent accumulates history as it reads code, calls tools, runs experiments, and processes their results. A short initial request can become a long sequence of constraints, plans, file contents, errors, repairs, and intermediate findings. Eventually, the agent must make room for new information to continue working within its available context capacity.</p>
+<p>This is the setting for <strong>auto compact</strong>: automatically reducing the memory occupied by existing context while preserving the state needed for subsequent work. Losing a constraint can change the agent’s future behavior. Losing a tool result can cause it to repeat an operation it has already completed.</p>
+<div class="research-question">
+<p><strong>Can we compact the model’s KV cache directly, freeing capacity while preserving the information an agent needs to continue its task?</strong></p>
+</div>
+<p>This post examines reference queries, cache selection, and value merging for DSA and MLA, followed by a recovery stage that uses an arriving question to restore local details. Most results use DeepSeek-V4-Flash-0731; the V3.2 implementation helps explain some DSA-specific adaptations.</p>
+<p>One current observation is that query-independent A60 scores <strong>244/473</strong> on the retained LongBench-v2 cohort, while query-guided recovery scores <strong>258/473</strong>, at a mean final document retention of <strong>63.42%</strong>. The recovery configuration uses additional capacity and computation, and its head selection has development-set overlap. These conditions are discussed alongside the results.</p>
+<div class="article-deck">
+<p><strong>Research draft.</strong> This post records the method, results, and operating conditions. Current evaluation centers on long-context question answering; sustained interactive agent tasks remain a priority for further evaluation.</p>
+</div>
+<section id="sec-auto-compact" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="sec-auto-compact"><span class="header-section-number">1</span> What Auto Compact Should Remember</h2>
+<section id="a-running-task-has-several-kinds-of-state" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="a-running-task-has-several-kinds-of-state"><span class="header-section-number">1.1</span> A running task has several kinds of state</h3>
+<p>An agent’s history contains user requirements, actions already taken, externally observed facts, and unresolved questions. Their future importance differs. Hundreds of installation-log lines may admit substantial reduction, while an instruction such as “do not upload to GitHub yet” must continue to govern subsequent actions.</p>
+<p>Given a processed history <span class="math inline">H</span>, we want a smaller memory <span class="math inline">M(H)</span> that preserves useful behavior after subsequent input <span class="math inline">U</span> arrives:</p>
+<p><span class="math display">
+p_\theta(y\mid M(H),U)\approx p_\theta(y\mid H,U).
+</span></p>
+<p>Here, <span class="math inline">U</span> can be a new user instruction, a tool response, or another stage of the task. A reusable memory must support inputs that are not fully known when compaction occurs.</p>
+</section>
+<section id="text-summaries-and-cache-memory" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="text-summaries-and-cache-memory"><span class="header-section-number">1.2</span> Text summaries and cache memory</h3>
+<p>One approach summarizes the history into text and uses that text as new context. Such memory is readable, inspectable, and easy to save between sessions. Another approach retains a compact KV cache that subsequent tokens can access directly.</p>
+<p>This project explores cache memory. Method A keeps selected original cache rows; E1 also merges value information. The resulting state depends on the model, quantization format, and inference backend, so transferring it between models requires additional compatibility work.</p>
+<p><a href="https://arxiv.org/abs/2602.16284">Fast KV Compaction via Attention Matching</a> develops a framework for constructing compact caches through attention matching. This implementation draws on that framework and adapts selected ideas to sparse routing and MLA’s shared latent representation. A and E1 below refer to the particular definitions used here.</p>
+</section>
+<section id="known-questions-and-unknown-future-inputs" class="level3" data-number="1.3">
+<h3 data-number="1.3" class="anchored" data-anchor-id="known-questions-and-unknown-future-inputs"><span class="header-section-number">1.3</span> Known questions and unknown future inputs</h3>
+<p>When the downstream question is already available, a compressor can prioritize information relevant to that question. Auto compact also needs to operate before the next instruction has arrived.</p>
+<p>We therefore distinguish <strong>task-aware</strong> reference construction, which includes the real question, from <strong>generic document study</strong>, which uses the document and a general study instruction. The latter approximates reusable memory construction. Once a real question arrives, a recovery stage can supplement that memory with local details.</p>
+</section>
+</section>
+<section id="sec-dsa" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="sec-dsa"><span class="header-section-number">2</span> Why Compact a Sparse Attention Cache</h2>
+<section id="sparse-access-and-total-storage" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="sparse-access-and-total-storage"><span class="header-section-number">2.1</span> Sparse access and total storage</h3>
+<p>DSA uses an indexer to select candidates for the current query, followed by main attention over those candidates. <a href="https://huggingface.co/deepseek-ai/DeepSeek-V3.2">The DeepSeek-V3.2 model description</a> identifies sparse attention as a component of its long-context efficiency.</p>
+<p>Sparse access limits how many positions participate in each main-attention step. Historical cache rows still provide the candidates for future steps. Compaction reduces the physical cache that remains available and keeps the main-attention and indexer layouts consistent.</p>
+<p>The distinction matters for memory quality. Once a row has been removed, it cannot directly participate in a later query’s attention. Recovering it requires retaining a source elsewhere.</p>
+</section>
+<section id="shared-mla-latents-constrain-value-merging" class="level3" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="shared-mla-latents-constrain-value-merging"><span class="header-section-number">2.2</span> Shared MLA latents constrain value merging</h3>
+<p>MLA uses a compact latent representation. Information used for key scoring and value reading is not stored as two completely independent tensors that can be rewritten arbitrarily.</p>
+<p>Overwriting a shared latent with a merged value can therefore change key scores as well. E1 preserves the original key-dependent representation and stores the value update in separate delta pages. The attention correction uses the same probabilities derived from the retained keys.</p>
+</section>
+<section id="v4-has-heterogeneous-native-rows" class="level3" data-number="2.3">
+<h3 data-number="2.3" class="anchored" data-anchor-id="v4-has-heterogeneous-native-rows"><span class="header-section-number">2.3</span> V4 has heterogeneous native rows</h3>
+<p>The local V4 implementation includes C4 layers with one long-term cache row per four raw tokens and C128 layers with one row per 128 raw tokens. The scheduler tracks lengths in raw-token units.</p>
+<p>A rewrite must expose a common scheduler-visible length while retaining different exact row counts for different layer types. The current plan uses <strong>256-token alignment</strong> and preserves boundary rows that do not lie completely inside the document. A target such as 60% document retention consequently differs slightly from the realized retention.</p>
+</section>
+</section>
+<section id="sec-reference" class="level2 page-columns page-full" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="sec-reference"><span class="header-section-number">3</span> Constructing Reference Queries</h2>
+<section id="collecting-q-through-an-additional-forward-pass" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="collecting-q-through-an-additional-forward-pass"><span class="header-section-number">3.1</span> Collecting Q through an additional forward pass</h3>
+<p>The importance of a cached position depends on the queries that will access it. A detail ignored during ordinary narration may become essential when a later question asks for a precise date or a local code behavior.</p>
+<p>A reference pass processes a suffix after the document and collects the resulting Q vectors at each layer. These vectors measure routing frequency and attention contribution over the original cache, producing scores for selection.</p>
+<p>The generic suffix contains a document-study instruction, a chat-template tail, and tokens sampled at evenly spaced positions across the document. The instruction asks the model to attend to central claims, entities, relationships, numbers, exceptions, and easily missed details.</p>
+<p>The document portion is assembled directly from existing token IDs. It does not require autoregressively generating a summary; it provides a controlled set of forward-pass probes.</p>
+</section>
+<section id="relating-the-q-budget-to-retained-rows" class="level3 page-columns page-full" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="relating-the-q-budget-to-retained-rows"><span class="header-section-number">3.2</span> Relating the Q budget to retained rows</h3>
+<p>Let <span class="math inline">B</span> be the document budget-block size and <span class="math inline">\rho</span> the target retention. A block retains approximately <span class="math inline">t=\operatorname{round}(\rho B)</span> positions, with reference budget</p>
+<p><span class="math display">
+n=\left\lceil\lambda t\right\rceil,\qquad\lambda=2.5.
+</span></p>
+<p>For A60, <span class="math inline">B=1024</span>, <span class="math inline">t=614</span>, and <span class="math inline">n=1535</span>. The default suffix contains a 93-token study instruction, a two-token template tail, and 1535 sampled document tokens: <strong>1630 tokens in total</strong>. The scorer selects 1535 reference Q positions evenly across that suffix<sup class="margin-note-ref" aria-label="See Note 1 in the right margin">1</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 1</span></p>
+<p>Suffix length and scoring-Q count are distinct. The default 1630-token suffix supplies 1535 scored Q positions. Fixed-length 512, 1024, and 2048 suffix experiments score every reference position. The 1024-token document block distributes retention quotas across the entire document.</p>
+</div></div></section>
+<section id="coverage-remains-approximate" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="coverage-remains-approximate"><span class="header-section-number">3.3</span> Coverage remains approximate</h3>
+<p>A generic reference approximates future access patterns. A low-scoring passage may still matter for an unfamiliar question, particularly when it contains a rare entity, code detail, or implicit condition.</p>
+<p>This motivates combining broad memory construction with selective recovery after a concrete question becomes available.</p>
+</section>
+</section>
+<section id="sec-method" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="sec-method"><span class="header-section-number">4</span> Cache Selection and Value Merging</h2>
+<section id="a-selects-representatives-within-each-block" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="a-selects-representatives-within-each-block"><span class="header-section-number">4.1</span> A selects representatives within each block</h3>
+<p>The V3.2 implementation combines root-mean-square main-attention importance with the square root of indexer selection frequency, normalizing each component before adding them. The V4 C4 path combines accumulated main-attention mass and routing counts after separate normalization. Its C128 path uses main-attention mass.</p>
+<p>For a V4 C4 row <span class="math inline">j</span>, let <span class="math inline">m_j</span> be its accumulated reference attention mass and <span class="math inline">r_j</span> its routing count. The proxy score used for base selection is</p>
+<p><span class="math display">
+s_j=\frac{m_j}{\sum_km_k+\epsilon}
+    +\frac{r_j}{\sum_kr_k+\epsilon}.
+</span></p>
+<p>Each document block corresponding to 1024 raw tokens receives a proportional retention quota. High-scoring rows are selected within that block, ensuring coverage across document positions rather than allowing a few regions to consume the entire budget.</p>
+<p>Let <span class="math inline">S_\ell</span> denote a layer’s selected set. A preserves its original rows and moves them into a compact physical layout in their original order. Different layers can select different contents while satisfying the required common length.</p>
+</section>
+<section id="e1-merges-values-while-retaining-key-scoring" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="e1-merges-values-while-retaining-key-scoring"><span class="header-section-number">4.2</span> E1 merges values while retaining key scoring</h3>
+<p>E1 uses the same selected positions. Each source position is assigned to the nearest retained representative by position within its block, and the representative receives an attention-mass-weighted value average.</p>
+<p>For cluster <span class="math inline">C_j</span>, original values <span class="math inline">v_i</span>, and reference masses <span class="math inline">m_i</span>,</p>
+<p><span class="math display">
+\bar v_j=\frac{\sum_{i\in C_j}m_i v_i}
+                    {\sum_{i\in C_j}m_i+\epsilon},\qquad
+\Delta v_j=\bar v_j-v_j.
+</span></p>
+<p>A cluster with negligible mass falls back to the original representative. The key-dependent cache remains unchanged, while separate pages store <span class="math inline">\Delta v_j</span>. With probabilities <span class="math inline">\alpha_j(q)</span> derived from retained keys, the correction is</p>
+<p><span class="math display">
+o_{\mathrm{E1}}(q)=o_{\mathrm{A}}(q)+\sum_{j\in S}\alpha_j(q)\Delta v_j.
+</span></p>
+<p>V3.2 performs this operation in latent value space; V4 uses its native cache-value representation and quantized write path. This implements the specified merged-value computation. Approximation to full-context attention still depends on selection, merging error, and the queries encountered later.</p>
+</section>
+<section id="retained-row-ratio-is-only-one-cost-measure" class="level3" data-number="4.3">
+<h3 data-number="4.3" class="anchored" data-anchor-id="retained-row-ratio-is-only-one-cost-measure"><span class="header-section-number">4.3</span> Retained-row ratio is only one cost measure</h3>
+<p>E1 requires delta pages and attention correction. A60 and E1-60 consequently share a base candidate-row budget, while their total cache bytes differ.</p>
+<p>For an agent, the relevant comparison includes task quality, remaining capacity for new tokens, total held blocks, and additional latency. These costs determine whether value merging is useful in practice.</p>
+</section>
+</section>
+<section id="sec-runtime" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="sec-runtime"><span class="header-section-number">5</span> Making the Cache Rewrite Usable</h2>
+<section id="update-both-cache-streams-and-the-scheduler" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="update-both-cache-streams-and-the-scheduler"><span class="header-section-number">5.1</span> Update both cache streams and the scheduler</h3>
+<p>Selected indices must become a state from which normal generation can continue. The implementation moves main and indexer rows consistently, rewrites scheduler and Model Runner block tables, and returns unneeded tail pages to the pool.</p>
+<p>Rows are copied forward in bounded chunks. Original-order selection ensures that destinations do not overwrite unread source rows. E1 reserves its delta pages separately from the preallocated pool and keeps them disjoint from every live source-request page during rewriting.</p>
+<p>Because vLLM preallocates its pool, returning blocks need not reduce the process’s GPU-memory reading. Request-held blocks, returned blocks, and remaining pool capacity measure the resulting headroom more directly.</p>
+</section>
+<section id="preserve-original-positional-coordinates" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="preserve-original-positional-coordinates"><span class="header-section-number">5.2</span> Preserve original positional coordinates</h3>
+<p>Compaction changes physical addresses while retained rows still originate from different historical positions. The implementation maintains the mapping required for logical causality and RoPE.</p>
+<p>A token originally at position 10,000 may move to physical position 6,000. Its original positional meaning and its new storage address must remain consistent with subsequent queries.</p>
+<p><strong>Freeing physical capacity and extending the model’s positional range are separate concerns.</strong> Original coordinates continue growing as more history arrives. The streaming experiment below explicitly prepares a larger position-lookup capacity; task quality at those positions still requires evaluation.</p>
+</section>
+<section id="rewind-temporary-reference-and-probe-state" class="level3" data-number="5.3">
+<h3 data-number="5.3" class="anchored" data-anchor-id="rewind-temporary-reference-and-probe-state"><span class="header-section-number">5.3</span> Rewind temporary reference and probe state</h3>
+<p>Reference and probe passes create temporary cache and sliding-window state. Those states are rewound before formal answering. The real query is then replayed on the final cache.</p>
+<p>“One long-prefix prefill” thus includes additional short forwards: the reference pass and two passes over the short query. It avoids recomputing the entire long document while retaining the costs necessary for scoring and probing.</p>
+</section>
+</section>
+<section id="sec-recovery" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="sec-recovery"><span class="header-section-number">6</span> Recovering Details After a Question Arrives</h2>
+<section id="freeze-generic-memory-before-probing" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="freeze-generic-memory-before-probing"><span class="header-section-number">6.1</span> Freeze generic memory before probing</h3>
+<p>The recovery pipeline first computes query-independent scores <span class="math inline">s_\ell</span> and selections <span class="math inline">S_\ell</span> over <span class="math inline">C_{\mathrm{full}}</span>, then freezes both. A real-query probe reads only the logical view corresponding to <span class="math inline">S_\ell</span>. The single-compaction experiment temporarily keeps the full cache until one final physical rewrite.</p>
+<p>Probe signals therefore come from the visible compressed memory. Excluded rows are not read to score themselves. Once recovery regions have been selected, missing content is restored from the retained full-cache source.</p>
+<div id="fig-compact-pipeline" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-compact-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../../assets/figures/dsa-auto-compact/pipeline-en.svg" class="img-fluid figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-compact-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Generic selection, restricted query probing, and final materialization. The full cache remains available for restoration, while the probe can access only frozen S.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="read-window-signals-from-four-mla-heads" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="read-window-signals-from-four-mla-heads"><span class="header-section-number">6.2</span> Read window signals from four MLA heads</h3>
+<p>The configuration uses global heads <code>L20-H5</code>, <code>L20-H30</code>, <code>L20-H31</code>, and <code>L26-H58</code>. Attention signals are aggregated into windows of <strong>128 raw tokens</strong>.</p>
+<p>For head <span class="math inline">h</span>, query position <span class="math inline">q</span>, and window <span class="math inline">w</span>, sum native probabilities over visible rows in that window:</p>
+<p><span class="math display">
+a_{h,q,w}=\sum_{j\in S_\ell\cap w}\alpha_{h,q,j}.
+</span></p>
+<p>Normalization includes the actual routed C4 rows, causal sliding-window attention, and the attention sink. Reconstructed outputs are checked against the native kernel to avoid treating locally normalized proxy scores as the probabilities used by the model.</p>
+<p>For each head and window, average the five largest values over the complete query, using all positions if fewer than five exist. Z-normalize each head across available windows, then average equally across heads:</p>
+<p><span class="math display">
+u_{h,w}=\operatorname{MeanTop5}_{q}(a_{h,q,w}),\qquad
+g_w=\frac{1}{4}\sum_h\operatorname{Z}_{w}(u_{h,w}).
+</span></p>
+<p>The highest-scoring 24 windows define recovery region <span class="math inline">R</span>, covering at most <span class="math inline">24\times128=3072</span> raw tokens. A window without any surviving representative cannot be located directly using these retained-row signals.</p>
+</section>
+<section id="additive-and-fixed-budget-restoration" class="level3" data-number="6.3">
+<h3 data-number="6.3" class="anchored" data-anchor-id="additive-and-fixed-budget-restoration"><span class="header-section-number">6.3</span> Additive and fixed-budget restoration</h3>
+<p>Convert <span class="math inline">R</span> into the native row set <span class="math inline">R_\ell</span> for each layer. <strong>Additive recovery</strong> keeps the original selection and inserts missing rows:</p>
+<p><span class="math display">
+S'_\ell=S_\ell\cup R_\ell.
+</span></p>
+<p>A common scheduler length requires alignment across heterogeneous layers. Remaining slots are filled with high-scoring original rows, so the physical addition depends on actual missing rows and is not simply 3072 tokens.</p>
+<p><strong>Fixed-budget recovery</strong> inserts the missing rows and removes an equal number of low-scoring rows from <span class="math inline">S_\ell\setminus R_\ell</span>, using the frozen original scores:</p>
+<p><span class="math display">
+S'_\ell=(S_\ell\cup R_\ell)
+\setminus\operatorname{BottomK}_{s_\ell}(S_\ell\setminus R_\ell).
+</span></p>
+<p>This preserves base row counts, but the displaced rows may matter for later tasks. All recovery results reported below use the <strong>additive</strong> policy. Fixed-budget recovery remains implemented; numerical results for it are not reported here.</p>
+</section>
+<section id="recovery-needs-a-surviving-source" class="level3" data-number="6.4">
+<h3 data-number="6.4" class="anchored" data-anchor-id="recovery-needs-a-surviving-source"><span class="header-section-number">6.4</span> Recovery needs a surviving source</h3>
+<p>The single-compaction pipeline retains <span class="math inline">C_{\mathrm{full}}</span> until materialization. Multi-round streaming instead archives actual native cache rows to CPU. The query locates a region; the retained source supplies content that has left the GPU.</p>
+<p>A discarded row cannot reappear through a set-union operation without such a source. CPU cache, original tool records, and retrieval-based memory are possible directions for persistent agents, with their storage and access costs included in the system budget.</p>
+</section>
+</section>
+<section id="sec-results" class="level2 page-columns page-full" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="sec-results"><span class="header-section-number">7</span> Single-Compaction Results</h2>
+<section id="dataset-and-evaluation-conditions" class="level3 page-columns page-full" data-number="7.1">
+<h3 data-number="7.1" class="anchored" data-anchor-id="dataset-and-evaluation-conditions"><span class="header-section-number">7.1</span> Dataset and evaluation conditions</h3>
+<p><a href="https://github.com/THUDM/LongBench">LongBench-v2</a> has 503 multiple-choice questions covering six long-context task families. This section uses the <strong>473 questions</strong> that fit the current V4 encoding and generation reservation. The other 30 are evaluated separately below.</p>
+<p>Natural documents are neither repeated nor truncated in this cohort. Document lengths range from approximately 10,137 to 1,045,112 tokens, averaging 137,731. Inference uses DeepSeek-V4-Flash-0731, TP4, thinking disabled, greedy decoding, and a maximum of 192 generated tokens.</p>
+<p>Correctness requires an explicitly parsed multiple-choice answer. Settings share question IDs, document lengths, and expected answers; counts below are recomputed from per-question records. Different templates, reasoning modes, or generation budgets make direct comparison with public leaderboard numbers inappropriate.</p>
+<p>The head-discovery set contains 156 questions, including <strong>68 that overlap with this 473-question cohort</strong>. The recovery configuration is therefore an exploratory development result rather than a fully independent held-out evaluation. Per-query recovery does not use gold answers, but head selection has not yet been validated on an entirely separate cohort<sup class="margin-note-ref" aria-label="See Note 2 in the right margin">2</sup>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="margin-label">Note 2</span></p>
+<p>Answer-blind per-query selection and independent hyperparameter selection are distinct conditions. The first holds here. The discovery set also includes 88 BrowseComp-Plus questions; its remaining 68 LongBench-v2 questions overlap with this evaluation.</p>
+</div></div></section>
+<section id="generic-memory-and-query-guided-recovery" class="level3" data-number="7.2">
+<h3 data-number="7.2" class="anchored" data-anchor-id="generic-memory-and-query-guided-recovery"><span class="header-section-number">7.2</span> Generic memory and query-guided recovery</h3>
+<div class="table-responsive">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Setting</th>
+<th style="text-align: right;">Correct</th>
+<th style="text-align: right;">Accuracy</th>
+<th style="text-align: right;">Mean document retention</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Full cache</td>
+<td style="text-align: right;">246 / 473</td>
+<td style="text-align: right;">52.01%</td>
+<td style="text-align: right;">100%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Generic A60</td>
+<td style="text-align: right;">244 / 473</td>
+<td style="text-align: right;">51.59%</td>
+<td style="text-align: right;">60.27%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Generic E1-60</td>
+<td style="text-align: right;">235 / 473</td>
+<td style="text-align: right;">49.68%</td>
+<td style="text-align: right;">60.27% + delta</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Generic A60 + 24-window recovery</td>
+<td style="text-align: right;"><strong>258 / 473</strong></td>
+<td style="text-align: right;"><strong>54.55%</strong></td>
+<td style="text-align: right;"><strong>63.42%</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Retention is the arithmetic mean of per-question document-retention ratios and excludes E1’s extra delta bytes. Default recovery uses the 1630-token reference and scores 14 more questions correctly than generic A60, a gain of <strong>2.96 percentage points</strong>.</p>
+<p>Paired outcomes show <strong>42 wrong-to-right changes</strong> and <strong>28 right-to-wrong changes</strong> relative to generic A60. Recovery improves the aggregate while also disturbing some previously correct answers. This motivates studying when to trigger it and how to detect unreliable recovery signals.</p>
+<p>Recovery also scores 12 more questions correctly than full cache. Selection, extra probing, and development-set tuning all contribute to this comparison, so it does not establish a general reasoning benefit from compaction.</p>
+<div id="fig-compact-quality" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-compact-quality-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../../assets/figures/dsa-auto-compact/quality.svg" class="img-fluid figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-compact-quality-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Query-independent compaction and recovery on 473 LongBench-v2 questions, alongside task-aware A/E1 retention sweeps. E1’s retention axis describes base rows and excludes its delta pages.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="task-aware-ae1-comparisons" class="level3" data-number="7.3">
+<h3 data-number="7.3" class="anchored" data-anchor-id="task-aware-ae1-comparisons"><span class="header-section-number">7.3</span> Task-aware A/E1 comparisons</h3>
+<p>When the real question is included in the reference, results are:</p>
+<div class="table-responsive">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Target document retention</th>
+<th style="text-align: right;">A correct</th>
+<th style="text-align: right;">A accuracy</th>
+<th style="text-align: right;">E1 correct</th>
+<th style="text-align: right;">E1 accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">80%</td>
+<td style="text-align: right;">243</td>
+<td style="text-align: right;">51.37%</td>
+<td style="text-align: right;">244</td>
+<td style="text-align: right;">51.59%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">60%</td>
+<td style="text-align: right;">246</td>
+<td style="text-align: right;">52.01%</td>
+<td style="text-align: right;">255</td>
+<td style="text-align: right;">53.91%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">40%</td>
+<td style="text-align: right;">248</td>
+<td style="text-align: right;">52.43%</td>
+<td style="text-align: right;">241</td>
+<td style="text-align: right;">50.95%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">20%</td>
+<td style="text-align: right;">239</td>
+<td style="text-align: right;">50.53%</td>
+<td style="text-align: right;">239</td>
+<td style="text-align: right;">50.53%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>E1 outperforms A at 60% but underperforms it at 40%. Generic E1-60 also scores below generic A60. Merging depends on how the reference, selected representatives, and later queries align; it does not guarantee improved task scores.</p>
+</section>
+<section id="changes-differ-by-task-family" class="level3" data-number="7.4">
+<h3 data-number="7.4" class="anchored" data-anchor-id="changes-differ-by-task-family"><span class="header-section-number">7.4</span> Changes differ by task family</h3>
+<div class="table-responsive">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Task family</th>
+<th style="text-align: right;">Questions</th>
+<th style="text-align: right;">Full cache correct</th>
+<th style="text-align: right;">Generic A60 correct</th>
+<th style="text-align: right;">A60 + recovery correct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Single-document QA</td>
+<td style="text-align: right;">175</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">94</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Multi-document QA</td>
+<td style="text-align: right;">124</td>
+<td style="text-align: right;">59</td>
+<td style="text-align: right;">61</td>
+<td style="text-align: right;">64</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Long in-context learning</td>
+<td style="text-align: right;">74</td>
+<td style="text-align: right;">51</td>
+<td style="text-align: right;">44</td>
+<td style="text-align: right;">47</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Long-dialogue history</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">19</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Code repository understanding</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Long structured data</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">16</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Most observed recovery gains come from document QA. Code and structured-data tasks do not improve consistently. A possible explanation is that local windows more readily restore concentrated evidence than distributed rules or cross-file relationships. Failure-case analysis and additional recovery methods are needed to test that interpretation.</p>
+</section>
+</section>
+<section id="sec-budget" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="sec-budget"><span class="header-section-number">8</span> Reference Length and Recovery Budget</h2>
+<section id="a60-suffix-and-window-sweeps" class="level3" data-number="8.1">
+<h3 data-number="8.1" class="anchored" data-anchor-id="a60-suffix-and-window-sweeps"><span class="header-section-number">8.1</span> A60 suffix and window sweeps</h3>
+<p>Holding other main settings fixed gives:</p>
+<div class="table-responsive">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Total reference length</th>
+<th style="text-align: left;">Recovery windows</th>
+<th style="text-align: right;">Correct</th>
+<th style="text-align: right;">Accuracy</th>
+<th style="text-align: right;">Mean final retention</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1630</td>
+<td style="text-align: left;">24 × 128</td>
+<td style="text-align: right;">258</td>
+<td style="text-align: right;">54.55%</td>
+<td style="text-align: right;">63.42%</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1024</td>
+<td style="text-align: left;">24 × 128</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">54.12%</td>
+<td style="text-align: right;">63.50%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1024</td>
+<td style="text-align: left;">16 × 128</td>
+<td style="text-align: right;">249</td>
+<td style="text-align: right;">52.64%</td>
+<td style="text-align: right;">62.60%</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">512</td>
+<td style="text-align: left;">24 × 128</td>
+<td style="text-align: right;">249</td>
+<td style="text-align: right;">52.64%</td>
+<td style="text-align: right;">63.57%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Shortening the reference from 1630 to 1024 reduces the correct count by two in these runs. At length 1024, reducing recovery from 24 to 16 windows reduces it by seven. Additional windows also increase retained capacity, so this comparison includes both memory size and recovery quality.</p>
+<p>Each suffix independently produces its own <span class="math inline">S</span> and <span class="math inline">s</span>. A reference change affects initial selection and the memory visible to the later probe; its effect cannot be isolated to the number of Q vectors alone.</p>
+</section>
+<section id="longer-references-are-not-uniformly-better-at-a50" class="level3" data-number="8.2">
+<h3 data-number="8.2" class="anchored" data-anchor-id="longer-references-are-not-uniformly-better-at-a50"><span class="header-section-number">8.2</span> Longer references are not uniformly better at A50</h3>
+<p>With 50% base retention and 24 recovery windows:</p>
+<div class="table-responsive">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Total reference length</th>
+<th style="text-align: right;">Correct</th>
+<th style="text-align: right;">Accuracy</th>
+<th style="text-align: right;">Mean final retention</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">252 / 473</td>
+<td style="text-align: right;">53.28%</td>
+<td style="text-align: right;">54.14%</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">251 / 473</td>
+<td style="text-align: right;">53.07%</td>
+<td style="text-align: right;">54.06%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">239 / 473</td>
+<td style="text-align: right;">50.53%</td>
+<td style="text-align: right;">54.00%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>All reference positions are scored, and lengths include the 95-token instruction and template overhead. These runs do not show a monotonic quality benefit from longer references. More Q vectors alter selection scores and may amplify access patterns that are less useful for the downstream task. Distinguishing those effects requires examining selections and errors more closely.</p>
+<div id="fig-compact-budget" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-compact-budget-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="../../assets/figures/dsa-auto-compact/budget.svg" class="img-fluid figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-compact-budget-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Accuracy and final document retention under different reference and recovery budgets. Each point represents one complete run on the same 473 questions; repeated-run uncertainty is not measured.
+</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="sec-cost" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="sec-cost"><span class="header-section-number">9</span> Compaction Costs</h2>
+<section id="stage-times-for-single-compaction" class="level3" data-number="9.1">
+<h3 data-number="9.1" class="anchored" data-anchor-id="stage-times-for-single-compaction"><span class="header-section-number">9.1</span> Stage times for single compaction</h3>
+<p>Default A60 plus 24-window recovery has these mean times across 473 questions:</p>
+<div class="table-responsive">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Stage</th>
+<th style="text-align: right;">Mean time</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Long-prefix prefill</td>
+<td style="text-align: right;">7.90 s</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Reference forward + base scoring</td>
+<td style="text-align: right;">0.88 s</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Restricted query probe</td>
+<td style="text-align: right;">3.20 s</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Recovery-window selection</td>
+<td style="text-align: right;">0.02 s</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Final physical rewrite</td>
+<td style="text-align: right;">1.77 s</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Final short suffix to first token</td>
+<td style="text-align: right;">0.25 s</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Subsequent decoding</td>
+<td style="text-align: right;">11.78 s</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Full pipeline wall time</strong></td>
+<td style="text-align: right;"><strong>26.94 s</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The pipeline additionally includes rewinds, synchronization, integrity audits, and some artifact handling; stage rows are not an exhaustive additive decomposition. Base scoring’s approximately 0.62 seconds of CUDA time is already included in the 0.88-second reference-and-scoring row.</p>
+<p>The query probe and physical rewrite are material costs. Decode performance also depends on output length, cache type, and kernel paths. These records do not establish an overall request-speed improvement.</p>
+</section>
+<section id="agent-costs-span-subsequent-steps" class="level3" data-number="9.2">
+<h3 data-number="9.2" class="anchored" data-anchor-id="agent-costs-span-subsequent-steps"><span class="header-section-number">9.2</span> Agent costs span subsequent steps</h3>
+<p>One compacted memory may support many later steps. Its initial cost can be amortized if it avoids future computation or repeated history processing. Conversely, frequent compaction and recovery can increase total latency even while keeping memory within capacity.</p>
+<p>An agent cost model should include trigger frequency, subsequent accesses, archival and recovery work, and repeated actions caused by lost information. The current QA measurements provide a basis for measuring individual operations.</p>
+</section>
+</section>
+<section id="sec-streaming" class="level2" data-number="10">
+<h2 data-number="10" class="anchored" data-anchor-id="sec-streaming"><span class="header-section-number">10</span> Multi-Round Streaming Beyond a Single Window</h2>
+<section id="read-compact-and-append" class="level3" data-number="10.1">
+<h3 data-number="10.1" class="anchored" data-anchor-id="read-compact-and-append"><span class="header-section-number">10.1</span> Read, compact, and append</h3>
+<p>The separate over-capacity cohort contains 30 questions with full documents of approximately <strong>1.10 million to 4.64 million tokens</strong>, averaging <strong>2.00 million</strong>.</p>
+<p>Streaming reserves capacity for references, the question, generation, and safety margin. When the active physical prefix reaches its threshold, it applies query-independent A60, returns pages, and continues reading unseen source tokens. An under-capacity final tail is kept without an additional terminal A pass.</p>
+<p>Recorded questions trigger <strong>one to nine compactions</strong>. Every source document token receives one document forward pass. Later tokens attend to the memory produced by earlier rounds, so the resulting cache also differs from a hypothetical full-document forward pass without intermediate compaction.</p>
+</section>
+<section id="cpu-archives-support-final-restoration" class="level3" data-number="10.2">
+<h3 data-number="10.2" class="anchored" data-anchor-id="cpu-archives-support-final-restoration"><span class="header-section-number">10.2</span> CPU archives support final restoration</h3>
+<p>Actual native rows are archived on CPU with their original coordinates. The real question arrives only after document reading finishes and probes the current physical GPU memory. The selected 24 windows are then restored from the archive.</p>
+<p>This bounds active GPU-cache capacity while allowing the CPU archive to grow with history. It represents one form of hierarchical memory with a small active state and a larger recoverable past.</p>
+</section>
+<section id="results-on-30-over-capacity-questions" class="level3" data-number="10.3">
+<h3 data-number="10.3" class="anchored" data-anchor-id="results-on-30-over-capacity-questions"><span class="header-section-number">10.3</span> Results on 30 over-capacity questions</h3>
+<p>The control keeps equally sized head and tail token spans, removes the middle, and preserves the question exactly.</p>
+<div class="table-responsive">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Setting</th>
+<th style="text-align: left;">Document access</th>
+<th style="text-align: right;">Correct</th>
+<th style="text-align: right;">Accuracy</th>
+<th style="text-align: right;">Mean pipeline time</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Head/tail truncation</td>
+<td style="text-align: left;">Head and tail within one window</td>
+<td style="text-align: right;">17 / 30</td>
+<td style="text-align: right;">56.67%</td>
+<td style="text-align: right;">124.52 s</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Multi-round A60 + final recovery</td>
+<td style="text-align: left;">Complete streaming document</td>
+<td style="text-align: right;">16 / 30</td>
+<td style="text-align: right;">53.33%</td>
+<td style="text-align: right;">352.83 s</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The implementation consumes full over-capacity inputs under bounded active-cache capacity. On these 30 questions, it does not outperform head/tail truncation and takes substantially longer. Streaming reads more content, so the timing difference includes additional reading as well as memory-maintenance work.</p>
+<p>Mean CPU archival copying takes 9.92 seconds, intermediate physical rewriting 59.44 seconds, and final cache restoration 3.09 seconds. Position-lookup capacity is explicitly extended as well. Multi-round execution, memory quality, and sustained throughput therefore remain separate optimization targets.</p>
+</section>
+</section>
+<section id="sec-agent" class="level2" data-number="11">
+<h2 data-number="11" class="anchored" data-anchor-id="sec-agent"><span class="header-section-number">11</span> Toward Sustained Agent Tasks</h2>
+<section id="trigger-policies-and-protected-capacity" class="level3" data-number="11.1">
+<h3 data-number="11.1" class="anchored" data-anchor-id="trigger-policies-and-protected-capacity"><span class="header-section-number">11.1</span> Trigger policies and protected capacity</h3>
+<p>A candidate integration triggers compaction near an active-cache threshold while reserving space for tool results, probes, and generation. User constraints, current plans, recent actions, and important tool conclusions may benefit from explicit protection. Existing experiments protect non-document instructions and suffixes; they do not implement those finer agent-state policies.</p>
+<p>An available question can trigger recovery when the budget permits. Before such a question exists, the system maintains generic memory. Triggering and recovery size should account for available capacity and task requirements rather than always applying an identical restoration budget.</p>
+</section>
+<section id="forgetting-can-accumulate-across-rounds" class="level3" data-number="11.2">
+<h3 data-number="11.2" class="anchored" data-anchor-id="forgetting-can-accumulate-across-rounds"><span class="header-section-number">11.2</span> Forgetting can accumulate across rounds</h3>
+<p>Information lost in one round can remain absent from all subsequent references. A CPU archive preserves a source, but retained-row probe signals may still fail to identify the needed region.</p>
+<p>Further work should study memory-age budgets, explicit protection of critical state, and retrieval from original text or tool history. Single-compaction QA accuracy alone cannot establish behavior after many compactions.</p>
+</section>
+<section id="what-to-evaluate-next" class="level3" data-number="11.3">
+<h3 data-number="11.3" class="anchored" data-anchor-id="what-to-evaluate-next"><span class="header-section-number">11.3</span> What to evaluate next</h3>
+<p>The next priority is evaluation on real multi-step tasks: whether constraints persist, completed operations are repeated, cross-file debugging loses dependencies, and task completion changes after successive compactions. Comparisons should include textual summarization, truncation, pure A, E1, and cache memory with external recovery under comparable actual capacity and computation budgets.</p>
+<p>Heads and budgets should be selected on an independent discovery cohort and frozen before evaluation on new tasks. Current measurements justify further exploration of the approach. The longer-term objective is memory that lets agents continue reliable work under capacity constraints.</p>
+</section>
+</section>
+<section id="sec-references" class="level2" data-number="12">
+<h2 data-number="12" class="anchored" data-anchor-id="sec-references"><span class="header-section-number">12</span> Data and References</h2>
+<p>Counts, domain results, retention ratios, and stage times are recomputed from per-question records. <a href="../../assets/figures/dsa-auto-compact/evidence.json">Download the aggregate figure data and source checksums</a>. Retention means are computed per question; figures have no repeated-run confidence intervals.</p>
+<ul>
+<li><a href="https://arxiv.org/abs/2602.16284">Fast KV Compaction via Attention Matching</a>: the cache-compaction framework informing this adaptation.</li>
+<li><a href="https://huggingface.co/deepseek-ai/DeepSeek-V3.2">DeepSeek-V3.2 model description</a>: DSA background.</li>
+<li><a href="https://github.com/THUDM/LongBench">Official LongBench-v2 repository</a>: task definitions and dataset description.</li>
+</ul>
+
+
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script src="../../assets/language-switch.js?v=20261012-blog-paths"></script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/tanyingjie01\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 Yingjie Tan</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p><a href="mailto:tanyj23@mails.tsinghua.edu.cn">Contact me</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

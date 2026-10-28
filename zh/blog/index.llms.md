@@ -2,6 +2,14 @@
 
 # 博客
 
+### [DeepSeek 稀疏注意力架构下的上下文压缩](../../zh/blog/dsa-auto-compact/index.llms.md)
+
+面向 LLM Agent 工作流中的上下文自动压缩，提出适配 DSA 架构的 KV Cache 原生压缩方法。通过语义监督筛选高价值缓存，并在具体 Query 到达后按需恢复局部细节；结合 DeepSeek-V4-Flash-0731 与 GLM-5.3-Flash 的实验，考察约 60% 保留率下的任务表现与额外开销。
+
+2026年10月24日
+
+阅读时间：约45分钟
+
 ### [从模型的随机数指纹出发：\
 一项关于 LLM 推理回路的研究](../../zh/blog/random-number-fingerprint-circuit/index.llms.md)
 

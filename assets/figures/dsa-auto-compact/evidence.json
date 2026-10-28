@@ -1,0 +1,1331 @@
+{
+  "schema": "dsa-auto-compact-blog-evidence-v1",
+  "metric": "evaluation.final_answer_match",
+  "paired_473_ids_and_document_lengths_verified": true,
+  "cells": {
+    "baseline": {
+      "n": 473,
+      "correct": 246,
+      "accuracy": 0.5200845665961945,
+      "mean_document_retention": null,
+      "mean_extra_tokens": null,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 69.6828752642706,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "compression_seconds": 0.0,
+        "decode_seconds": 11.53306054071096,
+        "prefill_seconds": 8.173065077434698,
+        "prefix_prefill_seconds": 7.928169473355939,
+        "reference_pass_and_compression_wall_seconds": 0.0,
+        "reference_pass_seconds": 0.0,
+        "suffix_to_first_token_seconds": 0.24489560407875835
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 17,
+          "accuracy": 0.5483870967741935
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 51,
+          "accuracy": 0.6891891891891891
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 17,
+          "accuracy": 0.5666666666666667
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 17,
+          "accuracy": 0.4358974358974359
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 59,
+          "accuracy": 0.47580645161290325
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 85,
+          "accuracy": 0.4857142857142857
+        }
+      }
+    },
+    "task_a_080": {
+      "n": 473,
+      "correct": 243,
+      "accuracy": 0.5137420718816068,
+      "mean_document_retention": 0.802766419318752,
+      "mean_extra_tokens": null,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 69.13319238900634,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "compression_seconds": 2.708728954657909,
+        "decode_seconds": 12.00887518756123,
+        "prefill_seconds": 8.162071227546916,
+        "prefix_prefill_seconds": 7.913527641189432,
+        "reference_pass_and_compression_wall_seconds": 2.941115749598211,
+        "reference_pass_seconds": 0.2323867949403022,
+        "suffix_to_first_token_seconds": 0.2485435863574829
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 20,
+          "accuracy": 0.6451612903225806
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 47,
+          "accuracy": 0.6351351351351351
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 16,
+          "accuracy": 0.5333333333333333
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 18,
+          "accuracy": 0.46153846153846156
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 51,
+          "accuracy": 0.4112903225806452
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 91,
+          "accuracy": 0.52
+        }
+      }
+    },
+    "task_a_060": {
+      "n": 473,
+      "correct": 246,
+      "accuracy": 0.5200845665961945,
+      "mean_document_retention": 0.6027268022595712,
+      "mean_extra_tokens": null,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 64.6723044397463,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "compression_seconds": 2.050901864198671,
+        "decode_seconds": 11.086323490425409,
+        "prefill_seconds": 8.145270827448835,
+        "prefix_prefill_seconds": 7.903011385256909,
+        "reference_pass_and_compression_wall_seconds": 2.2690693341140453,
+        "reference_pass_seconds": 0.21816746991537422,
+        "suffix_to_first_token_seconds": 0.2422594421919254
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 17,
+          "accuracy": 0.5483870967741935
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 51,
+          "accuracy": 0.6891891891891891
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 18,
+          "accuracy": 0.6
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 14,
+          "accuracy": 0.358974358974359
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 58,
+          "accuracy": 0.46774193548387094
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 88,
+          "accuracy": 0.5028571428571429
+        }
+      }
+    },
+    "task_a_040": {
+      "n": 473,
+      "correct": 248,
+      "accuracy": 0.5243128964059197,
+      "mean_document_retention": 0.4028136230539069,
+      "mean_extra_tokens": null,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 61.805496828752645,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "compression_seconds": 1.470871670390175,
+        "decode_seconds": 10.883555542342917,
+        "prefill_seconds": 8.161077836859207,
+        "prefix_prefill_seconds": 7.910544571405706,
+        "reference_pass_and_compression_wall_seconds": 1.6879765934667237,
+        "reference_pass_seconds": 0.21710492307654863,
+        "suffix_to_first_token_seconds": 0.2505332654535014
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 19,
+          "accuracy": 0.6129032258064516
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 45,
+          "accuracy": 0.6081081081081081
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 15,
+          "accuracy": 0.5
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 19,
+          "accuracy": 0.48717948717948717
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 62,
+          "accuracy": 0.5
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 88,
+          "accuracy": 0.5028571428571429
+        }
+      }
+    },
+    "task_a_020": {
+      "n": 473,
+      "correct": 239,
+      "accuracy": 0.5052854122621564,
+      "mean_document_retention": 0.20275591778661986,
+      "mean_extra_tokens": null,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 60.141649048625794,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "compression_seconds": 0.8504132295944561,
+        "decode_seconds": 11.707326720608497,
+        "prefill_seconds": 8.198817622404837,
+        "prefix_prefill_seconds": 7.925699686926905,
+        "reference_pass_and_compression_wall_seconds": 1.0755369235735868,
+        "reference_pass_seconds": 0.22512369397913065,
+        "suffix_to_first_token_seconds": 0.27311793547793123
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 17,
+          "accuracy": 0.5483870967741935
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 41,
+          "accuracy": 0.5540540540540541
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 16,
+          "accuracy": 0.5333333333333333
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 17,
+          "accuracy": 0.4358974358974359
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 57,
+          "accuracy": 0.4596774193548387
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 91,
+          "accuracy": 0.52
+        }
+      }
+    },
+    "generic_a_060": {
+      "n": 473,
+      "correct": 244,
+      "accuracy": 0.5158562367864693,
+      "mean_document_retention": 0.6027268022595712,
+      "mean_extra_tokens": null,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 64.6321353065539,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "compression_seconds": 1.9896417030498625,
+        "decode_seconds": 11.149527689544424,
+        "prefill_seconds": 8.206408772641206,
+        "prefix_prefill_seconds": 7.959265381271063,
+        "reference_pass_and_compression_wall_seconds": 2.2082128369586096,
+        "reference_pass_seconds": 0.21857113390874727,
+        "suffix_to_first_token_seconds": 0.24714339137014324
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 19,
+          "accuracy": 0.6129032258064516
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 44,
+          "accuracy": 0.5945945945945946
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 18,
+          "accuracy": 0.6
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 18,
+          "accuracy": 0.46153846153846156
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 61,
+          "accuracy": 0.49193548387096775
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 84,
+          "accuracy": 0.48
+        }
+      }
+    },
+    "task_e1_080": {
+      "n": 473,
+      "correct": 244,
+      "accuracy": 0.5158562367864693,
+      "mean_document_retention": 0.802766419318752,
+      "mean_extra_tokens": null,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 64.43551797040169,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "compression_seconds": 10.514885489366081,
+        "decode_seconds": 24.072188220351116,
+        "prefill_seconds": 23.76270679376988,
+        "prefix_prefill_seconds": 8.091737513511145,
+        "reference_pass_and_compression_wall_seconds": 10.97946644917792,
+        "reference_pass_seconds": 0.4645809598118381,
+        "suffix_to_first_token_seconds": 15.670969280258735
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 18,
+          "accuracy": 0.5806451612903226
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 47,
+          "accuracy": 0.6351351351351351
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 16,
+          "accuracy": 0.5333333333333333
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 16,
+          "accuracy": 0.41025641025641024
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 56,
+          "accuracy": 0.45161290322580644
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 91,
+          "accuracy": 0.52
+        }
+      }
+    },
+    "task_e1_060": {
+      "n": 473,
+      "correct": 255,
+      "accuracy": 0.5391120507399577,
+      "mean_document_retention": 0.6027268022595712,
+      "mean_extra_tokens": null,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 62.71670190274841,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "compression_seconds": 8.762789053111009,
+        "decode_seconds": 15.043961176951957,
+        "prefill_seconds": 18.3287791377977,
+        "prefix_prefill_seconds": 7.901529540935921,
+        "reference_pass_and_compression_wall_seconds": 8.9908277433657,
+        "reference_pass_seconds": 0.22803869025469078,
+        "suffix_to_first_token_seconds": 10.42724959686178
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 20,
+          "accuracy": 0.6451612903225806
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 49,
+          "accuracy": 0.6621621621621622
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 17,
+          "accuracy": 0.5666666666666667
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 16,
+          "accuracy": 0.41025641025641024
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 61,
+          "accuracy": 0.49193548387096775
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 92,
+          "accuracy": 0.5257142857142857
+        }
+      }
+    },
+    "task_e1_040": {
+      "n": 473,
+      "correct": 241,
+      "accuracy": 0.5095137420718816,
+      "mean_document_retention": 0.4028136230539069,
+      "mean_extra_tokens": null,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 63.73784355179704,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "compression_seconds": 9.221714486769402,
+        "decode_seconds": 18.127655558307787,
+        "prefill_seconds": 20.458401299241228,
+        "prefix_prefill_seconds": 8.015965929219448,
+        "reference_pass_and_compression_wall_seconds": 9.574714122068364,
+        "reference_pass_seconds": 0.35299963529896283,
+        "suffix_to_first_token_seconds": 12.442435370021782
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 19,
+          "accuracy": 0.6129032258064516
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 42,
+          "accuracy": 0.5675675675675675
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 17,
+          "accuracy": 0.5666666666666667
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 17,
+          "accuracy": 0.4358974358974359
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 58,
+          "accuracy": 0.46774193548387094
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 88,
+          "accuracy": 0.5028571428571429
+        }
+      }
+    },
+    "task_e1_020": {
+      "n": 473,
+      "correct": 239,
+      "accuracy": 0.5052854122621564,
+      "mean_document_retention": 0.20275591778661986,
+      "mean_extra_tokens": null,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 60.11416490486258,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "compression_seconds": 7.578031577434084,
+        "decode_seconds": 18.554310477537598,
+        "prefill_seconds": 20.274990305351782,
+        "prefix_prefill_seconds": 7.9797842069105664,
+        "reference_pass_and_compression_wall_seconds": 7.838674226645813,
+        "reference_pass_seconds": 0.2606426492117298,
+        "suffix_to_first_token_seconds": 12.295206098441216
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 17,
+          "accuracy": 0.5483870967741935
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 44,
+          "accuracy": 0.5945945945945946
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 17,
+          "accuracy": 0.5666666666666667
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 15,
+          "accuracy": 0.38461538461538464
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 60,
+          "accuracy": 0.4838709677419355
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 86,
+          "accuracy": 0.49142857142857144
+        }
+      }
+    },
+    "generic_e1_060": {
+      "n": 473,
+      "correct": 235,
+      "accuracy": 0.49682875264270615,
+      "mean_document_retention": 0.6027268022595712,
+      "mean_extra_tokens": null,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 65.89429175475686,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "compression_seconds": 8.376870784466286,
+        "decode_seconds": 15.685673034310845,
+        "prefill_seconds": 18.130917549432585,
+        "prefix_prefill_seconds": 7.923742317793454,
+        "reference_pass_and_compression_wall_seconds": 8.603151628972045,
+        "reference_pass_seconds": 0.22628084450575817,
+        "suffix_to_first_token_seconds": 10.20717523163913
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 18,
+          "accuracy": 0.5806451612903226
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 42,
+          "accuracy": 0.5675675675675675
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 17,
+          "accuracy": 0.5666666666666667
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 18,
+          "accuracy": 0.46153846153846156
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 60,
+          "accuracy": 0.4838709677419355
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 80,
+          "accuracy": 0.45714285714285713
+        }
+      }
+    },
+    "recovery_060_ref1630_top24": {
+      "n": 473,
+      "correct": 258,
+      "accuracy": 0.5454545454545454,
+      "mean_document_retention": 0.6342264124859299,
+      "mean_extra_tokens": 1552.7780126849893,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 68.05708245243129,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "base_a60_scoring_seconds": 0.6202303445543346,
+        "compression_seconds": 2.322824280724465,
+        "decode_seconds": 11.779635325152954,
+        "logical_query_probe_prefill_seconds": 3.202782916405236,
+        "physical_cache_compression_cuda_seconds": 1.7025939361701303,
+        "physical_cache_compression_wall_seconds": 1.7681309319638803,
+        "pipeline_wall_seconds": 26.940007241037193,
+        "prefill_seconds": 8.149954284283375,
+        "prefix_prefill_seconds": 7.904358107746278,
+        "probe_selection_seconds": 0.01985851963529123,
+        "reference_pass_and_compression_wall_seconds": 2.649882253747725,
+        "reference_pass_and_scoring_wall_seconds": 0.8817513217838445,
+        "reference_pass_seconds": 0.26152097722951,
+        "selection_integrity_audit_seconds": 0.21917319600224242,
+        "suffix_to_first_token_seconds": 0.24559617653709637
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 18,
+          "accuracy": 0.5806451612903226
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 47,
+          "accuracy": 0.6351351351351351
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 16,
+          "accuracy": 0.5333333333333333
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 19,
+          "accuracy": 0.48717948717948717
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 64,
+          "accuracy": 0.5161290322580645
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 94,
+          "accuracy": 0.5371428571428571
+        }
+      }
+    },
+    "recovery_060_ref1024_top24": {
+      "n": 473,
+      "correct": 256,
+      "accuracy": 0.5412262156448203,
+      "mean_document_retention": 0.634967110592109,
+      "mean_extra_tokens": 1570.6384778012684,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 66.33192389006342,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "base_a60_scoring_seconds": 0.4884071450732475,
+        "compression_seconds": 2.2280040938380403,
+        "decode_seconds": 11.68541103457327,
+        "logical_query_probe_prefill_seconds": 3.1947885170563204,
+        "physical_cache_compression_cuda_seconds": 1.7395969487647929,
+        "physical_cache_compression_wall_seconds": 1.80512207147939,
+        "pipeline_wall_seconds": 26.71738202428843,
+        "prefill_seconds": 8.162521844741596,
+        "prefix_prefill_seconds": 7.9099037253374656,
+        "probe_selection_seconds": 0.021080890406576826,
+        "reference_pass_and_compression_wall_seconds": 2.49705890645657,
+        "reference_pass_and_scoring_wall_seconds": 0.6919368349771797,
+        "reference_pass_seconds": 0.2035296899039322,
+        "selection_integrity_audit_seconds": 0.22733651726933918,
+        "suffix_to_first_token_seconds": 0.2526181194041294
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 19,
+          "accuracy": 0.6129032258064516
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 46,
+          "accuracy": 0.6216216216216216
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 17,
+          "accuracy": 0.5666666666666667
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 17,
+          "accuracy": 0.4358974358974359
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 64,
+          "accuracy": 0.5161290322580645
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 93,
+          "accuracy": 0.5314285714285715
+        }
+      }
+    },
+    "recovery_060_ref1024_top16": {
+      "n": 473,
+      "correct": 249,
+      "accuracy": 0.5264270613107822,
+      "mean_document_retention": 0.6259913964113185,
+      "mean_extra_tokens": 1134.951374207188,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 67.41437632135306,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "base_a60_scoring_seconds": 0.48628869058919505,
+        "compression_seconds": 2.2075829163666256,
+        "decode_seconds": 11.90095170710165,
+        "logical_query_probe_prefill_seconds": 3.179538369548938,
+        "physical_cache_compression_cuda_seconds": 1.7212942257774304,
+        "physical_cache_compression_wall_seconds": 1.7840405105599388,
+        "pipeline_wall_seconds": 26.87168363877129,
+        "prefill_seconds": 8.151275579083167,
+        "prefix_prefill_seconds": 7.898512113043925,
+        "probe_selection_seconds": 0.02082442460743116,
+        "reference_pass_and_compression_wall_seconds": 2.474338915939374,
+        "reference_pass_and_scoring_wall_seconds": 0.690298405379435,
+        "reference_pass_seconds": 0.2040097147902399,
+        "selection_integrity_audit_seconds": 0.22275861304639258,
+        "suffix_to_first_token_seconds": 0.25276346603924327
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 19,
+          "accuracy": 0.6129032258064516
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 45,
+          "accuracy": 0.6081081081081081
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 17,
+          "accuracy": 0.5666666666666667
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 15,
+          "accuracy": 0.38461538461538464
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 58,
+          "accuracy": 0.46774193548387094
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 95,
+          "accuracy": 0.5428571428571428
+        }
+      }
+    },
+    "recovery_060_ref512_top24": {
+      "n": 473,
+      "correct": 249,
+      "accuracy": 0.5264270613107822,
+      "mean_document_retention": 0.6356781218782709,
+      "mean_extra_tokens": 1600.4059196617336,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 66.21987315010571,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "base_a60_scoring_seconds": 0.35371660258931287,
+        "compression_seconds": 2.049407011404854,
+        "decode_seconds": 11.561666659829669,
+        "logical_query_probe_prefill_seconds": 3.106372489729782,
+        "physical_cache_compression_cuda_seconds": 1.6956904088155411,
+        "physical_cache_compression_wall_seconds": 1.75988809300496,
+        "pipeline_wall_seconds": 26.263165862959106,
+        "prefill_seconds": 8.146460981578832,
+        "prefix_prefill_seconds": 7.899584460507362,
+        "probe_selection_seconds": 0.018336388930268822,
+        "reference_pass_and_compression_wall_seconds": 2.297583553900678,
+        "reference_pass_and_scoring_wall_seconds": 0.5376954608957183,
+        "reference_pass_seconds": 0.1839788583064054,
+        "selection_integrity_audit_seconds": 0.22182418777751117,
+        "suffix_to_first_token_seconds": 0.24687652107147032
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 19,
+          "accuracy": 0.6129032258064516
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 46,
+          "accuracy": 0.6216216216216216
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 15,
+          "accuracy": 0.5
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 18,
+          "accuracy": 0.46153846153846156
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 58,
+          "accuracy": 0.46774193548387094
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 93,
+          "accuracy": 0.5314285714285715
+        }
+      }
+    },
+    "recovery_050_ref512_top24": {
+      "n": 473,
+      "correct": 252,
+      "accuracy": 0.53276955602537,
+      "mean_document_retention": 0.5414037491847289,
+      "mean_extra_tokens": 1887.7970401691332,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 65.56236786469344,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "base_a60_scoring_seconds": 0.33440270856041737,
+        "compression_seconds": 1.8252045740877094,
+        "decode_seconds": 11.586240533211644,
+        "logical_query_probe_prefill_seconds": 3.211330836548236,
+        "physical_cache_compression_cuda_seconds": 1.490801865527292,
+        "physical_cache_compression_wall_seconds": 1.5556617710132932,
+        "pipeline_wall_seconds": 26.14965394425972,
+        "prefill_seconds": 8.162786960302522,
+        "prefix_prefill_seconds": 7.912338887733146,
+        "probe_selection_seconds": 0.01974467600815896,
+        "reference_pass_and_compression_wall_seconds": 2.0803211013339538,
+        "reference_pass_and_scoring_wall_seconds": 0.5246593303206607,
+        "reference_pass_seconds": 0.19025662176024336,
+        "selection_integrity_audit_seconds": 0.1802687164057385,
+        "suffix_to_first_token_seconds": 0.25044807256937784
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 19,
+          "accuracy": 0.6129032258064516
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 48,
+          "accuracy": 0.6486486486486487
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 16,
+          "accuracy": 0.5333333333333333
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 16,
+          "accuracy": 0.41025641025641024
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 59,
+          "accuracy": 0.47580645161290325
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 94,
+          "accuracy": 0.5371428571428571
+        }
+      }
+    },
+    "recovery_050_ref1024_top24": {
+      "n": 473,
+      "correct": 251,
+      "accuracy": 0.5306553911205074,
+      "mean_document_retention": 0.5406287093101096,
+      "mean_extra_tokens": 1859.1120507399578,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 64.39112050739958,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "base_a60_scoring_seconds": 0.4649906761575703,
+        "compression_seconds": 1.941182566946707,
+        "decode_seconds": 11.334070180855834,
+        "logical_query_probe_prefill_seconds": 3.191404260915505,
+        "physical_cache_compression_cuda_seconds": 1.476191890789137,
+        "physical_cache_compression_wall_seconds": 1.5519440656342793,
+        "pipeline_wall_seconds": 26.070801313966513,
+        "prefill_seconds": 8.16491936915111,
+        "prefix_prefill_seconds": 7.9149855212338,
+        "probe_selection_seconds": 0.02015465153794712,
+        "reference_pass_and_compression_wall_seconds": 2.2193309784124566,
+        "reference_pass_and_scoring_wall_seconds": 0.6673869127781774,
+        "reference_pass_seconds": 0.20239623662060713,
+        "selection_integrity_audit_seconds": 0.18597541377735943,
+        "suffix_to_first_token_seconds": 0.24993384791731077
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 21,
+          "accuracy": 0.6774193548387096
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 47,
+          "accuracy": 0.6351351351351351
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 16,
+          "accuracy": 0.5333333333333333
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 18,
+          "accuracy": 0.46153846153846156
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 58,
+          "accuracy": 0.46774193548387094
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 91,
+          "accuracy": 0.52
+        }
+      }
+    },
+    "recovery_050_ref2048_top24": {
+      "n": 473,
+      "correct": 239,
+      "accuracy": 0.5052854122621564,
+      "mean_document_retention": 0.539961645188179,
+      "mean_extra_tokens": 1835.2980972515857,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 10137,
+      "document_tokens_max": 1045112,
+      "document_tokens_mean": 137730.89429175475,
+      "mean_generated_tokens": 64.79915433403805,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "base_a60_scoring_seconds": 0.7359955327135311,
+        "compression_seconds": 2.2141666093530414,
+        "decode_seconds": 11.405498984161504,
+        "logical_query_probe_prefill_seconds": 3.1901660781692374,
+        "physical_cache_compression_cuda_seconds": 1.4781710766395102,
+        "physical_cache_compression_wall_seconds": 1.5560320293566263,
+        "pipeline_wall_seconds": 26.397374052641002,
+        "prefill_seconds": 8.152684357647349,
+        "prefix_prefill_seconds": 7.902656541550512,
+        "probe_selection_seconds": 0.020145292411583925,
+        "reference_pass_and_compression_wall_seconds": 2.5133131016321464,
+        "reference_pass_and_scoring_wall_seconds": 0.9572810722755202,
+        "reference_pass_seconds": 0.22128553956198893,
+        "selection_integrity_audit_seconds": 0.18316414384427332,
+        "suffix_to_first_token_seconds": 0.2500278160968366
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 31,
+          "correct": 20,
+          "accuracy": 0.6451612903225806
+        },
+        "Long In-context Learning": {
+          "n": 74,
+          "correct": 42,
+          "accuracy": 0.5675675675675675
+        },
+        "Long Structured Data Understanding": {
+          "n": 30,
+          "correct": 16,
+          "accuracy": 0.5333333333333333
+        },
+        "Long-dialogue History Understanding": {
+          "n": 39,
+          "correct": 15,
+          "accuracy": 0.38461538461538464
+        },
+        "Multi-Document QA": {
+          "n": 124,
+          "correct": 57,
+          "accuracy": 0.4596774193548387
+        },
+        "Single-Document QA": {
+          "n": 175,
+          "correct": 89,
+          "accuracy": 0.5085714285714286
+        }
+      }
+    },
+    "over1m_head_tail": {
+      "n": 30,
+      "correct": 17,
+      "accuracy": 0.5666666666666667,
+      "mean_document_retention": null,
+      "mean_extra_tokens": null,
+      "mean_prefix_keep_ratio": null,
+      "document_tokens_min": 1047905,
+      "document_tokens_max": 1048269,
+      "document_tokens_mean": 1048116.9666666667,
+      "mean_generated_tokens": 56.86666666666667,
+      "round_counts": [],
+      "mean_timings_seconds": {
+        "compression_seconds": 0.0,
+        "decode_seconds": 9.427188129723072,
+        "pipeline_wall_seconds": 124.51510581349334,
+        "prefill_seconds": 114.90153217626114,
+        "prefix_prefill_seconds": 114.30339759116372,
+        "reference_pass_and_compression_wall_seconds": 0.0,
+        "reference_pass_seconds": 0.0,
+        "suffix_to_first_token_seconds": 0.5981345850974321
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 19,
+          "correct": 10,
+          "accuracy": 0.5263157894736842
+        },
+        "Long In-context Learning": {
+          "n": 7,
+          "correct": 5,
+          "accuracy": 0.7142857142857143
+        },
+        "Long Structured Data Understanding": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333333333333
+        },
+        "Multi-Document QA": {
+          "n": 1,
+          "correct": 1,
+          "accuracy": 1
+        }
+      }
+    },
+    "over1m_streaming": {
+      "n": 30,
+      "correct": 16,
+      "accuracy": 0.5333333333333333,
+      "mean_document_retention": null,
+      "mean_extra_tokens": null,
+      "mean_prefix_keep_ratio": 0.4758190169595215,
+      "document_tokens_min": 1096055,
+      "document_tokens_max": 4643589,
+      "document_tokens_mean": 1995797.4666666666,
+      "mean_generated_tokens": 18.933333333333334,
+      "round_counts": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "mean_timings_seconds": {
+        "archive_cpu_offload_seconds": 9.923925155773759,
+        "base_scoring_cuda_seconds": 4.707619199752807,
+        "compression_seconds": 60.59999120496114,
+        "decode_seconds": 3.060755310455958,
+        "document_prefill_seconds": 258.54211503801247,
+        "final_cache_restoration_seconds": 3.0907377327481904,
+        "intermediate_cache_compression_cuda_seconds": 55.89237200520833,
+        "intermediate_cache_compression_wall_seconds": 59.438625404114525,
+        "logical_query_probe_prefill_seconds": 0.4233881767839193,
+        "pipeline_wall_seconds": 352.8311105842392,
+        "prefill_seconds": 259.1020531348884,
+        "prefix_prefill_seconds": 258.54211503801247,
+        "probe_selection_seconds": 0.19165055466194947,
+        "recovery_plan_seconds": 4.043772165228924,
+        "reference_pass_and_scoring_wall_seconds": 5.915013011172414,
+        "reference_pass_seconds": 1.2073938114196063,
+        "suffix_to_first_token_seconds": 0.5599380968759458
+      },
+      "domains": {
+        "Code Repository Understanding": {
+          "n": 19,
+          "correct": 10,
+          "accuracy": 0.5263157894736842
+        },
+        "Long In-context Learning": {
+          "n": 7,
+          "correct": 5,
+          "accuracy": 0.7142857142857143
+        },
+        "Long Structured Data Understanding": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333333333333
+        },
+        "Multi-Document QA": {
+          "n": 1,
+          "correct": 0,
+          "accuracy": 0
+        }
+      }
+    }
+  },
+  "pairs": {
+    "generic_a_060_to_recovery_060_ref1630_top24": {
+      "wrong_to_right": 42,
+      "right_to_wrong": 28,
+      "both_right": 216,
+      "both_wrong": 187
+    },
+    "baseline_to_recovery_060_ref1630_top24": {
+      "wrong_to_right": 33,
+      "right_to_wrong": 21,
+      "both_right": 225,
+      "both_wrong": 194
+    }
+  },
+  "sources": [
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_v1/baseline_100/results.jsonl",
+      "sha256": "bc9654d76eb5a4c61c82216c6a92c71875d9180f5fd46d065d2916c16b82d615",
+      "rows": 180
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_baseline_a060_e1060_v1/baseline_100/results.jsonl",
+      "sha256": "416beeee9febce45dcfac278aa15aa2514f864f2f5c621629247ab02a87b7f0c",
+      "rows": 293
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_v1/a_080/results.jsonl",
+      "sha256": "992f4d19ea2c38b741d4ef91aa2829bab745fbbb2dba1d7c341698670aa182b4",
+      "rows": 180
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_baseline_a060_e1060_v1/a_080/results.jsonl",
+      "sha256": "f14366af271ec330548a693c8839131965ff76bb7c6b493bdac2db731c9fe37e",
+      "rows": 293
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_v1/a_060/results.jsonl",
+      "sha256": "f9a1b93a59619467016b320d9487d37d95027faa7860a9efb0328e5712ca75e8",
+      "rows": 180
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_baseline_a060_e1060_v1/a_060/results.jsonl",
+      "sha256": "b98fb058e5811cd42c6317790633549aefcb54556554aeb564fd492915485aec",
+      "rows": 293
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_v1/a_040/results.jsonl",
+      "sha256": "ef17b2965054272b64223cd2d99d3a8a78cff529142c24b854b04673f8aa1fa1",
+      "rows": 180
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_baseline_a060_e1060_v1/a_040/results.jsonl",
+      "sha256": "64294afe59f6df56fe0acc255ec0f4a76d2d24187ef961052bb8567a59fa295c",
+      "rows": 293
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_v1/a_020/results.jsonl",
+      "sha256": "c60c1c7ba2cd0134a2b4bf01efe89ac678cad7039d9488e0a899caa4e7fd5f05",
+      "rows": 180
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_baseline_a060_e1060_v1/a_020/results.jsonl",
+      "sha256": "688e5774f88114d2fa210b6a2ce0383dbd3828ef66bd6285d6e0643e25adc48b",
+      "rows": 293
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_generic_document_study_v1/a_060/results.jsonl",
+      "sha256": "7d3c53037a58a0429e0de5b7de71bfaf716efcba1924093df508c664a6ad4c0f",
+      "rows": 180
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_a_e1_generic_document_study_v1/a_060/results.jsonl",
+      "sha256": "1548da88ffd70c2de533de12740ccbbec02ec0c0545c205700bef6a95e8807d1",
+      "rows": 293
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_v1/e1_080/results.jsonl",
+      "sha256": "0004d3e77cd7857a075d078a685cbb6706757c39f196245070dbff26f3657439",
+      "rows": 180
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_baseline_a060_e1060_v1/e1_080/results.jsonl",
+      "sha256": "060554de823b76ef82508a31a5dc86632f5a3086eb39650b0990c1d88f4ddd27",
+      "rows": 293
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_v1/e1_060/results.jsonl",
+      "sha256": "874e6aafd2033781c562b1a6804af653b2ac863e98668c584d0b213157879e0c",
+      "rows": 180
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_baseline_a060_e1060_v1/e1_060/results.jsonl",
+      "sha256": "d39a8d13c29d840ac0d68c3107d5cd6d0870b9d339fcec946b1bdf18338a6f83",
+      "rows": 293
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_v1/e1_040/results.jsonl",
+      "sha256": "d196cb9983e8c31cce42008dd9c24297b6967d9f7c9f547b3bf293e98405a1ff",
+      "rows": 180
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_baseline_a060_e1060_v1/e1_040/results.jsonl",
+      "sha256": "04e4b65d02ccd00086e8760a65a470f3665f2ea36fe7055fa674aa092bda4196",
+      "rows": 293
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_v1/e1_020/results.jsonl",
+      "sha256": "fd4f420a014c44ec9acd40b69bf91f774b160b840bd8ad4e7300f57523cdb599",
+      "rows": 180
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_baseline_a060_e1060_v1/e1_020/results.jsonl",
+      "sha256": "46e71795f2b61aec31a2f3630a38cae144d820397611c1ce2991e30f038f7f7f",
+      "rows": 293
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_generic_document_study_v1/e1_060/results.jsonl",
+      "sha256": "aa942425038f1f2e68cbae904cabf98c85ed23f70f26abc57d49254d4e2992a6",
+      "rows": 180
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_a_e1_generic_document_study_v1/e1_060/results.jsonl",
+      "sha256": "b24b65cfa4ba6151af3d2f9da9318c5bd0bb5065a6f918d2d9f15e630f2b4e97",
+      "rows": 293
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a60_single_prefill_mla128_top24_v1/a_060_mla128_top24_additive/results.jsonl",
+      "sha256": "6d7b3292390de467d0bfd343186799d317f0c6c75ba13d5b81739b071384af2a",
+      "rows": 473
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a60_reference_recovery_sweep_v1/a_060_mla128_top24_additive_ref1024/results.jsonl",
+      "sha256": "01a347a7ee7c59e27110257e32b8a382be8c9225846f408352ed1fe51c7fa672",
+      "rows": 473
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a60_reference_recovery_sweep_v1/a_060_mla128_top16_additive_ref1024/results.jsonl",
+      "sha256": "60f93448a77f880856d4e39cab7df8770515df961d15faf5b386f44c4769b579",
+      "rows": 473
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a60_reference_recovery_sweep_v1/a_060_mla128_top24_additive_ref512/results.jsonl",
+      "sha256": "6fafb254e4f6adc3b21246cb606d9177530698476c8afd2c6845d236fb652fde",
+      "rows": 473
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a50_mla128_top24_additive_suffix512_v1/a_050_mla128_top24_additive_ref512/results.jsonl",
+      "sha256": "54d81f7b786eccddccab232411a1233e3eecb9191c8aa2dc54017f8755a482b8",
+      "rows": 473
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a50_mla128_top24_additive_suffix1024_2048_v1/a_050_mla128_top24_additive_ref1024/results.jsonl",
+      "sha256": "c4ba371660c6a374609be3569b40cb883813f96a7373062c1b9b3938778a31b2",
+      "rows": 473
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a50_mla128_top24_additive_suffix1024_2048_v1/a_050_mla128_top24_additive_ref2048/results.jsonl",
+      "sha256": "6e8cded347242b27a835873851d8e437b3371831c72f7c720d8efad5396b8453",
+      "rows": 473
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_over1m30_streaming_v1/baseline_100/results.jsonl",
+      "sha256": "70a14fd7fd4cb2d5ea71e8b8890e4ef7238d0949116f59e0d65b3315f321fd7d",
+      "rows": 30
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_over1m30_streaming_v1/a060_ref1630_top24_additive/results.jsonl",
+      "sha256": "56e41ff4cc401c8b4d11374114b902c46876966f43daab85851015d22754c429",
+      "rows": 30
+    },
+    {
+      "path": "results/deepseek_v4_a60_longbench_head_sweep_v2/frozen_manifest.json",
+      "sha256": "0d6973538689203a2a4d137ecf53469a328b3cdca9f543ddda303fe6e547c009"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a60_single_prefill_mla128_top24_v1/manifest.json",
+      "sha256": "0c993d1636617b0ad3a98fe2b6761a21d847f65c969fb75d3c1e5dc48bb11f50"
+    }
+  ],
+  "snapshot_date": "2026-10-24",
+  "model": "DeepSeek-V4-Flash-0731",
+  "head_discovery": {
+    "n": 156,
+    "overlap_with_473": 68,
+    "per_query_uses_gold": false,
+    "independent_heldout_evaluation": false
+  }
+}

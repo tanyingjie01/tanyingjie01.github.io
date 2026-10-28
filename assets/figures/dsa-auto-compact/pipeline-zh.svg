@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="330" viewBox="0 0 1000 330" role="img">
+<title>一次长前缀前向，分阶段确定最终记忆</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10" fill="#9397a8"/></marker></defs>
+<rect width="1000" height="330" rx="12" fill="#fcfcfb"/>
+<g font-family="Inter, Noto Sans CJK SC, Microsoft YaHei, sans-serif" fill="#191a20">
+<text x="30" y="38" font-size="22" font-weight="600">一次长前缀前向，分阶段确定最终记忆</text>
+<rect x="30" y="66" width="290" height="134" rx="9" fill="white" stroke="#dcdcd5"/>
+<text x="47" y="98" fill="#5363ee" font-size="18" font-weight="600">01  通用 Reference</text>
+<text x="47" y="133" font-size="16">完整缓存上评分</text>
+<text x="47" y="162" font-size="16">冻结每层的 S 与 s</text>
+<path d="M325 132H350" fill="none" stroke="#9397a8" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="355" y="66" width="290" height="134" rx="9" fill="white" stroke="#dcdcd5"/>
+<text x="372" y="98" fill="#5363ee" font-size="18" font-weight="600">02  受限 Query Probe</text>
+<text x="372" y="133" font-size="16">真实 query 只读取 S</text>
+<text x="372" y="162" font-size="16">选出 24 个 128-token 窗口</text>
+<path d="M650 132H675" fill="none" stroke="#9397a8" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="680" y="66" width="290" height="134" rx="9" fill="white" stroke="#dcdcd5"/>
+<text x="697" y="98" fill="#5363ee" font-size="18" font-weight="600">03  最终物理压实</text>
+<text x="697" y="133" font-size="16">从完整缓存补入缺失行</text>
+<text x="697" y="162" font-size="16">保留 S，得到 S ∪ R</text>
+<text x="500" y="242" text-anchor="middle" font-size="17" fill="#70737d">完整缓存保留到最终复制；临时 Reference / Probe 状态在正式回答前回退。</text>
+<text x="500" y="289" text-anchor="middle" font-size="19" fill="#2f9d78" font-weight="600">在最终记忆上重放短 query，继续生成</text>
+</g></svg>

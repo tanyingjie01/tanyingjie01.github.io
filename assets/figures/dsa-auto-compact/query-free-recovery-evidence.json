@@ -1,0 +1,924 @@
+{
+  "schema": "dsa-query-free-recovery-evidence-v1",
+  "longbench": {
+    "cells": {
+      "full": {
+        "n": 473,
+        "correct": 246,
+        "accuracy": 0.5200845665961945,
+        "mean_document_retention": 1.0
+      },
+      "task_aware_60": {
+        "n": 473,
+        "correct": 246,
+        "accuracy": 0.5200845665961945,
+        "mean_document_retention": 0.6027268022595712
+      },
+      "query_free_60": {
+        "n": 473,
+        "correct": 244,
+        "accuracy": 0.5158562367864693,
+        "mean_document_retention": 0.6027268022595712
+      },
+      "query_free_recovery": {
+        "n": 473,
+        "correct": 258,
+        "accuracy": 0.5454545454545454,
+        "mean_document_retention": 0.6342264124859299
+      }
+    },
+    "domains": {
+      "Code Repository Understanding": {
+        "full": {
+          "n": 31,
+          "correct": 17,
+          "accuracy": 0.5483870967741935,
+          "mean_document_retention": 1.0
+        },
+        "task_aware_60": {
+          "n": 31,
+          "correct": 17,
+          "accuracy": 0.5483870967741935,
+          "mean_document_retention": 0.6011826455535298
+        },
+        "query_free_60": {
+          "n": 31,
+          "correct": 19,
+          "accuracy": 0.6129032258064516,
+          "mean_document_retention": 0.6011826455535298
+        },
+        "query_free_recovery": {
+          "n": 31,
+          "correct": 18,
+          "accuracy": 0.5806451612903226,
+          "mean_document_retention": 0.6149633920700658
+        }
+      },
+      "Long In-context Learning": {
+        "full": {
+          "n": 74,
+          "correct": 51,
+          "accuracy": 0.6891891891891891,
+          "mean_document_retention": 1.0
+        },
+        "task_aware_60": {
+          "n": 74,
+          "correct": 51,
+          "accuracy": 0.6891891891891891,
+          "mean_document_retention": 0.6017117093420746
+        },
+        "query_free_60": {
+          "n": 74,
+          "correct": 44,
+          "accuracy": 0.5945945945945946,
+          "mean_document_retention": 0.6017117093420746
+        },
+        "query_free_recovery": {
+          "n": 74,
+          "correct": 47,
+          "accuracy": 0.6351351351351351,
+          "mean_document_retention": 0.6217086842551176
+        }
+      },
+      "Long Structured Data Understanding": {
+        "full": {
+          "n": 30,
+          "correct": 17,
+          "accuracy": 0.5666666666666667,
+          "mean_document_retention": 1.0
+        },
+        "task_aware_60": {
+          "n": 30,
+          "correct": 18,
+          "accuracy": 0.6,
+          "mean_document_retention": 0.6008023218657089
+        },
+        "query_free_60": {
+          "n": 30,
+          "correct": 18,
+          "accuracy": 0.6,
+          "mean_document_retention": 0.6008023218657089
+        },
+        "query_free_recovery": {
+          "n": 30,
+          "correct": 16,
+          "accuracy": 0.5333333333333333,
+          "mean_document_retention": 0.6135640586982039
+        }
+      },
+      "Long-dialogue History Understanding": {
+        "full": {
+          "n": 39,
+          "correct": 17,
+          "accuracy": 0.4358974358974359,
+          "mean_document_retention": 1.0
+        },
+        "task_aware_60": {
+          "n": 39,
+          "correct": 14,
+          "accuracy": 0.358974358974359,
+          "mean_document_retention": 0.6026865184039654
+        },
+        "query_free_60": {
+          "n": 39,
+          "correct": 18,
+          "accuracy": 0.46153846153846156,
+          "mean_document_retention": 0.6026865184039654
+        },
+        "query_free_recovery": {
+          "n": 39,
+          "correct": 19,
+          "accuracy": 0.48717948717948717,
+          "mean_document_retention": 0.6305553511800729
+        }
+      },
+      "Multi-Document QA": {
+        "full": {
+          "n": 124,
+          "correct": 59,
+          "accuracy": 0.47580645161290325,
+          "mean_document_retention": 1.0
+        },
+        "task_aware_60": {
+          "n": 124,
+          "correct": 58,
+          "accuracy": 0.46774193548387094,
+          "mean_document_retention": 0.6033322135359948
+        },
+        "query_free_60": {
+          "n": 124,
+          "correct": 61,
+          "accuracy": 0.49193548387096775,
+          "mean_document_retention": 0.6033322135359948
+        },
+        "query_free_recovery": {
+          "n": 124,
+          "correct": 64,
+          "accuracy": 0.5161290322580645,
+          "mean_document_retention": 0.6402806463548122
+        }
+      },
+      "Single-Document QA": {
+        "full": {
+          "n": 175,
+          "correct": 85,
+          "accuracy": 0.4857142857142857,
+          "mean_document_retention": 1.0
+        },
+        "task_aware_60": {
+          "n": 175,
+          "correct": 88,
+          "accuracy": 0.5028571428571429,
+          "mean_document_retention": 0.6033394892178
+        },
+        "query_free_60": {
+          "n": 175,
+          "correct": 84,
+          "accuracy": 0.48,
+          "mean_document_retention": 0.6033394892178
+        },
+        "query_free_recovery": {
+          "n": 175,
+          "correct": 94,
+          "accuracy": 0.5371428571428571,
+          "mean_document_retention": 0.6430023126390197
+        }
+      }
+    },
+    "full_to_query_free": {
+      "right_to_wrong": 37,
+      "wrong_to_right": 35,
+      "both_right": 209,
+      "both_wrong": 192
+    },
+    "query_free_to_recovery": {
+      "right_to_wrong": 28,
+      "wrong_to_right": 42,
+      "both_right": 216,
+      "both_wrong": 187
+    },
+    "sensitivity": [
+      {
+        "base_retention": 0.6,
+        "reference_tokens": 1630,
+        "scored_queries": 1535,
+        "recovery_windows": 24,
+        "window_tokens": 128,
+        "n": 473,
+        "correct": 258,
+        "accuracy": 0.5454545454545454,
+        "mean_document_retention": 0.6342264124859299,
+        "mean_reference_scoring_seconds": 0.8817513217838445,
+        "mean_pipeline_seconds": 26.940007241037193
+      },
+      {
+        "base_retention": 0.6,
+        "reference_tokens": 1024,
+        "scored_queries": 1024,
+        "recovery_windows": 24,
+        "window_tokens": 128,
+        "n": 473,
+        "correct": 256,
+        "accuracy": 0.5412262156448203,
+        "mean_document_retention": 0.634967110592109,
+        "mean_reference_scoring_seconds": 0.6919368349771797,
+        "mean_pipeline_seconds": 26.71738202428843
+      },
+      {
+        "base_retention": 0.6,
+        "reference_tokens": 1024,
+        "scored_queries": 1024,
+        "recovery_windows": 16,
+        "window_tokens": 128,
+        "n": 473,
+        "correct": 249,
+        "accuracy": 0.5264270613107822,
+        "mean_document_retention": 0.6259913964113185,
+        "mean_reference_scoring_seconds": 0.690298405379435,
+        "mean_pipeline_seconds": 26.87168363877129
+      },
+      {
+        "base_retention": 0.6,
+        "reference_tokens": 512,
+        "scored_queries": 512,
+        "recovery_windows": 24,
+        "window_tokens": 128,
+        "n": 473,
+        "correct": 249,
+        "accuracy": 0.5264270613107822,
+        "mean_document_retention": 0.6356781218782709,
+        "mean_reference_scoring_seconds": 0.5376954608957183,
+        "mean_pipeline_seconds": 26.263165862959106
+      },
+      {
+        "base_retention": 0.5,
+        "reference_tokens": 512,
+        "scored_queries": 512,
+        "recovery_windows": 24,
+        "window_tokens": 128,
+        "n": 473,
+        "correct": 252,
+        "accuracy": 0.53276955602537,
+        "mean_document_retention": 0.5414037491847289,
+        "mean_reference_scoring_seconds": 0.5246593303206607,
+        "mean_pipeline_seconds": 26.14965394425972
+      },
+      {
+        "base_retention": 0.5,
+        "reference_tokens": 1024,
+        "scored_queries": 1024,
+        "recovery_windows": 24,
+        "window_tokens": 128,
+        "n": 473,
+        "correct": 251,
+        "accuracy": 0.5306553911205074,
+        "mean_document_retention": 0.5406287093101096,
+        "mean_reference_scoring_seconds": 0.6673869127781774,
+        "mean_pipeline_seconds": 26.070801313966513
+      },
+      {
+        "base_retention": 0.5,
+        "reference_tokens": 2048,
+        "scored_queries": 2048,
+        "recovery_windows": 24,
+        "window_tokens": 128,
+        "n": 473,
+        "correct": 239,
+        "accuracy": 0.5052854122621564,
+        "mean_document_retention": 0.539961645188179,
+        "mean_reference_scoring_seconds": 0.9572810722755202,
+        "mean_pipeline_seconds": 26.397374052641002
+      }
+    ]
+  },
+  "localization": {
+    "prompt_count": 156,
+    "dataset_counts": {
+      "BrowseComp-Plus-near128K|BrowseComp-Plus": 88,
+      "LongBench-v2|Code Repository Understanding": 3,
+      "LongBench-v2|Long In-context Learning": 28,
+      "LongBench-v2|Long Structured Data Understanding": 4,
+      "LongBench-v2|Single-Document QA": 21,
+      "LongBench-v2|Long-dialogue History Understanding": 2,
+      "LongBench-v2|Multi-Document QA": 10
+    },
+    "heads": [
+      [
+        20,
+        5
+      ],
+      [
+        20,
+        30
+      ],
+      [
+        20,
+        31
+      ],
+      [
+        26,
+        58
+      ]
+    ],
+    "measured_layers": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42
+    ],
+    "evidence_window_metrics": [
+      {
+        "scope": "primary:LongBench-v2",
+        "policy": "new_LB_top4:mean_z",
+        "resolution": "128",
+        "budget_tokens": "3072",
+        "n": "55",
+        "hit": "0.8909090909090909",
+        "informative_hit": "0.8909090909090909",
+        "recall": "0.6475701046938246",
+        "all_hit": "0.4",
+        "auc": "0.9219812062653628",
+        "available_chance_hit": "0.18150119580836457",
+        "deleted_L20_n": "42",
+        "deleted_L20_hit": "0.8571428571428571",
+        "fully_deleted_L20_n": "16",
+        "fully_deleted_L20_hit": "0.625",
+        "fully_deleted_all21_C4_n": "1",
+        "fully_deleted_all21_C4_hit": "0.0"
+      },
+      {
+        "scope": "primary:BrowseComp-Plus-near128K",
+        "policy": "new_LB_top4:mean_z",
+        "resolution": "128",
+        "budget_tokens": "3072",
+        "n": "88",
+        "hit": "0.9318181818181818",
+        "informative_hit": "0.9318181818181818",
+        "recall": "0.6708077651194551",
+        "all_hit": "0.4318181818181818",
+        "auc": "0.9625303223729134",
+        "available_chance_hit": "0.1555072572082281",
+        "deleted_L20_n": "63",
+        "deleted_L20_hit": "0.8412698412698413",
+        "fully_deleted_L20_n": "43",
+        "fully_deleted_L20_hit": "0.5116279069767442",
+        "fully_deleted_all21_C4_n": "0",
+        "fully_deleted_all21_C4_hit": ""
+      }
+    ]
+  },
+  "examples": [
+    {
+      "prompt_id": "5b450986c9c3415abd09fbaa",
+      "query": "Question:\nUsing Windows and default settings, which of the following can transpose some notes?\n\nChoices:\nA. Select the notes, then press Left or Right direction keys.\nB. Press F10 to open the transposition dialog, then select the target key you want to transpose to.\nC. Selecting some notes then pressing \"Ctrl + Up or Down\" can tranpose the notes chromatically.\nD. If no notes are selected, ticking \"Transpose Chromatically\" in the transposition dialog will transpose all the notes.\n\nEnd with exactly one line: Answer: X",
+      "evidence": [
+        {
+          "label": "No note selection means all notes; chromatic transpose procedure",
+          "token_span": [
+            53272,
+            53363
+          ],
+          "L20_C4_rows": 23,
+          "missing_base": 4,
+          "missing_final": 0
+        },
+        {
+          "label": "Arrow and Ctrl-arrow contrast",
+          "token_span": [
+            53136,
+            53192
+          ],
+          "L20_C4_rows": 14,
+          "missing_base": 6,
+          "missing_final": 0
+        }
+      ],
+      "correct_choice": "D",
+      "outputs": {
+        "full": {
+          "choice": "D",
+          "completion": "The handbook states that pressing `Ctrl+↑` or `Ctrl+↓` transposes notes by an octave, and the arrow keys alone transpose chromatically. It also says that if no notes are selected, the transpose dialog applies to the whole score.  \n\nAnswer: D"
+        },
+        "task_aware_60": {
+          "choice": "C",
+          "completion": "The handbook states that pressing `Ctrl+↑` or `Ctrl+↓` transposes notes by an octave, and the arrow keys alone transpose chromatically. Option C correctly describes using `Ctrl+Up or Down` to transpose notes chromatically (by octave).  \n\nAnswer: C"
+        },
+        "query_free_60": {
+          "choice": "C",
+          "completion": "The handbook states that to transpose chromatically, you can select notes and use `Ctrl+↑` or `Ctrl+↓` (Mac: `Cmd+↑` or `Cmd+↓`). This matches option C.\n\nAnswer: C"
+        },
+        "query_free_recovery": {
+          "choice": "D",
+          "completion": "The handbook states that pressing `Ctrl+↑` or `Ctrl+↓` transposes notes by an octave, and the `↑` or `↓` keys transpose chromatically. It also says that in the Transpose dialog, if no notes are selected, it means \"select all.\"  \n\nAnswer: D"
+        }
+      },
+      "selected_token_spans": [
+        [
+          53248,
+          53376
+        ],
+        [
+          53120,
+          53248
+        ],
+        [
+          18304,
+          18432
+        ],
+        [
+          52992,
+          53120
+        ],
+        [
+          59776,
+          59904
+        ],
+        [
+          53376,
+          53504
+        ],
+        [
+          18176,
+          18304
+        ],
+        [
+          10496,
+          10624
+        ],
+        [
+          92928,
+          93056
+        ],
+        [
+          122368,
+          122496
+        ],
+        [
+          3584,
+          3712
+        ],
+        [
+          53504,
+          53632
+        ],
+        [
+          18688,
+          18816
+        ],
+        [
+          20480,
+          20608
+        ],
+        [
+          10624,
+          10752
+        ],
+        [
+          128,
+          256
+        ],
+        [
+          16896,
+          17024
+        ],
+        [
+          32128,
+          32256
+        ],
+        [
+          18816,
+          18944
+        ],
+        [
+          29184,
+          29312
+        ],
+        [
+          44672,
+          44800
+        ],
+        [
+          14976,
+          15104
+        ],
+        [
+          7808,
+          7936
+        ],
+        [
+          116224,
+          116352
+        ]
+      ]
+    },
+    {
+      "prompt_id": "c3737bdaf751152684d697ef",
+      "query": "Question:\nIn the FileManager class, which of the following wrongly describes the purpose of the write_with_template method, and how it handles file writing while ensuring template substitution?\n\nChoices:\nA. Template Substitution Handling: The write_with_template method calls substitute_with_template to replace patterns in the template file using only the dictionary. The result is then written to the file only if dry_run is False.\nB. Duplicate File Write Prevention: The write_with_template method maintains a set called filenames that tracks written files. It raises an assertion error if the same file is attempted to be written again within the same execution.\nC. File Writing if Contents Changed: The _write_if_changed method checks if the contents of a file have changed by comparing them with the new contents. If they differ, it overwrites the file, ensuring only modified files are rewritten.\nD. Generated Comment Insertion: When the env_callable returns a dictionary, the substitute_with_template method checks if the key generated_comment exists. If it does not, it creates one using the generator path and the template filename. This is added to the dictionary before substitution.\n\nEnd with exactly one line: Answer: X",
+      "evidence": [
+        {
+          "label": "Callable environment can return dict OR string, disproving only dictionary",
+          "token_span": [
+            55913,
+            56126
+          ],
+          "L20_C4_rows": 54,
+          "missing_base": 22,
+          "missing_final": 0
+        },
+        {
+          "label": "Duplicate prevention, dry-run and writing call",
+          "token_span": [
+            56125,
+            56256
+          ],
+          "L20_C4_rows": 33,
+          "missing_base": 15,
+          "missing_final": 0
+        }
+      ],
+      "correct_choice": "A",
+      "outputs": {
+        "full": {
+          "choice": "A",
+          "completion": "The `write_with_template` method in the `FileManager` class calls `substitute_with_template`, which can handle both a dictionary and a string. If it's a dictionary, it adds a `generated_comment` if missing. The method then writes the file only if `dry_run` is `False`. It also tracks filenames to prevent duplicates. The `_write_if_changed` method compares old and new contents and only writes if they differ.  \n\nOption A says \"using only the dictionary,\" but `substitute_with_template` can also handle a string return from `env_callable`. This makes A incorrect in its description.  \n\nAnswer: A"
+        },
+        "task_aware_60": {
+          "choice": "A",
+          "completion": "The `write_with_template` method in the `FileManager` class calls `substitute_with_template`, which can handle both a dictionary and a string. If it's a dictionary, it adds a `generated_comment` if missing, then substitutes. The result is written only if `dry_run` is `False`. It also tracks filenames to prevent duplicates. The `_write_if_changed` method compares old and new contents and overwrites only if different.  \n\nOption A says \"using only the dictionary\" which is incorrect because `substitute_with_template` can also handle a string return from `env_callable`.  \n\nAnswer: A"
+        },
+        "query_free_60": {
+          "choice": "C",
+          "completion": "The `write_with_template` method in the `FileManager` class does not call `_write_if_changed`; it directly writes the file if `dry_run` is `False`. The `_write_if_changed` method is not defined in the provided code. Therefore, option C is incorrect.  \n\nAnswer: C"
+        },
+        "query_free_recovery": {
+          "choice": "A",
+          "completion": "Answer: A"
+        }
+      },
+      "selected_token_spans": [
+        [
+          55936,
+          56064
+        ],
+        [
+          56064,
+          56192
+        ],
+        [
+          55680,
+          55808
+        ],
+        [
+          56192,
+          56320
+        ],
+        [
+          55808,
+          55936
+        ],
+        [
+          55552,
+          55680
+        ],
+        [
+          56960,
+          57088
+        ],
+        [
+          50816,
+          50944
+        ],
+        [
+          56704,
+          56832
+        ],
+        [
+          56832,
+          56960
+        ],
+        [
+          51072,
+          51200
+        ],
+        [
+          56320,
+          56448
+        ],
+        [
+          83328,
+          83456
+        ],
+        [
+          4096,
+          4224
+        ],
+        [
+          4608,
+          4736
+        ],
+        [
+          3456,
+          3584
+        ],
+        [
+          4480,
+          4608
+        ],
+        [
+          56448,
+          56576
+        ],
+        [
+          57088,
+          57216
+        ],
+        [
+          50688,
+          50816
+        ],
+        [
+          1536,
+          1664
+        ],
+        [
+          54784,
+          54912
+        ],
+        [
+          54656,
+          54784
+        ],
+        [
+          201088,
+          201216
+        ]
+      ]
+    }
+  ],
+  "infinitebench": {
+    "sample_count": 701,
+    "runtime": {
+      "model": "/data/zhangmy/tanyj/models/DeepSeek-V4-Flash-0731",
+      "ratio": 0.6,
+      "n_over_t": 2.5,
+      "top_windows": 24,
+      "raw_chunk_size": 1024,
+      "max_new_tokens": 192,
+      "max_model_len": 1048576,
+      "max_num_batched_tokens": 8192,
+      "tensor_parallel_size": 4,
+      "gpu_memory_utilization": 0.95,
+      "query_head_ensemble": [
+        {
+          "kind": "mla",
+          "layer": 20,
+          "head": 5
+        },
+        {
+          "kind": "mla",
+          "layer": 20,
+          "head": 30
+        },
+        {
+          "kind": "mla",
+          "layer": 20,
+          "head": 31
+        },
+        {
+          "kind": "mla",
+          "layer": 26,
+          "head": 58
+        }
+      ]
+    },
+    "tasks": {
+      "longbook_qa_chn": {
+        "baseline": {
+          "n": 98,
+          "metric": "character_f1",
+          "mean_score": 0.28679744177499006,
+          "binary_correct": 4,
+          "generation_limit_count": 2
+        },
+        "a060_r3_additive_ref1630_top24": {
+          "n": 98,
+          "metric": "character_f1",
+          "mean_score": 0.30779658090509954,
+          "binary_correct": 5,
+          "generation_limit_count": 2
+        }
+      },
+      "longbook_qa_eng": {
+        "baseline": {
+          "n": 239,
+          "metric": "word_f1",
+          "mean_score": 0.4360031548656646,
+          "binary_correct": 53,
+          "generation_limit_count": 0
+        },
+        "a060_r3_additive_ref1630_top24": {
+          "n": 239,
+          "metric": "word_f1",
+          "mean_score": 0.4359573398677573,
+          "binary_correct": 52,
+          "generation_limit_count": 0
+        }
+      },
+      "longbook_choice_eng": {
+        "baseline": {
+          "n": 150,
+          "metric": "accuracy",
+          "mean_score": 0.9666666666666667,
+          "binary_correct": 145,
+          "generation_limit_count": 0
+        },
+        "a060_r3_additive_ref1630_top24": {
+          "n": 150,
+          "metric": "accuracy",
+          "mean_score": 0.9533333333333334,
+          "binary_correct": 143,
+          "generation_limit_count": 0
+        }
+      },
+      "longbook_sum_eng": {
+        "baseline": {
+          "n": 55,
+          "metric": "rougeLsum",
+          "mean_score": 0.15993474533255264,
+          "binary_correct": null,
+          "generation_limit_count": 55
+        },
+        "a060_r3_additive_ref1630_top24": {
+          "n": 55,
+          "metric": "rougeLsum",
+          "mean_score": 0.1583903298435998,
+          "binary_correct": null,
+          "generation_limit_count": 55
+        }
+      },
+      "code_debug": {
+        "baseline": {
+          "n": 159,
+          "metric": "accuracy",
+          "mean_score": 0.6981132075471698,
+          "binary_correct": 111,
+          "generation_limit_count": 2
+        },
+        "a060_r3_additive_ref1630_top24": {
+          "n": 159,
+          "metric": "accuracy",
+          "mean_score": 0.710691823899371,
+          "binary_correct": 113,
+          "generation_limit_count": 2
+        }
+      }
+    },
+    "cells": {
+      "baseline": {
+        "n": 701,
+        "mean_document_retention": 1,
+        "mean_pipeline_seconds": 22.483299927161568,
+        "context_token_range": [
+          128824,
+          921285
+        ]
+      },
+      "a060_r3_additive_ref1630_top24": {
+        "n": 701,
+        "mean_document_retention": 0.6084239330096973,
+        "mean_pipeline_seconds": 29.355623046868878,
+        "context_token_range": [
+          128824,
+          921285
+        ]
+      }
+    }
+  },
+  "sources": [
+    {
+      "path": "data/deepseek_v4_a60_longbench_head_sweep_v2/manifest.json",
+      "sha256": "0d6973538689203a2a4d137ecf53469a328b3cdca9f543ddda303fe6e547c009"
+    },
+    {
+      "path": "data/deepseek_v4_a60_longbench_head_sweep_v2/offline_evidence_annotations.json",
+      "sha256": "c82573c46e3a1f428c17829a17a977b494dc357747f11cacb758530210eaf331"
+    },
+    {
+      "path": "data/deepseek_v4_a60_longbench_head_sweep_v2/prompts.jsonl",
+      "sha256": "d87428343a47817be0fb44dc8f857e7de078c1b205d0a6c2536c594d357c0c89"
+    },
+    {
+      "path": "results/deepseek_v4_a60_longbench_head_sweep_v2/analysis/ensemble_summary.csv",
+      "sha256": "7843503e1b7f17f10333ec8614e812b1789542aa2501a6472b45570ee59d86ca"
+    },
+    {
+      "path": "results/deepseek_v4_infinitebench_701_baseline_a60_r3_1630_24_v1/formal/a060_r3_additive_ref1630_top24/results.jsonl",
+      "sha256": "70a5fa4b0278217a34f90c5a5d3bcf4f9b0e2e766662e0b8a098170504878b3d"
+    },
+    {
+      "path": "results/deepseek_v4_infinitebench_701_baseline_a60_r3_1630_24_v1/formal/baseline/results.jsonl",
+      "sha256": "347669290cf165308839566ad4f849e81f96a1a1c4a426df7a83e87bfff5d5b5"
+    },
+    {
+      "path": "results/deepseek_v4_infinitebench_701_baseline_a60_r3_1630_24_v1/manifest.json",
+      "sha256": "9113dbbcc342dced39dae59547a2438355b448e89a5eaf88afc057c754ede322"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a50_mla128_top24_additive_suffix1024_2048_v1/a_050_mla128_top24_additive_ref1024/results.jsonl",
+      "sha256": "c4ba371660c6a374609be3569b40cb883813f96a7373062c1b9b3938778a31b2"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a50_mla128_top24_additive_suffix1024_2048_v1/a_050_mla128_top24_additive_ref2048/results.jsonl",
+      "sha256": "6e8cded347242b27a835873851d8e437b3371831c72f7c720d8efad5396b8453"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a50_mla128_top24_additive_suffix512_v1/a_050_mla128_top24_additive_ref512/results.jsonl",
+      "sha256": "54d81f7b786eccddccab232411a1233e3eecb9191c8aa2dc54017f8755a482b8"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a60_reference_recovery_sweep_v1/a_060_mla128_top16_additive_ref1024/results.jsonl",
+      "sha256": "60f93448a77f880856d4e39cab7df8770515df961d15faf5b386f44c4769b579"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a60_reference_recovery_sweep_v1/a_060_mla128_top24_additive_ref1024/results.jsonl",
+      "sha256": "01a347a7ee7c59e27110257e32b8a382be8c9225846f408352ed1fe51c7fa672"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a60_reference_recovery_sweep_v1/a_060_mla128_top24_additive_ref512/results.jsonl",
+      "sha256": "6fafb254e4f6adc3b21246cb606d9177530698476c8afd2c6845d236fb652fde"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a60_single_prefill_mla128_top24_v1/a_060_mla128_top24_additive/cache_selections/5b450986c9c3415abd09fbaa/rank0_selection.pt",
+      "sha256": "24efd6b987e73c589d25dbca6cc6df8aef38ec58846aac059a1f99cd95b09aa4"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a60_single_prefill_mla128_top24_v1/a_060_mla128_top24_additive/cache_selections/c3737bdaf751152684d697ef/rank0_selection.pt",
+      "sha256": "105ca771a70ebf56dd255bd0afda3c23bae3ee463a8971ed66b05f76a82325b4"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_473_a60_single_prefill_mla128_top24_v1/a_060_mla128_top24_additive/results.jsonl",
+      "sha256": "6d7b3292390de467d0bfd343186799d317f0c6c75ba13d5b81739b071384af2a"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_generic_document_study_v1/a_060/results.jsonl",
+      "sha256": "7d3c53037a58a0429e0de5b7de71bfaf716efcba1924093df508c664a6ad4c0f"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_v1/a_060/results.jsonl",
+      "sha256": "f9a1b93a59619467016b320d9487d37d95027faa7860a9efb0328e5712ca75e8"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_hardlong180_vllm_a_e1_v1/baseline_100/results.jsonl",
+      "sha256": "bc9654d76eb5a4c61c82216c6a92c71875d9180f5fd46d065d2916c16b82d615"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_a_e1_generic_document_study_v1/a_060/results.jsonl",
+      "sha256": "1548da88ffd70c2de533de12740ccbbec02ec0c0545c205700bef6a95e8807d1"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_baseline_a060_e1060_v1/a_060/results.jsonl",
+      "sha256": "b98fb058e5811cd42c6317790633549aefcb54556554aeb564fd492915485aec"
+    },
+    {
+      "path": "results/deepseek_v4_longbench_v2_remaining293_vllm_baseline_a060_e1060_v1/baseline_100/results.jsonl",
+      "sha256": "416beeee9febce45dcfac278aa15aa2514f864f2f5c621629247ab02a87b7f0c"
+    }
+  ]
+}
