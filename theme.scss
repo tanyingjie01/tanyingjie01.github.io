@@ -286,6 +286,68 @@ body.profile-page {
   text-decoration: underline;
 }
 
+.profile-page.zh-page .recent-posts {
+  width: min(calc(100% - 2.5rem), 960px);
+  margin: 0 auto clamp(3rem, 6vw, 5rem);
+  color: #191a20;
+  font-family: "Times New Roman", "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+}
+
+.profile-page.zh-page .recent-posts h2 {
+  margin: 0 0 0.65rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid currentColor;
+  font-family: inherit;
+  font-size: 1.45rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.profile-page.zh-page .recent-posts .quarto-listing-table {
+  width: 100%;
+  margin: 0;
+  --bs-table-bg: transparent;
+}
+
+.profile-page.zh-page .recent-posts thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.profile-page.zh-page .recent-posts td {
+  padding: 0.8rem 0.25rem;
+  border-bottom: 1px solid #e7e7e7;
+  vertical-align: top;
+}
+
+.profile-page.zh-page .recent-posts td:last-child {
+  width: 9rem;
+  color: #666a73;
+  font-size: 0.85rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.profile-page.zh-page .recent-posts .listing-title {
+  color: inherit;
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.profile-page.zh-page .recent-posts .listing-title:hover {
+  color: var(--accent-deep);
+  text-decoration: underline;
+}
+
+.profile-page.zh-page .recent-posts .listing-title br {
+  display: none;
+}
+
 // Homepage hero -------------------------------------------------------------
 .hero {
   display: grid;

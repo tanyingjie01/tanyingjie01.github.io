@@ -6,6 +6,23 @@ title: "Yingjie Tan"
 title-block-style: none
 body-classes: landing-page profile-page zh-page
 anchor-sections: false
+listing:
+  id: recent-posts
+  contents: "blog/*/index.qmd"
+  include:
+    lang: zh-CN
+  sort: "date desc"
+  max-items: 5
+  type: table
+  fields:
+    - title
+    - date
+  field-display-names:
+    title: 文章
+    date: 发布日期
+  sort-ui: false
+  filter-ui: false
+  categories: false
 ---
 
 ::: {.personal-profile}
@@ -15,4 +32,11 @@ anchor-sections: false
 我从观察到的现象出发，分析模型行为的根本原因，并致力于开发高效且具有泛化能力的实用学习方法。
 近期，我主要研究 DeepSeek 稀疏注意力（DSA）架构的上下文压缩，以及训练稳定性。
 欢迎阅读我的[个人博客](blog/index.qmd)。
+:::
+
+::: {.recent-posts}
+## 最新文章
+
+::: {#recent-posts}
+:::
 :::
