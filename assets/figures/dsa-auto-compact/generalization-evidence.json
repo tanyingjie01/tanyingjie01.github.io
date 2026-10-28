@@ -1,0 +1,1285 @@
+{
+  "campaigns": {
+    "glm_longbench192": {
+      "config": {
+        "schema": "glm53-longbench473-baseline-then-a60-r3-additive-v1",
+        "model": "/data/zhangmy/tanyj/models/GLM-5.3-Flash",
+        "cells": [
+          "baseline",
+          "a60_r3_additive"
+        ],
+        "prompts_per_cell": 473,
+        "max_new_tokens": 192,
+        "max_model_len": 1048576,
+        "temperature": 0.0,
+        "seed": 0,
+        "tp": 4,
+        "gpu_devices": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "max_num_seqs": 1,
+        "max_num_batched_tokens": 8192,
+        "gpu_memory_utilization": 0.95,
+        "kv_cache_dtype": "fp8",
+        "indexer_kv_dtype": "fp8",
+        "enforce_eager": true,
+        "enable_prefix_caching": false,
+        "mamba_cache_mode": "none",
+        "ratio": 0.6,
+        "raw_compression_window_tokens": 1024,
+        "n_over_t": 2.5,
+        "reference_scored_queries": 1535,
+        "reference_query_mode": "generic_document_study",
+        "reference_instruction": "same literal instruction as V4; native GLM tokenizer count recorded per input",
+        "heads_zero_based": [
+          [
+            27,
+            47
+          ],
+          [
+            27,
+            58
+          ],
+          [
+            39,
+            43
+          ],
+          [
+            35,
+            26
+          ]
+        ],
+        "recovery_window_tokens": 128,
+        "recovery_windows": 24,
+        "recovery_budget": "net_add",
+        "probe_readout": "whole-query window mass -> temporal Top5 mean -> per-head Z -> equal-head mean",
+        "thinking": "empty closed think block, same as validated GLM native smoke",
+        "original_document_prefills_per_trajectory": 1,
+        "probe_only_sees_frozen_S": true,
+        "full_physical_prefix_preserved_until_recovery": true,
+        "gold_used_online": false,
+        "architecture_adaptation": "KDA and kpool-tail native fixed states; DSA select whole 4-token Indexer pools",
+        "source_code_hashes": {
+          "experiments/glm_a_r3.py": "dd67a4f2323e334166fa0a551fe3793fe232ee8bab9e217f418291b8fbb95497",
+          "experiments/glm_a_r3_engine.py": "6433a97d683715f85da8a3bdd42cce734c1ff5a7267a6eafe411724d8191a09e",
+          "experiments/native_h5_worker.py": "60736b37946b43f84ad87e6cde25d415b0b81513849beaa9a747666a1e4788b0",
+          "experiments/glm_longbench_data.py": "b26a7d035fae355412c57703a5676f23131d2f649bfbf2efe5d97baeb4e48322",
+          "experiments/run_glm_longbench_campaign.py": "03e3b8a22278c467438febc6aed3ef5b838d553558082fcbf1cc82ab9532dd76"
+        },
+        "cohort_sha256": "05939ac1eb55bf550c8c134d4fbcd1e5647f37fc4f4cd33f17b9821d3a104e66"
+      },
+      "cells": {
+        "baseline": {
+          "n": 473,
+          "mean_pipeline_seconds": 19.913530401869757,
+          "mean_generated_tokens": 109.50105708245243,
+          "stopped_by_length_count": 227,
+          "mean_stage_seconds": {
+            "prefix_prefill_seconds": 7.4061840297162025,
+            "fixed_state_snapshot_seconds": 0.0,
+            "reference_forward_seconds": 0.0,
+            "base_a60_selection_seconds": 0.0,
+            "reference_state_rollback_seconds": 0.0,
+            "query_probe_seconds": 0.0,
+            "recovery_selection_seconds": 0.0,
+            "probe_state_rollback_seconds": 0.0,
+            "physical_cache_compaction_seconds": 0.0,
+            "page_release_seconds": 0.0,
+            "suffix_to_first_token_seconds": 0.30523422388773386,
+            "decode_seconds": 12.105738171642098,
+            "artifact_save_seconds": 0.0,
+            "prefill_seconds": 7.711418253603937,
+            "compression_seconds": 0.0,
+            "pipeline_wall_seconds": 19.913530401869757
+          },
+          "reference_tokens": [
+            0
+          ],
+          "reference_instruction_tokens": [
+            0
+          ],
+          "truncated_inputs": 1,
+          "mean_document_equivalent_retention": 1.0,
+          "correct": 144,
+          "accuracy": 0.3044397463002114,
+          "domains": {
+            "Code Repository Understanding": {
+              "n": 31,
+              "correct": 11
+            },
+            "Long In-context Learning": {
+              "n": 74,
+              "correct": 29
+            },
+            "Long Structured Data Understanding": {
+              "n": 30,
+              "correct": 12
+            },
+            "Long-dialogue History Understanding": {
+              "n": 39,
+              "correct": 11
+            },
+            "Multi-Document QA": {
+              "n": 124,
+              "correct": 33
+            },
+            "Single-Document QA": {
+              "n": 175,
+              "correct": 48
+            }
+          }
+        },
+        "a60_r3_additive": {
+          "n": 473,
+          "mean_pipeline_seconds": 22.798600135075745,
+          "mean_generated_tokens": 108.15010570824525,
+          "stopped_by_length_count": 229,
+          "mean_stage_seconds": {
+            "prefix_prefill_seconds": 7.382753333545449,
+            "fixed_state_snapshot_seconds": 0.0029775796981871003,
+            "reference_forward_seconds": 0.8228308064252705,
+            "base_a60_selection_seconds": 0.05904306673757874,
+            "reference_state_rollback_seconds": 0.030933532218033365,
+            "query_probe_seconds": 0.8840749506419229,
+            "recovery_selection_seconds": 0.007065819911107453,
+            "probe_state_rollback_seconds": 0.0270625917323674,
+            "physical_cache_compaction_seconds": 0.5636216869487193,
+            "page_release_seconds": 0.007375208956305623,
+            "suffix_to_first_token_seconds": 0.320147677019522,
+            "decode_seconds": 12.34658729404715,
+            "artifact_save_seconds": 0.03614397036663826,
+            "prefill_seconds": 7.702901010564972,
+            "compression_seconds": 0.622664753686298,
+            "pipeline_wall_seconds": 22.798600135075745
+          },
+          "reference_tokens": [
+            1632
+          ],
+          "reference_instruction_tokens": [
+            94
+          ],
+          "truncated_inputs": 1,
+          "mean_document_equivalent_retention": 0.6477278034488803,
+          "mean_growing_prefix_pages_saved": 24.716701902748415,
+          "correct": 149,
+          "accuracy": 0.3150105708245243,
+          "domains": {
+            "Code Repository Understanding": {
+              "n": 31,
+              "correct": 12
+            },
+            "Long In-context Learning": {
+              "n": 74,
+              "correct": 31
+            },
+            "Long Structured Data Understanding": {
+              "n": 30,
+              "correct": 7
+            },
+            "Long-dialogue History Understanding": {
+              "n": 39,
+              "correct": 10
+            },
+            "Multi-Document QA": {
+              "n": 124,
+              "correct": 37
+            },
+            "Single-Document QA": {
+              "n": 175,
+              "correct": 52
+            }
+          },
+          "paired_vs_full": {
+            "0->0": 294,
+            "1->1": 114,
+            "0->1": 35,
+            "1->0": 30
+          }
+        }
+      }
+    },
+    "glm_longbench512": {
+      "config": {
+        "schema": "glm53-longbench473-baseline-then-a60-r3-additive-max512-v1",
+        "model": "/data/zhangmy/tanyj/models/GLM-5.3-Flash",
+        "cells": [
+          "baseline",
+          "a60_r3_additive"
+        ],
+        "prompts_per_cell": 473,
+        "max_new_tokens": 512,
+        "max_model_len": 1048576,
+        "temperature": 0.0,
+        "seed": 0,
+        "tp": 4,
+        "gpu_devices": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "max_num_seqs": 1,
+        "max_num_batched_tokens": 8192,
+        "gpu_memory_utilization": 0.95,
+        "kv_cache_dtype": "fp8",
+        "indexer_kv_dtype": "fp8",
+        "enforce_eager": true,
+        "enable_prefix_caching": false,
+        "mamba_cache_mode": "none",
+        "ratio": 0.6,
+        "raw_compression_window_tokens": 1024,
+        "n_over_t": 2.5,
+        "reference_scored_queries": 1535,
+        "reference_query_mode": "generic_document_study",
+        "reference_instruction": "same literal instruction as V4; native GLM tokenizer count recorded per input",
+        "heads_zero_based": [
+          [
+            27,
+            47
+          ],
+          [
+            27,
+            58
+          ],
+          [
+            39,
+            43
+          ],
+          [
+            35,
+            26
+          ]
+        ],
+        "recovery_window_tokens": 128,
+        "recovery_windows": 24,
+        "recovery_budget": "net_add",
+        "probe_readout": "whole-query window mass -> temporal Top5 mean -> per-head Z -> equal-head mean",
+        "thinking": "empty closed think block, same as validated GLM native smoke",
+        "original_document_prefills_per_trajectory": 1,
+        "probe_only_sees_frozen_S": true,
+        "full_physical_prefix_preserved_until_recovery": true,
+        "gold_used_online": false,
+        "architecture_adaptation": "KDA and kpool-tail native fixed states; DSA select whole 4-token Indexer pools",
+        "source_code_hashes": {
+          "experiments/glm_a_r3.py": "dd67a4f2323e334166fa0a551fe3793fe232ee8bab9e217f418291b8fbb95497",
+          "experiments/glm_a_r3_engine.py": "6433a97d683715f85da8a3bdd42cce734c1ff5a7267a6eafe411724d8191a09e",
+          "experiments/native_h5_worker.py": "60736b37946b43f84ad87e6cde25d415b0b81513849beaa9a747666a1e4788b0",
+          "experiments/glm_longbench_data.py": "b26a7d035fae355412c57703a5676f23131d2f649bfbf2efe5d97baeb4e48322",
+          "experiments/run_glm_longbench_campaign.py": "03e3b8a22278c467438febc6aed3ef5b838d553558082fcbf1cc82ab9532dd76",
+          "experiments/run_glm_longbench512_campaign.py": "1f6e8c7f61e539cbaee1f301edd97475f34c41ebd3090b7739f34ea4043eb7b4"
+        },
+        "same_native_inputs_and_reference_as_192": true,
+        "source_config_sha256": "971d75ec1378a80201100b06e9419fc6483fa9a8c8086b97a5b37b19ee927197",
+        "reference_forward_generates_tokens": false,
+        "cohort_sha256": "a906e3bc04eaa499f9dfd5216e59bdf2669acb656e3f6402ac30b5218b0e906c"
+      },
+      "cells": {
+        "baseline": {
+          "n": 473,
+          "mean_pipeline_seconds": 31.00363034822724,
+          "mean_generated_tokens": 209.03805496828753,
+          "stopped_by_length_count": 90,
+          "mean_stage_seconds": {
+            "prefix_prefill_seconds": 7.38770084551695,
+            "fixed_state_snapshot_seconds": 0.0,
+            "reference_forward_seconds": 0.0,
+            "base_a60_selection_seconds": 0.0,
+            "reference_state_rollback_seconds": 0.0,
+            "query_probe_seconds": 0.0,
+            "recovery_selection_seconds": 0.0,
+            "probe_state_rollback_seconds": 0.0,
+            "physical_cache_compaction_seconds": 0.0,
+            "page_release_seconds": 0.0,
+            "suffix_to_first_token_seconds": 0.30324689083069123,
+            "decode_seconds": 23.169488311617243,
+            "artifact_save_seconds": 0.0,
+            "prefill_seconds": 7.690947736347642,
+            "compression_seconds": 0.0,
+            "pipeline_wall_seconds": 31.00363034822724
+          },
+          "reference_tokens": [
+            0
+          ],
+          "reference_instruction_tokens": [
+            0
+          ],
+          "truncated_inputs": 1,
+          "mean_document_equivalent_retention": 1.0,
+          "correct": 238,
+          "accuracy": 0.5031712473572939,
+          "domains": {
+            "Code Repository Understanding": {
+              "n": 31,
+              "correct": 15
+            },
+            "Long In-context Learning": {
+              "n": 74,
+              "correct": 45
+            },
+            "Long Structured Data Understanding": {
+              "n": 30,
+              "correct": 17
+            },
+            "Long-dialogue History Understanding": {
+              "n": 39,
+              "correct": 26
+            },
+            "Multi-Document QA": {
+              "n": 124,
+              "correct": 44
+            },
+            "Single-Document QA": {
+              "n": 175,
+              "correct": 91
+            }
+          }
+        },
+        "a60_r3_additive": {
+          "n": 473,
+          "mean_pipeline_seconds": 35.31662789225799,
+          "mean_generated_tokens": 215.14376321353066,
+          "stopped_by_length_count": 85,
+          "mean_stage_seconds": {
+            "prefix_prefill_seconds": 7.380830524162435,
+            "fixed_state_snapshot_seconds": 0.0030327606040503963,
+            "reference_forward_seconds": 0.7856725026197716,
+            "base_a60_selection_seconds": 0.058667365075669886,
+            "reference_state_rollback_seconds": 0.03068062010168021,
+            "query_probe_seconds": 0.8565381625568765,
+            "recovery_selection_seconds": 0.00703631503700454,
+            "probe_state_rollback_seconds": 0.027201559252832203,
+            "physical_cache_compaction_seconds": 0.5425713128522511,
+            "page_release_seconds": 0.0074995210902257395,
+            "suffix_to_first_token_seconds": 0.3200859976322026,
+            "decode_seconds": 24.6773133364764,
+            "artifact_save_seconds": 0.051708449095676616,
+            "prefill_seconds": 7.700916521794637,
+            "compression_seconds": 0.601238677927921,
+            "pipeline_wall_seconds": 35.31662789225799
+          },
+          "reference_tokens": [
+            1632
+          ],
+          "reference_instruction_tokens": [
+            94
+          ],
+          "truncated_inputs": 1,
+          "mean_document_equivalent_retention": 0.647886177622482,
+          "mean_growing_prefix_pages_saved": 24.708245243128964,
+          "correct": 255,
+          "accuracy": 0.5391120507399577,
+          "domains": {
+            "Code Repository Understanding": {
+              "n": 31,
+              "correct": 18
+            },
+            "Long In-context Learning": {
+              "n": 74,
+              "correct": 49
+            },
+            "Long Structured Data Understanding": {
+              "n": 30,
+              "correct": 15
+            },
+            "Long-dialogue History Understanding": {
+              "n": 39,
+              "correct": 23
+            },
+            "Multi-Document QA": {
+              "n": 124,
+              "correct": 57
+            },
+            "Single-Document QA": {
+              "n": 175,
+              "correct": 93
+            }
+          },
+          "paired_vs_full": {
+            "1->1": 214,
+            "0->0": 194,
+            "0->1": 41,
+            "1->0": 24
+          }
+        }
+      }
+    },
+    "glm_infinitebench512": {
+      "config": {
+        "schema": "glm53-infinitebench701-baseline-a60-r3-net-add-max512-v1",
+        "model": "/data/zhangmy/tanyj/models/GLM-5.3-Flash",
+        "cells": [
+          "baseline",
+          "a60_r3_additive"
+        ],
+        "prompts_per_cell": 701,
+        "max_new_tokens": 512,
+        "max_model_len": 1048576,
+        "temperature": 0.0,
+        "seed": 0,
+        "tp": 4,
+        "gpu_devices": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "max_num_seqs": 1,
+        "max_num_batched_tokens": 8192,
+        "gpu_memory_utilization": 0.95,
+        "kv_cache_dtype": "fp8",
+        "indexer_kv_dtype": "fp8",
+        "enforce_eager": true,
+        "enable_prefix_caching": false,
+        "mamba_cache_mode": "none",
+        "ratio": 0.6,
+        "raw_compression_window_tokens": 1024,
+        "n_over_t": 2.5,
+        "reference_scored_queries": 1535,
+        "reference_query_mode": "generic_document_study",
+        "reference_instruction": "same literal instruction as V4; native GLM tokenizer count recorded per input",
+        "heads_zero_based": [
+          [
+            27,
+            47
+          ],
+          [
+            27,
+            58
+          ],
+          [
+            39,
+            43
+          ],
+          [
+            35,
+            26
+          ]
+        ],
+        "recovery_window_tokens": 128,
+        "recovery_windows": 24,
+        "recovery_budget": "net_add",
+        "probe_readout": "whole-query window mass -> temporal Top5 mean -> per-head Z -> equal-head mean",
+        "thinking": "empty closed think block, same as validated GLM native smoke",
+        "original_document_prefills_per_trajectory": 1,
+        "probe_only_sees_frozen_S": true,
+        "full_physical_prefix_preserved_until_recovery": true,
+        "gold_used_online": false,
+        "architecture_adaptation": "KDA and kpool-tail native fixed states; DSA select whole 4-token Indexer pools",
+        "source_code_hashes": {
+          "experiments/glm_a_r3.py": "dd67a4f2323e334166fa0a551fe3793fe232ee8bab9e217f418291b8fbb95497",
+          "experiments/glm_a_r3_engine.py": "6433a97d683715f85da8a3bdd42cce734c1ff5a7267a6eafe411724d8191a09e",
+          "experiments/native_h5_worker.py": "60736b37946b43f84ad87e6cde25d415b0b81513849beaa9a747666a1e4788b0",
+          "experiments/glm_longbench_data.py": "b26a7d035fae355412c57703a5676f23131d2f649bfbf2efe5d97baeb4e48322",
+          "experiments/run_glm_longbench_campaign.py": "03e3b8a22278c467438febc6aed3ef5b838d553558082fcbf1cc82ab9532dd76",
+          "experiments/run_glm_longbench512_campaign.py": "1f6e8c7f61e539cbaee1f301edd97475f34c41ebd3090b7739f34ea4043eb7b4",
+          "experiments/glm_infinitebench_data.py": "8d48c0a2deb7ad55a1c722f4add308d50a76e36691d0efe09af6982906e64dd2",
+          "experiments/infinitebench_v4.py": "83414a4baade3d5902385baf166a6af806c4600e3f3ecf97af7874f121f0f006",
+          "experiments/native_h5.py": "c4cc6ff15fbeb2a0db31a30e62ab7202480c6a9af722a9dc5c60f9af073029ab",
+          "experiments/run_glm_infinitebench_campaign.py": "007860dd464d89ec29d96c1022fce3c389dd55a554f1873a851428c3c9e53e38",
+          "scripts/launch_glm_infinitebench_campaign.py": "7380a0fc8973c027c2f8ea7acd0801daf7834a2bcd76b553a1ba50cf6376b1b5"
+        },
+        "reference_forward_generates_tokens": false,
+        "dataset": "InfiniteBench",
+        "task_counts": {
+          "longbook_qa_chn": 98,
+          "longbook_qa_eng": 239,
+          "longbook_choice_eng": 150,
+          "longbook_sum_eng": 55,
+          "code_debug": 159
+        },
+        "source_longbench_config_sha256": "2ded9af6ebd0febdfeb806c1dcf2fa49e83d3b0a3038d4b0f658ddaee202ce6a",
+        "source_v4_input_index_sha256": "b85eef901f113f72a473ee3e7acaf3c9aa12a980e43e5ae74d9204788501bea2",
+        "public_prompt_template": "v4-infinitebench-natural-query-v1",
+        "evaluation_source": "OpenBMB/InfiniteBench@51d9b37b0f1790ead936df2243abbf7f0420e439",
+        "evaluation_metrics": {
+          "longbook_qa_chn": "character_f1 + exact_match",
+          "longbook_qa_eng": "word_f1 + exact_match",
+          "longbook_choice_eng": "accuracy",
+          "longbook_sum_eng": "rougeLsum (not binary accuracy)",
+          "code_debug": "accuracy"
+        },
+        "original_question_cohort_reused": true,
+        "context_truncation": false,
+        "stage_order": [
+          "excluded_native_short_warmup",
+          "excluded_all_five_task_smoke",
+          "baseline701",
+          "a60_r3_additive701"
+        ],
+        "cohort_sha256": "3e099b87197f8e12e63eaa8db7b2b9b53b2fc27e9b58d4f218c7e21318e37726"
+      },
+      "cells": {
+        "baseline": {
+          "n": 701,
+          "mean_pipeline_seconds": 36.207124865562065,
+          "mean_generated_tokens": 188.17118402282455,
+          "stopped_by_length_count": 121,
+          "mean_stage_seconds": {
+            "prefix_prefill_seconds": 14.947027094290192,
+            "fixed_state_snapshot_seconds": 0.0,
+            "reference_forward_seconds": 0.0,
+            "base_a60_selection_seconds": 0.0,
+            "reference_state_rollback_seconds": 0.0,
+            "query_probe_seconds": 0.0,
+            "recovery_selection_seconds": 0.0,
+            "probe_state_rollback_seconds": 0.0,
+            "physical_cache_compaction_seconds": 0.0,
+            "page_release_seconds": 0.0,
+            "suffix_to_first_token_seconds": 0.3548095079455073,
+            "decode_seconds": 20.757769048506244,
+            "artifact_save_seconds": 0.0,
+            "prefill_seconds": 15.3018366022357,
+            "compression_seconds": 0.0,
+            "pipeline_wall_seconds": 36.207124865562065
+          },
+          "reference_tokens": [
+            0
+          ],
+          "reference_instruction_tokens": [
+            0
+          ],
+          "truncated_inputs": 0,
+          "mean_document_equivalent_retention": 1.0,
+          "tasks": {
+            "code_debug": {
+              "n": 159,
+              "metric": "accuracy",
+              "mean_score": 0.03773584905660377,
+              "correct": 6,
+              "stopped_by_length_count": 60
+            },
+            "longbook_choice_eng": {
+              "n": 150,
+              "metric": "accuracy",
+              "mean_score": 0.8866666666666667,
+              "correct": 133,
+              "stopped_by_length_count": 4
+            },
+            "longbook_qa_chn": {
+              "n": 98,
+              "metric": "character_f1",
+              "mean_score": 0.1299229170417308,
+              "correct": 4,
+              "stopped_by_length_count": 2
+            },
+            "longbook_qa_eng": {
+              "n": 239,
+              "metric": "word_f1",
+              "mean_score": 0.4271855840914711,
+              "correct": 61,
+              "stopped_by_length_count": 0
+            },
+            "longbook_sum_eng": {
+              "n": 55,
+              "metric": "rougeLsum",
+              "mean_score": 0.2747618781697952,
+              "correct": 0,
+              "stopped_by_length_count": 55
+            }
+          },
+          "mixed_task_native_mean_score": 0.3836543563014122
+        },
+        "a60_r3_additive": {
+          "n": 701,
+          "mean_pipeline_seconds": 38.73464670350055,
+          "mean_generated_tokens": 185.83880171184023,
+          "stopped_by_length_count": 120,
+          "mean_stage_seconds": {
+            "prefix_prefill_seconds": 14.9346927777039,
+            "fixed_state_snapshot_seconds": 0.0028150261203079524,
+            "reference_forward_seconds": 0.7824966804032744,
+            "base_a60_selection_seconds": 0.10006614358359668,
+            "reference_state_rollback_seconds": 0.04942285596856717,
+            "query_probe_seconds": 0.26711749654268574,
+            "recovery_selection_seconds": 0.007107383780149522,
+            "probe_state_rollback_seconds": 0.04177957998001457,
+            "physical_cache_compaction_seconds": 1.1203083841823647,
+            "page_release_seconds": 0.013008597648347836,
+            "suffix_to_first_token_seconds": 0.3555068941401602,
+            "decode_seconds": 20.57231481686851,
+            "artifact_save_seconds": 0.05604007124858304,
+            "prefill_seconds": 15.29019967184406,
+            "compression_seconds": 1.2203745277659614,
+            "pipeline_wall_seconds": 38.73464670350055
+          },
+          "reference_tokens": [
+            1632
+          ],
+          "reference_instruction_tokens": [
+            94
+          ],
+          "truncated_inputs": 0,
+          "mean_document_equivalent_retention": 0.6114117677433247,
+          "mean_growing_prefix_pages_saved": 49.23109843081313,
+          "tasks": {
+            "code_debug": {
+              "n": 159,
+              "metric": "accuracy",
+              "mean_score": 0.0440251572327044,
+              "correct": 7,
+              "stopped_by_length_count": 59
+            },
+            "longbook_choice_eng": {
+              "n": 150,
+              "metric": "accuracy",
+              "mean_score": 0.9066666666666666,
+              "correct": 136,
+              "stopped_by_length_count": 4
+            },
+            "longbook_qa_chn": {
+              "n": 98,
+              "metric": "character_f1",
+              "mean_score": 0.1410639416508782,
+              "correct": 4,
+              "stopped_by_length_count": 2
+            },
+            "longbook_qa_eng": {
+              "n": 239,
+              "metric": "word_f1",
+              "mean_score": 0.438947422039154,
+              "correct": 64,
+              "stopped_by_length_count": 0
+            },
+            "longbook_sum_eng": {
+              "n": 55,
+              "metric": "rougeLsum",
+              "mean_score": 0.2746531018805657,
+              "correct": 0,
+              "stopped_by_length_count": 55
+            }
+          },
+          "mixed_task_native_mean_score": 0.3949195731135164
+        }
+      }
+    },
+    "v41_longbench1630": {
+      "config": {
+        "schema": "v41-longbench473-logical-a60-r3-additive-max192-v1",
+        "model": "/data/zhangmy/tanyj/models/DeepSeek-V4.1-Flash",
+        "cells": [
+          "baseline",
+          "a60_r3_additive"
+        ],
+        "prompts_per_cell": 473,
+        "max_new_tokens": 192,
+        "max_model_len": 1048576,
+        "temperature": 0.0,
+        "seed": 0,
+        "tp": 4,
+        "gpu_devices": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "max_num_seqs": 1,
+        "max_num_batched_tokens": 8192,
+        "gpu_memory_utilization": 0.95,
+        "kv_cache_dtype": "fp8",
+        "indexer_kv_dtype": "fp8",
+        "enforce_eager": true,
+        "enable_prefix_caching": false,
+        "ratio": 0.6,
+        "raw_compression_window_tokens": 1024,
+        "n_over_t": 2.5,
+        "reference_scored_queries": 1535,
+        "reference_query_mode": "generic_document_study",
+        "reference_instruction": "same literal instruction as V4; native GLM tokenizer count recorded per input",
+        "heads_zero_based": [
+          [
+            22,
+            4
+          ],
+          [
+            16,
+            56
+          ],
+          [
+            23,
+            51
+          ],
+          [
+            34,
+            60
+          ]
+        ],
+        "recovery_window_tokens": 128,
+        "recovery_windows": 24,
+        "recovery_budget": "net_add",
+        "probe_readout": "whole-query window mass -> temporal Top5 mean -> per-head Z -> equal-head mean",
+        "thinking": "Native V4.1 chat template: enable_thinking=False, thinking_mode=chat",
+        "original_document_prefills_per_trajectory": 1,
+        "probe_only_sees_frozen_S": true,
+        "full_physical_prefix_preserved_until_recovery": true,
+        "gold_used_online": false,
+        "architecture_adaptation": "Per-consuming-layer independent masks; preserve shared KV, native SWA, compressor state, Engram embeddings and hash lookback; unchanged original positions.",
+        "source_code_hashes": {
+          "experiments/native_h5.py": "c4cc6ff15fbeb2a0db31a30e62ab7202480c6a9af722a9dc5c60f9af073029ab",
+          "experiments/native_h5_worker.py": "60736b37946b43f84ad87e6cde25d415b0b81513849beaa9a747666a1e4788b0",
+          "experiments/v41_a_r3.py": "c42addad763f5faf8ca8d820f8c344b2b4a3488ea8af9b84e901baf3b7bb5ccd",
+          "experiments/v41_longbench_data.py": "d7879964eddb47642c628590439f97a1d2f36373b7d43b21c5a7fe2a3463d9e9",
+          "experiments/run_v41_longbench_campaign.py": "fe8167cc76820e90dc171d4ab12171027d2aa8a96a26b92f3297b9aadfe49bcf",
+          "scripts/launch_v41_longbench_campaign.py": "634ecd2d8cc4fcca0c77eb117c523e4e3d8f9357a96ac479420e09fccb750dc3",
+          "experiments/vllm_v4_a_e1/engine.py": "08f4af65ff9b977cf173b8147888c16a83f8ccc792b985566c677821c9aca69e",
+          "experiments/v4_recovery/math.py": "fb087116163a5b4dc71973a83b2c0f6dfc267f7e8bdd9eb7f2d002a7992469d7",
+          "experiments/deepseek_common.py": "8ed9b45429fece7e91fb37dc13619ef3918bfb2fe47b03c396cf715e4934b895",
+          "experiments/run_glm_longbench_campaign.py": "03e3b8a22278c467438febc6aed3ef5b838d553558082fcbf1cc82ab9532dd76",
+          "/data/zhangmy/tanyj/miniconda3/envs/deepseek-v41-flash/lib/python3.12/site-packages/vllm/models/deepseek_v41/attention.py": "dd146642fc7d7034f32feecf35ff4d7d9460f59a8a57444c0dd6f367fe8f15fb",
+          "/data/zhangmy/tanyj/miniconda3/envs/deepseek-v41-flash/lib/python3.12/site-packages/vllm/models/deepseek_v41/nvidia/flashmla.py": "6bfcc91c278bae8f9c95d9ec4da12ef98112b9ccf9d22547743485759c258348",
+          "/data/zhangmy/tanyj/miniconda3/envs/deepseek-v41-flash/lib/python3.12/site-packages/vllm/models/deepseek_v41/nvidia/model.py": "5fe8b4a758ab586dd24ac218873a2c064cd3d72687b196dec4edf1b5e53f83a3",
+          "/data/zhangmy/tanyj/miniconda3/envs/deepseek-v41-flash/lib/python3.12/site-packages/vllm/models/deepseek_v41/common/engram.py": "80d6f14973c99be431029e0fba4a6a784a428501bd6ba1726cff0879e0e1627f",
+          "/data/zhangmy/tanyj/miniconda3/envs/deepseek-v41-flash/lib/python3.12/site-packages/vllm/model_executor/layers/sparse_attn_indexer.py": "75d14da5e2b8c237f7fc0a807d2b72677660a945c70d23825da3517801d9ca10"
+        },
+        "physical_compaction": false,
+        "full_shared_physical_prefix_preserved_through_decode": true,
+        "engram_cpu_offload": true,
+        "swa_bounded_replay": false,
+        "head_selection_summary_sha256": "bd43e5b40dd5225b3f73d8b531e2af3e7882534ee27bfd5d6bde0345b12ac715",
+        "reference_forward_generates_tokens": false,
+        "logical_mask_placement": "Indexer logits before native TopK, prefill and paged decode",
+        "shared_candidate_publication": "Retain source publications while rerouting each consumer",
+        "stage_order": [
+          "excluded_short_and_long_preflight",
+          "baseline473",
+          "a60_r3_additive473"
+        ],
+        "cohort_sha256": "854368b1fbf425ad49685d6c299d9be0ec5eae8d9a61597a1c84065b0abba917"
+      },
+      "cells": {
+        "baseline": {
+          "n": 473,
+          "mean_pipeline_seconds": 24.78155006450969,
+          "mean_generated_tokens": 140.78858350951373,
+          "stopped_by_length_count": 176,
+          "mean_stage_seconds": {
+            "prefix_prefill_seconds": 8.265215726525978,
+            "fixed_state_snapshot_seconds": 0.0,
+            "reference_forward_seconds": 0.0,
+            "base_a60_selection_seconds": 0.0,
+            "reference_state_rollback_seconds": 0.0,
+            "query_probe_seconds": 0.0,
+            "recovery_selection_seconds": 0.0,
+            "probe_state_rollback_seconds": 0.0,
+            "physical_cache_compaction_seconds": 0.0,
+            "page_release_seconds": 0.0,
+            "suffix_to_first_token_seconds": 0.3067100858335515,
+            "decode_seconds": 16.094412613494704,
+            "artifact_save_seconds": 0.0,
+            "prefill_seconds": 8.57192581235953,
+            "compression_seconds": 0.0,
+            "pipeline_wall_seconds": 24.78155006450969
+          },
+          "reference_tokens": [
+            0
+          ],
+          "reference_instruction_tokens": [
+            0
+          ],
+          "truncated_inputs": 0,
+          "physical_prefix_unchanged": true,
+          "correct": 179,
+          "accuracy": 0.3784355179704017,
+          "domains": {
+            "Code Repository Understanding": {
+              "n": 31,
+              "correct": 15
+            },
+            "Long In-context Learning": {
+              "n": 74,
+              "correct": 26
+            },
+            "Long Structured Data Understanding": {
+              "n": 30,
+              "correct": 14
+            },
+            "Long-dialogue History Understanding": {
+              "n": 39,
+              "correct": 14
+            },
+            "Multi-Document QA": {
+              "n": 124,
+              "correct": 36
+            },
+            "Single-Document QA": {
+              "n": 175,
+              "correct": 74
+            }
+          }
+        },
+        "a60_r3_additive": {
+          "n": 473,
+          "mean_pipeline_seconds": 46.958357775918586,
+          "mean_generated_tokens": 139.67441860465115,
+          "stopped_by_length_count": 177,
+          "mean_stage_seconds": {
+            "prefix_prefill_seconds": 8.257310392165726,
+            "fixed_state_snapshot_seconds": 0.03923091202596277,
+            "reference_forward_seconds": 12.16639367186998,
+            "base_a60_selection_seconds": 0.25543652536312067,
+            "reference_state_rollback_seconds": 0.07681743704554395,
+            "query_probe_seconds": 6.094040288780885,
+            "recovery_selection_seconds": 0.02394794256881226,
+            "probe_state_rollback_seconds": 0.07364596770662837,
+            "physical_cache_compaction_seconds": 0.0,
+            "page_release_seconds": 0.0,
+            "suffix_to_first_token_seconds": 0.5229957709935579,
+            "decode_seconds": 18.39941217838521,
+            "artifact_save_seconds": 0.287360730165533,
+            "prefill_seconds": 8.780306163159283,
+            "compression_seconds": 0.27938446793193294,
+            "pipeline_wall_seconds": 46.958357775918586
+          },
+          "reference_tokens": [
+            1630
+          ],
+          "reference_instruction_tokens": [
+            93
+          ],
+          "truncated_inputs": 0,
+          "physical_prefix_unchanged": true,
+          "correct": 179,
+          "accuracy": 0.3784355179704017,
+          "domains": {
+            "Code Repository Understanding": {
+              "n": 31,
+              "correct": 14
+            },
+            "Long In-context Learning": {
+              "n": 74,
+              "correct": 28
+            },
+            "Long Structured Data Understanding": {
+              "n": 30,
+              "correct": 11
+            },
+            "Long-dialogue History Understanding": {
+              "n": 39,
+              "correct": 14
+            },
+            "Multi-Document QA": {
+              "n": 124,
+              "correct": 39
+            },
+            "Single-Document QA": {
+              "n": 175,
+              "correct": 73
+            }
+          },
+          "paired_vs_full": {
+            "0->0": 264,
+            "1->1": 149,
+            "1->0": 30,
+            "0->1": 30
+          }
+        }
+      }
+    },
+    "v41_longbench_fixed": {
+      "config": {
+        "schema": "v41-longbench473-a60-r3-fixed-reference-optimized-v1",
+        "model": "/data/zhangmy/tanyj/models/DeepSeek-V4.1-Flash",
+        "cells": [
+          "a60_r3_additive_ref1024",
+          "a60_r3_additive_ref2048"
+        ],
+        "prompts_per_cell": 473,
+        "max_new_tokens": 192,
+        "max_model_len": 1048576,
+        "temperature": 0.0,
+        "seed": 0,
+        "tp": 4,
+        "gpu_devices": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "max_num_seqs": 1,
+        "max_num_batched_tokens": 8192,
+        "gpu_memory_utilization": 0.95,
+        "kv_cache_dtype": "fp8",
+        "indexer_kv_dtype": "fp8",
+        "enforce_eager": true,
+        "enable_prefix_caching": false,
+        "ratio": 0.6,
+        "raw_compression_window_tokens": 1024,
+        "n_over_t": "Fixed suffix sweep overrides the old1535-Q budget; base A60 quota is unchanged.",
+        "reference_scored_queries": {
+          "1024": 1024,
+          "2048": 2048
+        },
+        "reference_query_mode": "generic_document_study",
+        "reference_instruction": "same literal instruction as V4; native GLM tokenizer count recorded per input",
+        "heads_zero_based": [
+          [
+            22,
+            4
+          ],
+          [
+            16,
+            56
+          ],
+          [
+            23,
+            51
+          ],
+          [
+            34,
+            60
+          ]
+        ],
+        "recovery_window_tokens": 128,
+        "recovery_windows": 24,
+        "recovery_budget": "net_add",
+        "probe_readout": "whole-query window mass -> temporal Top5 mean -> per-head Z -> equal-head mean",
+        "thinking": "Native V4.1 chat template: enable_thinking=False, thinking_mode=chat",
+        "original_document_prefills_per_trajectory": 1,
+        "probe_only_sees_frozen_S": true,
+        "full_physical_prefix_preserved_until_recovery": true,
+        "gold_used_online": false,
+        "architecture_adaptation": "Per-consuming-layer independent masks; preserve shared KV, native SWA, compressor state, Engram embeddings and hash lookback; unchanged original positions.",
+        "source_code_hashes": {
+          "experiments/native_h5.py": "c4cc6ff15fbeb2a0db31a30e62ab7202480c6a9af722a9dc5c60f9af073029ab",
+          "experiments/native_h5_worker.py": "60736b37946b43f84ad87e6cde25d415b0b81513849beaa9a747666a1e4788b0",
+          "experiments/v41_a_r3.py": "c42addad763f5faf8ca8d820f8c344b2b4a3488ea8af9b84e901baf3b7bb5ccd",
+          "experiments/v41_longbench_data.py": "d7879964eddb47642c628590439f97a1d2f36373b7d43b21c5a7fe2a3463d9e9",
+          "experiments/run_v41_longbench_campaign.py": "fe8167cc76820e90dc171d4ab12171027d2aa8a96a26b92f3297b9aadfe49bcf",
+          "scripts/launch_v41_longbench_campaign.py": "634ecd2d8cc4fcca0c77eb117c523e4e3d8f9357a96ac479420e09fccb750dc3",
+          "experiments/vllm_v4_a_e1/engine.py": "08f4af65ff9b977cf173b8147888c16a83f8ccc792b985566c677821c9aca69e",
+          "experiments/v4_recovery/math.py": "fb087116163a5b4dc71973a83b2c0f6dfc267f7e8bdd9eb7f2d002a7992469d7",
+          "experiments/deepseek_common.py": "8ed9b45429fece7e91fb37dc13619ef3918bfb2fe47b03c396cf715e4934b895",
+          "experiments/run_glm_longbench_campaign.py": "03e3b8a22278c467438febc6aed3ef5b838d553558082fcbf1cc82ab9532dd76",
+          "/data/zhangmy/tanyj/miniconda3/envs/deepseek-v41-flash/lib/python3.12/site-packages/vllm/models/deepseek_v41/attention.py": "dd146642fc7d7034f32feecf35ff4d7d9460f59a8a57444c0dd6f367fe8f15fb",
+          "/data/zhangmy/tanyj/miniconda3/envs/deepseek-v41-flash/lib/python3.12/site-packages/vllm/models/deepseek_v41/nvidia/flashmla.py": "6bfcc91c278bae8f9c95d9ec4da12ef98112b9ccf9d22547743485759c258348",
+          "/data/zhangmy/tanyj/miniconda3/envs/deepseek-v41-flash/lib/python3.12/site-packages/vllm/models/deepseek_v41/nvidia/model.py": "5fe8b4a758ab586dd24ac218873a2c064cd3d72687b196dec4edf1b5e53f83a3",
+          "/data/zhangmy/tanyj/miniconda3/envs/deepseek-v41-flash/lib/python3.12/site-packages/vllm/models/deepseek_v41/common/engram.py": "80d6f14973c99be431029e0fba4a6a784a428501bd6ba1726cff0879e0e1627f",
+          "/data/zhangmy/tanyj/miniconda3/envs/deepseek-v41-flash/lib/python3.12/site-packages/vllm/model_executor/layers/sparse_attn_indexer.py": "75d14da5e2b8c237f7fc0a807d2b72677660a945c70d23825da3517801d9ca10",
+          "experiments/v41_a_r3_optimized.py": "cf216ac52dce40564a9c0842f56924e31108b5d695869bf301c42d2858f7bd36",
+          "experiments/v41_reference_sweep_data.py": "04a153fbd01d1c6aa1565e0abee72a744f6bc625db2ce20c3af74b3676e1c3de",
+          "experiments/run_v41_reference_sweep.py": "b878b2c92f25aaa53955b271a1abf1d0d10adbd3ae0c4c6d92a1ed489621dc25",
+          "scripts/launch_v41_reference_sweep.py": "0dfd41d96631a120055bc77bc576dd0b97c07d5d559b87596f049e606dd497af"
+        },
+        "physical_compaction": false,
+        "full_shared_physical_prefix_preserved_through_decode": true,
+        "engram_cpu_offload": true,
+        "swa_bounded_replay": false,
+        "head_selection_summary_sha256": "bd43e5b40dd5225b3f73d8b531e2af3e7882534ee27bfd5d6bde0345b12ac715",
+        "reference_forward_generates_tokens": false,
+        "logical_mask_placement": "Indexer logits before native TopK, prefill and paged decode",
+        "shared_candidate_publication": "Retain source publications while rerouting each consumer",
+        "stage_order": [
+          "excluded_integrity_preflights",
+          "a60_r3_additive_ref1024:473",
+          "a60_r3_additive_ref2048:473"
+        ],
+        "suffix_lengths": [
+          1024,
+          2048
+        ],
+        "reference_instruction_tokens": 93,
+        "reference_tail_tokens": 2,
+        "reference_document_sample_tokens": {
+          "1024": 929,
+          "2048": 1953
+        },
+        "reference_scoring_mode": "all_suffix_positions_explicitly_user_confirmed",
+        "reference_query_chunk": 64,
+        "probe_query_chunk": 8,
+        "page_table_stays_on_gpu": true,
+        "worker_extension_cls": "experiments.v41_a_r3_optimized.OptimizedV41AR3WorkerExtension",
+        "evaluation": "Same frozen strict evaluator as the179/473 baseline; Markdown normalization is not applied.",
+        "score_query_cap": 0,
+        "baseline_comparison": "/data/zhangmy/tanyj/code/Cache_compression/results/deepseek_v41_longbench_v2_473_a60_r3_logical_additive_max192_v1/SUMMARY.json",
+        "cohort_sha256": "cf55d151ca45423bda20ea388c411363bd4f254ecc5fd54a39743daa6ecc7429"
+      },
+      "cells": {
+        "a60_r3_additive_ref1024": {
+          "n": 473,
+          "mean_pipeline_seconds": 31.761080748907606,
+          "mean_generated_tokens": 140.6490486257928,
+          "stopped_by_length_count": 192,
+          "mean_stage_seconds": {
+            "prefix_prefill_seconds": 8.291881683969725,
+            "fixed_state_snapshot_seconds": 0.039238812350697545,
+            "reference_forward_seconds": 0.6012526754266238,
+            "base_a60_selection_seconds": 0.24375723195252408,
+            "reference_state_rollback_seconds": 0.07385005468766483,
+            "query_probe_seconds": 3.169229559749995,
+            "recovery_selection_seconds": 0.019602817245001018,
+            "probe_state_rollback_seconds": 0.07228576163534886,
+            "physical_cache_compaction_seconds": 0.0,
+            "page_release_seconds": 0.0,
+            "suffix_to_first_token_seconds": 0.39615093950520863,
+            "decode_seconds": 17.83335147093958,
+            "artifact_save_seconds": 0.2536899992609377,
+            "prefill_seconds": 8.688032623474934,
+            "compression_seconds": 0.2633600491975251,
+            "pipeline_wall_seconds": 31.761080748907606
+          },
+          "reference_tokens": [
+            1024
+          ],
+          "reference_instruction_tokens": [
+            93
+          ],
+          "truncated_inputs": 0,
+          "physical_prefix_unchanged": true,
+          "correct": 172,
+          "accuracy": 0.36363636363636365,
+          "domains": {
+            "Code Repository Understanding": {
+              "n": 31,
+              "correct": 11
+            },
+            "Long In-context Learning": {
+              "n": 74,
+              "correct": 24
+            },
+            "Long Structured Data Understanding": {
+              "n": 30,
+              "correct": 11
+            },
+            "Long-dialogue History Understanding": {
+              "n": 39,
+              "correct": 14
+            },
+            "Multi-Document QA": {
+              "n": 124,
+              "correct": 38
+            },
+            "Single-Document QA": {
+              "n": 175,
+              "correct": 74
+            }
+          },
+          "paired_vs_full": {
+            "0->0": 266,
+            "1->0": 35,
+            "1->1": 144,
+            "0->1": 28
+          }
+        },
+        "a60_r3_additive_ref2048": {
+          "n": 473,
+          "mean_pipeline_seconds": 32.17655537319202,
+          "mean_generated_tokens": 140.24101479915433,
+          "stopped_by_length_count": 178,
+          "mean_stage_seconds": {
+            "prefix_prefill_seconds": 8.297568539192952,
+            "fixed_state_snapshot_seconds": 0.03947052291848443,
+            "reference_forward_seconds": 1.1351237391962437,
+            "base_a60_selection_seconds": 0.24159279317608848,
+            "reference_state_rollback_seconds": 0.07412788948441913,
+            "query_probe_seconds": 3.1185601949376736,
+            "recovery_selection_seconds": 0.019797653093713535,
+            "probe_state_rollback_seconds": 0.07216376669500141,
+            "physical_cache_compaction_seconds": 0.0,
+            "page_release_seconds": 0.0,
+            "suffix_to_first_token_seconds": 0.39041986589735456,
+            "decode_seconds": 17.730044505182835,
+            "artifact_save_seconds": 0.2641630602516155,
+            "prefill_seconds": 8.687988405090305,
+            "compression_seconds": 0.261390446269802,
+            "pipeline_wall_seconds": 32.17655537319202
+          },
+          "reference_tokens": [
+            2048
+          ],
+          "reference_instruction_tokens": [
+            93
+          ],
+          "truncated_inputs": 0,
+          "physical_prefix_unchanged": true,
+          "correct": 182,
+          "accuracy": 0.38477801268498946,
+          "domains": {
+            "Code Repository Understanding": {
+              "n": 31,
+              "correct": 13
+            },
+            "Long In-context Learning": {
+              "n": 74,
+              "correct": 31
+            },
+            "Long Structured Data Understanding": {
+              "n": 30,
+              "correct": 12
+            },
+            "Long-dialogue History Understanding": {
+              "n": 39,
+              "correct": 13
+            },
+            "Multi-Document QA": {
+              "n": 124,
+              "correct": 36
+            },
+            "Single-Document QA": {
+              "n": 175,
+              "correct": 77
+            }
+          },
+          "paired_vs_full": {
+            "0->0": 263,
+            "1->1": 151,
+            "1->0": 28,
+            "0->1": 31
+          }
+        }
+      }
+    }
+  },
+  "heads": {
+    "glm53": {
+      "heads_zero_based": [
+        [
+          27,
+          47
+        ],
+        [
+          27,
+          58
+        ],
+        [
+          39,
+          43
+        ],
+        [
+          35,
+          26
+        ]
+      ],
+      "groups": {
+        "primary:LongBench-v2": {
+          "n": 55,
+          "hits": 51.0
+        },
+        "dataset:BrowseComp-Plus-near128K": {
+          "n": 88,
+          "hits": 82.0
+        }
+      },
+      "discovery_inputs": 156,
+      "labelled_inputs": 152,
+      "longbench_overlap": 68,
+      "protocol": {
+        "cohort_count": 156,
+        "ratio": 0.6,
+        "n_over_t": 2.5,
+        "raw_chunk_tokens": 1024,
+        "scored_reference_queries": 1535,
+        "reference_query_mode": "generic_document_study",
+        "query_readout": "full-query window-sum then temporal Top5 mean",
+        "ranking_resolution": 256,
+        "ranking_budget_tokens": 3072,
+        "resolutions": [
+          64,
+          128,
+          256,
+          512,
+          1024
+        ],
+        "tensor_parallel_size": 4,
+        "thinking": false,
+        "gold_worker_input": false,
+        "physical_compaction": false,
+        "architecture_adaptation": "per-consuming-layer logical native A60; linear states unchanged"
+      },
+      "max_native_kernel_relative_error": 0.002453547203913331
+    },
+    "v41": {
+      "heads_zero_based": [
+        [
+          22,
+          4
+        ],
+        [
+          16,
+          56
+        ],
+        [
+          23,
+          51
+        ],
+        [
+          34,
+          60
+        ]
+      ],
+      "groups": {
+        "primary:LongBench-v2": {
+          "n": 55,
+          "hits": 50.0
+        },
+        "dataset:BrowseComp-Plus-near128K": {
+          "n": 88,
+          "hits": 83.0
+        }
+      },
+      "discovery_inputs": 156,
+      "labelled_inputs": 152,
+      "longbench_overlap": 68,
+      "protocol": {
+        "cohort_count": 156,
+        "ratio": 0.6,
+        "n_over_t": 2.5,
+        "raw_chunk_tokens": 1024,
+        "scored_reference_queries": 1535,
+        "reference_query_mode": "generic_document_study",
+        "query_readout": "full-query window-sum then temporal Top5 mean",
+        "ranking_resolution": 256,
+        "ranking_budget_tokens": 3072,
+        "resolutions": [
+          64,
+          128,
+          256,
+          512,
+          1024
+        ],
+        "tensor_parallel_size": 4,
+        "thinking": false,
+        "gold_worker_input": false,
+        "physical_compaction": false,
+        "architecture_adaptation": "per-consuming-layer logical native A60; linear states unchanged"
+      },
+      "max_native_kernel_relative_error": 0.0021716554183512926
+    }
+  },
+  "source_sha256": {
+    "results/glm53_longbench_v2_473_a60_r3_additive_v1/config.json": "971d75ec1378a80201100b06e9419fc6483fa9a8c8086b97a5b37b19ee927197",
+    "results/glm53_longbench_v2_473_a60_r3_additive_v1/SUMMARY.json": "d9ff546ab98d36ee12546b64381aca4657a37a3312f429586dc1263a4be4467c",
+    "results/glm53_longbench_v2_473_a60_r3_additive_v1/baseline/results.jsonl": "b1857211448c6128176053b0c6d9ee612f00b8b793daa93cf6789532279b35f3",
+    "results/glm53_longbench_v2_473_a60_r3_additive_v1/a60_r3_additive/results.jsonl": "2f9686a3c84c031e07a19e03394a0b88469590ff16325dc0bf0e6c07df4fb72b",
+    "results/glm53_longbench_v2_473_a60_r3_additive_max512_v1/config.json": "2ded9af6ebd0febdfeb806c1dcf2fa49e83d3b0a3038d4b0f658ddaee202ce6a",
+    "results/glm53_longbench_v2_473_a60_r3_additive_max512_v1/SUMMARY.json": "6fa5267e2e3413af8fd7142e334d769782b354498bb36113e2f77bd91d97f30a",
+    "results/glm53_longbench_v2_473_a60_r3_additive_max512_v1/baseline/results.jsonl": "d4a8b89d51dafcb6b49df4f0190cee5b1ea0951e470f4adc9a8a647d3f1e1799",
+    "results/glm53_longbench_v2_473_a60_r3_additive_max512_v1/a60_r3_additive/results.jsonl": "9524ba007574fe953051079686b987c8cc7aaad52137bd477fe00643ec18e33b",
+    "results/glm53_infinitebench_701_a60_r3_additive_max512_v1/config.json": "6cf678f601e540ffdc982fe8c2b7246e5ed00345d5f358d81e992a6005e5f300",
+    "results/glm53_infinitebench_701_a60_r3_additive_max512_v1/SUMMARY.json": "126eff33bb49d541c28e0f0832fce5d2a74bb6a8f5a36bd9ccb1561f540e2ce3",
+    "results/glm53_infinitebench_701_a60_r3_additive_max512_v1/baseline/results.jsonl": "1dd64997ccc27b9e20bce02c2f01d672f75193a785f1118a4de832846458fc8b",
+    "results/glm53_infinitebench_701_a60_r3_additive_max512_v1/a60_r3_additive/results.jsonl": "994503a4f7d3c2743fe755733f527f86a5309fbd903e78f8e4afb8837e708ffc",
+    "results/deepseek_v41_longbench_v2_473_a60_r3_logical_additive_max192_v1/config.json": "3956a85d2b55b710c1700ec7aac8e6c799a12328e4ff21359c991bc41dc3bdd1",
+    "results/deepseek_v41_longbench_v2_473_a60_r3_logical_additive_max192_v1/SUMMARY.json": "e5d1a7d114dca0c8fc63c6a51ac3df2ebb16c78b25f7857b8503454776d127ef",
+    "results/deepseek_v41_longbench_v2_473_a60_r3_logical_additive_max192_v1/baseline/results.jsonl": "5fa72982f532f2966f41488b8b63bbcad26392037af85d81ad155e56c270d5e0",
+    "results/deepseek_v41_longbench_v2_473_a60_r3_logical_additive_max192_v1/a60_r3_additive/results.jsonl": "b23499ef4910614ce2fa518ace4a656060f7fb8e3733cec52ae01dd566b14917",
+    "results/deepseek_v41_longbench_v2_473_a60_r3_ref1024_2048_optimized_max192_v1/config.json": "8734bfa20562d0c1dad159d167ae06b0c4a0da7af916f5e369095f384b91edb9",
+    "results/deepseek_v41_longbench_v2_473_a60_r3_ref1024_2048_optimized_max192_v1/SUMMARY.json": "39523917ac1040230b1ad86ab3385256302bc736fca0fd42e1bbcc0cd487d794",
+    "results/deepseek_v41_longbench_v2_473_a60_r3_ref1024_2048_optimized_max192_v1/a60_r3_additive_ref1024/results.jsonl": "995e4846f23c68fec4d9f377f7623ababca1b9e8aa47d6d2bd420b66e0b6a31f",
+    "results/deepseek_v41_longbench_v2_473_a60_r3_ref1024_2048_optimized_max192_v1/a60_r3_additive_ref2048/results.jsonl": "c543302210b9e6495d4373d8c8b0ab908b58d786ae7d5ad67491df285b843fa0",
+    "results/native_h5_glm53_v1/analysis/summary.json": "7200183c8df7514bdcfa6b3d8020fba4720e57ea3ee136b42436e8b4cb6d83fc",
+    "results/native_h5_glm53_v1/manifest.json": "3827a74c66a3eb2b119a5f92a92f8422286b3aa0c1f7e3e0254ad270d7a44d8b",
+    "results/native_h5_glm53_v1/analysis/ensemble_per_prompt.csv": "54701567ad810f6356d255d4116961cb1cbf91bd1e3a8aaa01cbd366a93904cd",
+    "results/native_h5_v41_v1/analysis/summary.json": "bd43e5b40dd5225b3f73d8b531e2af3e7882534ee27bfd5d6bde0345b12ac715",
+    "results/native_h5_v41_v1/manifest.json": "e4a8786c1469dc3cc3f8e267fc06695664f18397e4b66be9fc63042a51f0c05a",
+    "results/native_h5_v41_v1/analysis/ensemble_per_prompt.csv": "8fd33e6102b00acf598b7f6ab6c12465b92f376b7891d51f7d099a2ca5d6ceca",
+    "experiments/glm_a_r3.py": "dd67a4f2323e334166fa0a551fe3793fe232ee8bab9e217f418291b8fbb95497",
+    "experiments/glm_a_r3_engine.py": "6433a97d683715f85da8a3bdd42cce734c1ff5a7267a6eafe411724d8191a09e",
+    "experiments/v41_a_r3.py": "c42addad763f5faf8ca8d820f8c344b2b4a3488ea8af9b84e901baf3b7bb5ccd",
+    "experiments/v41_a_r3_optimized.py": "cf216ac52dce40564a9c0842f56924e31108b5d695869bf301c42d2858f7bd36",
+    "experiments/native_h5_worker.py": "60736b37946b43f84ad87e6cde25d415b0b81513849beaa9a747666a1e4788b0"
+  },
+  "retention_definition": "Per-question document-equivalent ratio after physical GLM page alignment; excludes fixed KDA and pooling-tail states. V4.1 keeps the full physical prefix.",
+  "length_stop_definition": "finish_reason == length; not generated_tokens == max_new_tokens"
+}

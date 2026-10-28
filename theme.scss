@@ -1337,6 +1337,10 @@ html[lang^="zh"] .blog-tree-branch p {
   text-decoration-color: rgba(83, 99, 238, 0.32);
 }
 
+.blog-page.zh-page .quarto-listing-default .listing-title br {
+  display: none;
+}
+
 .quarto-listing-default .listing-description {
   max-width: 720px;
   margin-bottom: 0.65rem;
@@ -3198,6 +3202,10 @@ body.post-observation .column-margin.column-container > div {
   margin-bottom: 0;
 }
 
+#note-compaction-target .katex-display {
+  font-size: 0.95em;
+}
+
 .column-margin strong,
 .aside strong {
   color: var(--ink);
@@ -3312,6 +3320,20 @@ code:not(pre code) {
   margin: 2rem 0;
   overflow-x: auto;
   overflow-y: hidden;
+}
+
+.blue-math .math,
+.blue-math .katex {
+  color: var(--research-deep);
+}
+
+.blue-math .katex [style*="color"] {
+  color: var(--research-deep) !important;
+}
+
+.post-research .v32-results-table > table,
+.post-research .compact-wide-table table {
+  min-inline-size: 36rem;
 }
 
 figure {

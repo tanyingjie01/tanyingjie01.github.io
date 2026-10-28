@@ -9,7 +9,7 @@ author: []
 categories:
   - 研究
 draft: false
-body-classes: post-research title-date-only
+body-classes: post-research title-date-only blue-math
 title-block-categories: false
 number-sections: true
 toc-depth: 3
