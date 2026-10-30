@@ -94,17 +94,75 @@ p\_\theta(y \mid C(H),\\ U) \approx p\_\theta(y \mid R(H,U),\\ U).
 
 R = U \\\\\\ P\_{\text{study}} \\\\\\ T\_{\text{chat}} \\\\\\ \operatorname{Sample}\_n(H).
 
-这里 \\ 表示 Cache 序列的拼接，P\_{\text{study}} 是固定的学习指令，要求模型总结要点，汇总关键事实，并复述代表性内容，其原文如下：
+这里 \\ 表示 Cache 序列的拼接，P\_{\text{study}} 是固定的学习指令，要求模型总结要点，汇总关键事实，并复述代表性内容，其原文如下⁴：
+
+注 4
+
+这段学习指令的具体表述由 CodeX 生成，这类偏实现的细节并非本研究关心的重点，因此不会花太多时间打磨措辞，会显得 AI 味稍有点重。
 
 > **For cache reconstruction, also do the following: summarize the main points; aggregate all key facts; structure important names, dates, and numerical values as JSON; and repeat representative parts of the documents verbatim.**
 
-T\_{\text{chat}} 是模型对话模板尾部，\operatorname{Sample}\_n(H) 则直接从原始上下文的 Cache ID 中按位置等距抽取若干个 Token，并保持它们的原始顺序。
+T\_{\text{chat}} 是模型对话模板尾部，\operatorname{Sample}\_n(H) 则直接从原始上下文的 Cache ID 中按位置等距抽取若干个 Token，并保持它们的原始顺序⁵。
+
+注 5
+
+这里的参考查询实际上存在一个问题，在实际 Agent 使用时，上下文自动压缩和用户消息是交织进行的，我们无法在压缩时就知道未来的用户消息是什么，从而将其作为压缩依据。为了解决这一问题，我们后续改进了所提出的压缩方法，在压缩时仅通过通用语义监督，在后续用户消息 U 到达时，再进行按需的 Cache 恢复，具体请参见 [sec 4](#sec-recovery)。
 
 我们记在历史上下文 H 对应的 Cache 位置集合为 \mathcal{H}， 在 \mathcal{H} 后追加上述参考查询 R，而后通过一次前向传播即可获取 \mathcal{H} 中各 Cache 位置的注意力分布。具体而言，设参考查询 R 的长度为 n ，对第 \ell 层，记第 q 个参考位置（1 \le q \le n）经 Indexer Heads 筛选出的候选集为 \mathcal{C}\_{\ell,q}，第 i 个 MLA Head 在该位置上的查询向量为 \tilde{\mathbf{q}}\_{\ell,q,i}，候选位置 s \in \mathcal{C}\_{\ell,q} 的键向量为 \mathbf{k}\_{\ell,s,i}，则模型的主注意力分布 \tilde{\alpha}\_{\ell,q,s}^{(i)} 为：
 
 \tilde{\alpha}\_{\ell,q,s}^{(i)} = \begin{cases} \displaystyle\frac{\exp\\\left(\gamma\_\ell \tilde{\mathbf{q}}\_{\ell,q,i}^\top \mathbf{k}\_{\ell,s,i}\right)}{\sum\_{u \in \mathcal{C}\_{\ell,q}} \exp\\\left(\gamma\_\ell \tilde{\mathbf{q}}\_{\ell,q,i}^\top \mathbf{k}\_{\ell,u,i}\right)}, & s \in \mathcal{C}\_{\ell,q}, \\\[12pt\] 0, & s \notin \mathcal{C}\_{\ell,q}. \end{cases}
 
 其中 \gamma\_\ell 为模型原生的注意力缩放系数。由于参考序列 R 包含了对于上下文重点的总结、代表性内容的复述、上下文细节的抽取、以及真实的用户输入消息，因此上述前向过程所激活的候选集序列 \left\\\mathcal{C}\_{\ell,q}\right\\\_{q=1}^n 与注意力分布 \left\\\tilde{\alpha}\_{\ell,q,s}^{(i)}\right\\\_{q=1}^n，可以视为真实生成场景下的代理指标，我们也能直接依此量化历史位置 s \in \mathcal{H} 的重要性并挑选出关键 Cache。
+
+按照先前的论述，真正值得保留的关键 Cache，应当是那些**既被 Indexer 高频命中、又对 MLA 主注意力输出贡献显著**的位置，因此我们从这两个角度，对每个位置 s \in \mathcal{H} 的重要性进行评估。
+
+首先从 MLA 注意力的角度考虑，我们汇总位置 s 在所有 n 个参考查询位置与 H_m 个 MLA Heads 上的注意力 RMS ：
+
+a\_{\ell,s} = \sqrt{\frac{1}{n H_m} \sum\_{q=1}^{n} \sum\_{i=1}^{H_m} \left(\tilde{\alpha}\_{\ell,q,s}^{(i)}\right)^2}.
+
+这里 a\_{\ell,s} 刻画了位置 s 在被读取时，对 MLA 主注意力输出的影响强度，这一指标越高，表示对主注意力输出贡献更显著。
+
+与此同时，从 Indexer 路由的角度考虑，我们统计该位置 s 在 n 个参考查询位置中被选入候选集 \mathcal{C}\_{\ell,q} 的频率：
+
+f\_{\ell,s} = \frac{1}{n} \sum\_{q=1}^{n} \mathbb{1}\\\left\[s \in \mathcal{C}\_{\ell,q}\right\].
+
+这里 f\_{\ell,s} 刻画 Indexer 路由是否经常将位置 s 送入候选集，这一指标越高，表示位置 s 被选入 \mathcal{C}\_{\ell,q} 更频繁。
+
+将上述两个指标在历史上下文集合 \mathcal{H} 上做齐次化和归一化⁶，再等权相加，则得到最终的评估位置 s 重要性的指标 g\_{\ell,s}：
+
+注 6
+
+这里的齐次化是对于 Indexer 命中次数 r_s = \sum\_{q=1}^{n}\mathbb{1}\[s \in \mathcal{C}\_{\ell,q}\] 尺度的齐次化。在 n 固定、命中时的注意力 RMS 不变时，a\_{\ell,s} 与 \sqrt{r_s/n} 成正比。因此对路由频率 f\_{\ell,s}=r_s/n 也取平方根，使两项在 RMS 度量下具有相同的命中次数尺度。
+
+g\_{\ell,s} = \frac{a\_{\ell,s}}{\max\\\left(\sum\_{u \in \mathcal{H}} a\_{\ell,u},\\ \epsilon\right)} + \frac{\sqrt{f\_{\ell,s}}}{\max\\\left(\sum\_{u \in \mathcal{H}} \sqrt{f\_{\ell,u}},\\ \epsilon\right)},
+
+这里取 \epsilon = 10^{-12} ，用于处理分母为零的情况，该指标使得路由频率和主注意力强度都能均衡参与关键 Cache 的选择。
+
+现在根据重要性得分 g\_{\ell,s} 后，选择 Top-K 需要保留的 Cache。如果我们直接在整个历史序列 \mathcal{H} 上进行 Top-K 筛选，高分位置可能会受到 sink 影响，总而聚集在局部段落，导致丢失信息。为此，我们将整段历史上下文缓存 \mathcal{H} 划分为互不重叠的连续分块 \mathcal{H}\_1, \dots, \mathcal{H}\_M，每块包含 B = 1024 个 Cache。设压缩保留率为 \rho，对第 b 个分块，我们根据其实际长度 \|\mathcal{H}\_b\| = B = 1024 计算块内保留 Cache 个数 t_b，并选出得分最高的位置，所有分块的结果汇总后构成第 \ell 层的保留集合 S\_\ell：
+
+t_b = \max\\\left(1,\\ \operatorname{round}(\rho \|\mathcal{H}\_b\|)\right), \qquad S\_{\ell,b} = \operatorname{TopK}\_{s \in \mathcal{H}\_b}\\\left(g\_{\ell,s},\\ t_b\right), \qquad S\_\ell = \bigcup\_{b=1}^{M} S\_{\ell,b}.
+
+该分块预算机制保证了上下文的各个区间都能保留信息，模型不同层 \ell 根据各自的访问模式独立选出 S\_\ell，而在同一层内部，所有 MLA Heads 共享同一组保留位置 S\_\ell，从而适配 MLA 跨头共享的潜空间缓存结构。
+
+从监督信号的密度来看，我们在每个分块 B 内需要挑选并保留的 Cache 数量 t = \operatorname{round}(\rho B) 越多，就越需要更更多的参考查询来提供监督。因此，我们将参考查询预算 n 与保留量 t 挂钩，维持固定倍率的过采样监督： \qquad t = \max\\\left(1,\\ \operatorname{round}(\rho B)\right), \qquad n = \lceil 2t \rceil.
+
+以 50% 保留率为例，单个完整块保留 t = 512 个位置，对应的参考查询预算为 n = 1024。此时，参考后缀 R 包含真实问题 U、42-token 的学习指令 P\_{\text{study}}、2-token 的对话模板 T\_{\text{chat}}，剩下均为从历史上下文中等距抽取 Token。
+
+除了从历史上下文 \mathcal{H} 中筛选出的保留集合 S\_\ell 外，系统提示词、真实问题和对话模板等区域需要保持完整，我们将这部分受保护位置的集合记为 P。对每一层 \ell，系统将 P \cup S\_\ell 中的所有位置按其原始出现顺序排列，同步收集并保留对应的 Indexer Key、MLA 共享潜向量与 RoPE 解耦 Key： \widehat{C}\_\ell = \left\\\\ \left(\mathbf{k}\_{\ell,s}^{I},\\ \mathbf{c}\_{\ell,s}^{KV},\\ \mathbf{k}\_{\ell,s}^{R},\\ s\right) \\\middle\|\\ s \in P \cup S\_\ell \\\right\\\_{\text{原始排序}}.
+
+保留下来的 Cache 条目维持原值不变，未选中的上下文位置则被直接驱逐，不参与任何计算。主 Cache 与 Indexer Cache 使用同一组保留位置，且每个位置的原始逻辑坐标 s 随保留行一起维护，确保物理搬移后的 RoPE 旋转位置编码仍然准确对应原始历史。若压缩前的完整缓存长度为 L，则压缩后的物理缓存长度缩减为：
+
+\widehat{L} = L - \|\mathcal{H}\| + \sum\_{b=1}^{M} t_b.
+
+由于所有层均使用相同的分块配额 t_b，各层最终保留的缓存行数完全一致，便于推理后端底层调度器统一管理块表⁷，而各层保留的具体 Cache 内容则因层而异。
+
+注 7
+
+在我们目前的实现中，还没有把工程优化到极致。这里只是从原理上提供一个入口，说明存在可进一步优化适配的工程空间。
+
+**上述驱逐式压缩在参考查询的前向传播中是沿网络由浅入深逐层执行的**：当前向传播到第 \ell 层时，模型首先筛选出该层的保留集合 S\_\ell，接着屏蔽该层被驱逐的位置，仅在剩余可用候选中重新选取 Top-k 并计算该层的输出，再传递给第 \ell+1 层。这种逐层传导机制，使得模型深层能够感知到浅层已经发生的 Cache 压缩。
+
+当参考前向传播到最后一层时，所有层均已完成筛选并得到各自的压缩缓存 \widehat{C}\_\ell，此时将 R 自身对应的临时缓存一并清除，整个上下文压缩流程即完成。在此之后，模型直接基于压缩后的缓存状态 \widehat{C}\_\ell 接入后续新到达的输入并继续生成，每当有新的 Token 产生并写入 Cache 时，原生 Indexer 依然按照标准流程，从保留下来的历史 Cache 与新增 Cache 中动态筛选 k = 2048 个候选参与主注意力计算。
 
 ### 2.2 实验设定与结果
 
@@ -154,7 +212,7 @@ V3.2 采用了首代 DSA 设计，为验证驱逐式压缩提供了一个清晰�
 
 因此，我们将压缩方案迁移到 [DeepSeek-V4-Flash-0731](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731)，把实验范围扩展到 **1M 上下文**。这一阶段继续沿用第 2 节的任务设定：真实 Query 已经明确，参与参考 Q 的构造，再根据参考前向的访问情况选择并驱逐缓存。
 
-### 3.1 V4 的注意力架构与压缩适配
+### 3.1 V4 的注意力架构与压缩适配（暂未完成）
 
 [V4 的注意力架构](https://arxiv.org/html/2606.19348v1#S2.SS3)将长程记忆分为两种交替使用的路径：
 
@@ -179,7 +237,7 @@ g\_{\ell,j}^{\mathrm{HCA}}= \frac{m\_{\ell,j}}{\max\\\left(\sum_u m\_{\ell,u},\e
 
 保留行继续使用原始位置坐标进行 RoPE 计算，后续 token 按缩短后的物理布局写入。参考后缀的临时状态在正式回答前回退，再在压缩后的缓存上处理真实 Query 并生成答案。
 
-### 3.2 实验设定与结果
+### 3.2 实验设定与结果（暂未完成）
 
 **统一的推理设置。** 三组实验均采用 DeepSeek-V4-Flash-0731，通过 vLLM 进行 TP4 推理，关闭 thinking，使用 greedy decoding，最多生成 192 token。目标文档保留率为 80%、60%、40% 与 20%，参考 Q 预算沿用 n/t=2.5；60% 档仍使用每个 head 1535 个参考 Q。各保留率独立执行带真实 Query 的参考前向，完成缓存筛选后直接回答问题。
 
@@ -221,7 +279,7 @@ g\_{\ell,j}^{\mathrm{HCA}}= \frac{m\_{\ell,j}}{\max\\\left(\sum_u m\_{\ell,u},\e
 
 因此，我们将流程分成两个阶段：**压缩时建立不依赖真实 Query 的通用记忆；问题到来后，再利用模型内部的访问信号定位相关区域，补回当前任务需要的细节。** 下面先考察无 Query 压缩造成的变化，再介绍定位 head 的选择，以及压缩与恢复结合后的实验。
 
-### 4.1 无 Query 压缩：保留通用记忆，也会遗漏局部细节
+### 4.1 无 Query 压缩：保留通用记忆，也会遗漏局部细节（暂未完成）
 
 **去掉真实问题，重新构造参考 Q。** 无 Query 版本沿用第 3 节的 V4 缓存评分、分块预算与物理压实方法，修改的是参考后缀。设文档为 D，使用一条通用文档学习指令 P\_{\mathrm{generic}}，而不拼入真实问题或选项：
 
@@ -255,7 +313,7 @@ Study the documents above independently of any downstream question. Build a comp
 
 这两题都指向同一种记忆需求：**未来问题可能依赖一条短规则、一个分支，或两个相似操作之间的差别。** 通用参考能保留文档的主要访问模式，但这些局部信息未必得到足够高的分数。后面的恢复记录也保存了对应区域在基础选择中的缺失行，可以继续检查定位信号能否将它们找回。
 
-### 4.2 定位 Head：从模型的读取行为找到相关区域
+### 4.2 定位 Head：从模型的读取行为找到相关区域（暂未完成）
 
 **为什么可以从内部信号定位？** 问题进入模型后，各层 Q 会随着问题内容和前层读取结果变化。某个 head 的输出可以写为：
 
@@ -269,9 +327,9 @@ o\_{h,q}=\sum_j\alpha\_{h,q,j}v_j.
 
 \mathcal H=\\ \texttt{L20-H5},\\ \texttt{L20-H30},\\ \texttt{L20-H31},\\ \texttt{L26-H58}\\.
 
-层号与全局 head 号均从 0 开始。这组 head 由 LongBench 的定位排名选出，随后固定用于完整 LongBench-v2 与 InfiniteBench 实验⁴。
+层号与全局 head 号均从 0 开始。这组 head 由 LongBench 的定位排名选出，随后固定用于完整 LongBench-v2 与 InfiniteBench 实验⁸。
 
-注 4
+注 8
 
 发现集中的 68 道 LongBench-v2 题来自后文同一批 473 题，包含早期压缩退化案例。InfiniteBench 直接复用选定的 head 与恢复预算，没有重新选 head。证据标注用于离线排名和定位评估；逐题恢复只使用问题与模型信号。
 
@@ -300,7 +358,7 @@ z\_{h,w}=\frac{u\_{h,w}-\mu_h}{\max(\sigma_h,10^{-6})}, \qquad g_w=\frac{1}{\|\m
 
 这些访问峰值为“去哪里补内容”提供了可用的信号。接下来要检验的是，将对应的原始缓存行补回后，模型是否能更好地完成实际任务。
 
-### 4.3 无 Query 压缩加恢复：方法与两组基准结果
+### 4.3 无 Query 压缩加恢复：方法与两组基准结果（暂未完成）
 
 **从定位窗口到可继续生成的缓存。** 完整流程先在原始缓存 C\_{\mathrm{full}} 上完成通用参考前向，冻结各层分数 s\_\ell 和基础选择 S\_\ell。真实问题到来后，通过只开放 S\_\ell 的逻辑视图执行 probe，用上述四个 head 选出恢复区域 R。将这些原始 token 区域换算成各层的原生缓存行 R\_\ell，采用净增加策略：
 
@@ -369,7 +427,7 @@ S'\_\ell=S\_\ell\cup R\_\ell.
 
 所有实验均采用 DeepSeek-V4-Flash-0731，在同一批 **473 道 LongBench-v2 题**上运行无 Query 压缩与净增加恢复；四个定位 head、128-token 恢复窗口、TP4、关闭 thinking、greedy decoding 和 192-token 生成上限保持一致。完整缓存的准确率为 **52.01%（246/473）**。每组参数独立计算自己的基础分数与选择，再完成问题 probe 和恢复。
 
-### 5.1 Reference 总长：缩短参考后缀仍能维持表现
+### 5.1 Reference 总长：缩短参考后缀仍能维持表现（暂未完成）
 
 先固定 60% 基础保留率与 24 个恢复窗口，只改变 Reference 总长。后缀长度包含 93-token 通用学习指令与 2-token 聊天模板，其余位置由文档抽样填充。默认 1630-token 后缀使用 1535 个 Q 评分；512 和 1024 两组使用全部后缀位置的 Q：
 
@@ -391,7 +449,7 @@ S'\_\ell=S\_\ell\cup R\_\ell.
 
 512 与 1024 的结果只差 **1 题、0.21 个百分点**，说明在较低保留预算下，短参考也能形成有效记忆。2048 后缀则降至 50.53%，比 512 后缀低 **2.75 个百分点**。参考长度会同时改变基础选择与后续 probe 可见的记忆，增加 Q 数量并不必然改善最终回答；这组结果中，512 至 1024 的参考预算更合适。
 
-### 5.2 恢复窗口数：用较少的窗口保留大部分效果
+### 5.2 恢复窗口数：用较少的窗口保留大部分效果（暂未完成）
 
 固定 60% 基础保留率与 1024-token Reference，将恢复窗口数从 24 降到 16。每个窗口仍覆盖 128 个原始 token：
 
@@ -402,7 +460,7 @@ S'\_\ell=S\_\ell\cup R\_\ell.
 
 减少三分之一的恢复窗口后，准确率下降 **1.48 个百分点**，仍保持在完整缓存的水平附近。最终文档保留率也从 63.50% 降到 62.60%。这说明恢复收益并不依赖精确的窗口数量；当容量更紧张时，可以适当缩小恢复范围，而 24 个窗口在这组对照中提供了更好的回答质量。
 
-### 5.3 基础保留率：更紧凑的记忆仍可支持后续恢复
+### 5.3 基础保留率：更紧凑的记忆仍可支持后续恢复（暂未完成）
 
 最后，在相同 Reference 长度与相同 24 窗口恢复预算下，比较 60% 和 50% 两档基础保留率。下面分别使用 512 与 1024 两种 Reference，使每组对照只改变基础缓存预算：
 
@@ -429,7 +487,7 @@ S'\_\ell=S\_\ell\cup R\_\ell.
 
 两组实验均采用 **60% 基础保留率**与 **24 × 128 token** 的净增加恢复预算。通用 reference 不包含真实问题；问题到达后，probe 只读取已冻结的基础选择。定位 head 在各模型上重新扫描和选择，随后固定用于后续评测。各模型使用自己的 tokenizer、聊天模板与原生缓存格式，结果分别与本模型的完整缓存基线比较。
 
-### 6.1 GLM-5.3-Flash：线性与稀疏注意力的混合架构
+### 6.1 GLM-5.3-Flash：线性与稀疏注意力的混合架构（暂未完成）
 
 **架构与压缩适配。** [GLM-5.3-Flash](https://huggingface.co/zai-org/GLM-5.3-Flash) 采用线性注意力与稀疏注意力交替的混合架构。按[模型配置](https://huggingface.co/zai-org/GLM-5.3-Flash/blob/main/config.json)，其文本主干共 45 层，包括 **34 层 Kimi Delta Attention（KDA）**和 **11 层 DSA**，大体按三层 KDA、一层 DSA 的顺序排列，最后再接一层 KDA。KDA 将历史信息累积到固定大小的递归状态中；DSA 层则保留可按位置寻址的历史缓存，供 Indexer 和主注意力读取。
 
@@ -523,7 +581,7 @@ GLM 的主要增益来自多文档问答，长样本学习和代码任务也有�
 
 图 4: GLM-5.3-Flash 的 LongBench-v2 生成预算对照，以及 InfiniteBench 五类任务的原生指标。灰色为完整缓存，绿色为提出的压缩方法加恢复；不同任务的指标分别解释。
 
-### 6.2 DeepSeek-V4.1-Flash：跨层共享 KV 的稀疏架构
+### 6.2 DeepSeek-V4.1-Flash：跨层共享 KV 的稀疏架构（暂未完成）
 
 **架构与压缩适配。** [DeepSeek-V4.1-Flash](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash) 采用因果编码器—解码器（Causal Encoder-Decoder，CED）结构：40 层文本主干分为 20 层因果编码器与 20 层解码器，解码器的全局 KV 由编码器末层隐状态投影得到。它使用的 Compressed Sparse Attention 2（CSA2）通过 Full、Reindex 和 Reuse 三种模式跨层共享主 KV、Indexer 键与候选索引，解码器中的分层 Indexer 还会复用前层建立的候选池。
 
@@ -567,7 +625,7 @@ GLM 的结果表明，这套方法可以迁移到含 KDA 状态的混合架构�
 
 ## 7 超过窗口之后：多轮流式压缩
 
-### 7.1 边读边压，保留追加空间
+### 7.1 边读边压，保留追加空间（暂未完成）
 
 为了接近持续增长的历史，我们还测试了另外 30 道超出单次容量的 LongBench-v2 题。完整文档长度约为 **110 万至 464 万 token**，平均约 **200 万 token**。
 
@@ -575,13 +633,13 @@ GLM 的结果表明，这套方法可以迁移到含 KDA 状态的混合架构�
 
 这组记录每题触发 **1 至 9 次**压缩。每个原始文档 token 只做一次文档前向；后面的 token 读取的是前面各轮形成的记忆，因此这组缓存与一次性完整长前向产生的缓存也不完全相同。
 
-### 7.2 用 CPU 归档提供最后的恢复来源
+### 7.2 用 CPU 归档提供最后的恢复来源（暂未完成）
 
 中间各轮产生的原生缓存行按原始坐标归档到 CPU。真实 query 只在文档读完后进入 probe，读取当前 GPU 上的物理记忆；选出 24 个窗口后，再从 CPU 归档中补入对应缺失行。
 
 因此，这个系统限制的是 GPU 上的活动缓存容量，CPU 归档仍随已读历史增长。它探索了分层记忆中的一种取舍：较小的活动记忆配合较大的可恢复历史。
 
-### 7.3 30题的效果与时间
+### 7.3 30题的效果与时间（暂未完成）
 
 对照采用保留等长头尾、删除文档中间部分的截断方式，并完整保留 query。两种方式的结果如下：
 
