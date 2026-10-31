@@ -3398,6 +3398,11 @@ code:not(pre code) {
   min-inline-size: 36rem;
 }
 
+#sec-v32-results .compact-result-table tbody tr > :first-child {
+  background-color: rgba(83, 99, 238, 0.05);
+  color: var(--research-deep);
+}
+
 figure {
   margin-top: 2.2rem;
   margin-bottom: 2.2rem;
