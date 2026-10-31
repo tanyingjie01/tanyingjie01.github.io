@@ -42,7 +42,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-52aa7558b31972c3b5df7143b6aadf4f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-c2555bf9774d8f8638f66c57d2f111f3.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-68fa11c213bc032abfad55a7985fc41e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "language": {
     "search-no-results-text": "没有结果",
@@ -106,11 +106,11 @@ window.Quarto = {
 
 <meta property="og:title" content="DeepSeek 稀疏注意力架构下的上下文压缩 – Yingjie Tan">
 <meta property="og:description" content="面向 LLM Agent 工作流中的上下文自动压缩，提出适配 DSA 架构的 KV Cache 原生压缩方法。通过语义监督筛选高价值缓存，并在具体 Query 到达后按需恢复局部细节；结合 DeepSeek-V4-Flash-0731 与 GLM-5.3-Flash 的实验，考察约 60% 保留率下的任务表现与额外开销。">
-<meta property="og:image" content="https://tanyingjie01.github.io/assets/figures/dsa-auto-compact/v32-quality-zh.svg">
+<meta property="og:image" content="https://tanyingjie01.github.io/assets/figures/dsa-auto-compact/pipeline-zh.svg">
 <meta property="og:site_name" content="Yingjie Tan">
 <meta name="twitter:title" content="DeepSeek 稀疏注意力架构下的上下文压缩 – Yingjie Tan">
 <meta name="twitter:description" content="面向 LLM Agent 工作流中的上下文自动压缩，提出适配 DSA 架构的 KV Cache 原生压缩方法。通过语义监督筛选高价值缓存，并在具体 Query 到达后按需恢复局部细节；结合 DeepSeek-V4-Flash-0731 与 GLM-5.3-Flash 的实验，考察约 60% 保留率下的任务表现与额外开销。">
-<meta name="twitter:image" content="https://tanyingjie01.github.io/assets/figures/dsa-auto-compact/v32-quality-zh.svg">
+<meta name="twitter:image" content="https://tanyingjie01.github.io/assets/figures/dsa-auto-compact/pipeline-zh.svg">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -168,7 +168,7 @@ window.Quarto = {
   <li><a href="#sec-eviction-compaction" id="toc-sec-eviction-compaction" class="nav-link" data-scroll-target="#sec-eviction-compaction"><span class="header-section-number">2</span> 保留关键 Cache 的上下文压缩</a>
   <ul class="collapse">
   <li><a href="#sec-method-selection" id="toc-sec-method-selection" class="nav-link" data-scroll-target="#sec-method-selection"><span class="header-section-number">2.1</span> 结合路由频次与注意力权重的压缩机制</a></li>
-  <li><a href="#sec-v32-results" id="toc-sec-v32-results" class="nav-link" data-scroll-target="#sec-v32-results"><span class="header-section-number">2.2</span> 实验设定与结果</a></li>
+  <li><a href="#sec-v32-results" id="toc-sec-v32-results" class="nav-link" data-scroll-target="#sec-v32-results"><span class="header-section-number">2.2</span> 压缩实验结果</a></li>
   </ul></li>
   <li><a href="#sec-v4-query" id="toc-sec-v4-query" class="nav-link" data-scroll-target="#sec-v4-query"><span class="header-section-number">3</span> 从 V3.2 到 V4：带 Query 的长上下文压缩</a>
   <ul class="collapse">
@@ -327,7 +327,7 @@ R = U \;\|\; P_{\text{study}} \;\|\; T_{\text{chat}} \;\|\; \operatorname{Sample
 
 <div class="no-row-height column-margin column-container"><div id="note-future-user-query" class="">
 <p><span class="margin-label">注 5</span></p>
-<p>这里的参考查询实际上存在一个问题，在实际 Agent 使用时，上下文自动压缩和用户消息是交织进行的，我们无法在压缩时就知道未来的用户消息是什么，从而将其作为压缩依据。为了解决这一问题，我们后续改进了所提出的压缩方法，在压缩时仅通过通用语义监督，在后续用户消息 <span class="math inline">U</span> 到达时，再进行按需的 Cache 恢复，具体请参见 <a href="#sec-recovery">sec 4</a>。</p>
+<p>这里的参考查询实际上存在一个问题，在实际 Agent 使用时，上下文自动压缩和用户消息是交织进行的，我们无法在压缩时就知道未来的用户消息是什么，从而将其作为压缩依据。为了解决这一问题，我们后续改进了所提出的压缩方法，在压缩时仅通过通用语义监督，在后续用户消息 <span class="math inline">U</span> 到达时，再进行按需的 Cache 恢复，具体请参见 <a href="#sec-recovery" class="no-external section-ref" target="_self"><strong>Sec 4</strong></a>。</p>
 </div></div><p>我们记在历史上下文 <span class="math inline">H</span> 对应的 Cache 位置集合为 <span class="math inline">\mathcal{H}</span>， 在 <span class="math inline">\mathcal{H}</span> 后追加上述参考查询 <span class="math inline">R</span>，而后通过一次前向传播即可获取 <span class="math inline">\mathcal{H}</span> 中各 Cache 位置的注意力分布。具体而言，设参考查询 <span class="math inline">R</span> 的长度为 <span class="math inline">n</span> ，对第 <span class="math inline">\ell</span> 层，记第 <span class="math inline">q</span> 个参考位置（<span class="math inline">1 \le q \le n</span>）经 Indexer Heads 筛选出的候选集为 <span class="math inline">\mathcal{C}_{\ell,q}</span>，第 <span class="math inline">i</span> 个 MLA Head 在该位置上的查询向量为 <span class="math inline">\tilde{\mathbf{q}}_{\ell,q,i}</span>，候选位置 <span class="math inline">s \in \mathcal{C}_{\ell,q}</span> 的键向量为 <span class="math inline">\mathbf{k}_{\ell,s,i}</span>，则模型的主注意力分布 <span class="math inline">\tilde{\alpha}_{\ell,q,s}^{(i)}</span> 为：</p>
 <p><span class="math display">
 \tilde{\alpha}_{\ell,q,s}^{(i)} = \begin{cases}
@@ -381,119 +381,53 @@ t_b = \max\!\left(1,\, \operatorname{round}(\rho |\mathcal{H}_b|)\right), \qquad
 <p>当参考前向传播到最后一层时，所有层均已完成筛选并得到各自的压缩缓存 <span class="math inline">\widehat{C}_\ell</span>，此时将 <span class="math inline">R</span> 自身对应的临时缓存一并清除，整个上下文压缩流程即完成。在此之后，模型直接基于压缩后的缓存状态 <span class="math inline">\widehat{C}_\ell</span> 接入后续新到达的输入并继续生成，每当有新的 Token 产生并写入 Cache 时，原生 Indexer 依然按照标准流程，从保留下来的历史 Cache 与新增 Cache 中动态筛选 <span class="math inline">k = 2048</span> 个候选参与主注意力计算。</p>
 </section>
 <section id="sec-v32-results" class="level3" data-number="2.2">
-<h3 data-number="2.2" class="anchored" data-anchor-id="sec-v32-results"><span class="header-section-number">2.2</span> 实验设定与结果</h3>
-<p><strong>模型与推理配置。</strong> 实验采用 <a href="https://huggingface.co/deepseek-ai/DeepSeek-V3.2">DeepSeek-V3.2</a> 的 FP8 checkpoint，通过 Transformers 的 8 卡 tensor parallel 运行；全部 61 个 DSA 层参与压缩，主注意力使用原始逻辑位置进行因果屏蔽。推理关闭 thinking，使用 greedy decoding，最多生成 192 token。文档目标保留率分别为 80%、60%、40% 与 20%，完整缓存作为共同基线。</p>
-<p>这组实验中，真实问题在压缩前已经明确，参与参考 Q 的构造。正式生成时，指令保持完整，文档使用选中的缓存行，真实问题及模板尾部则拼回完整 prefill 中保存的原始缓存。这构成了本节评测的已知问题压缩流程。</p>
-<p><strong>BrowseComp-Plus 的上下文构建。</strong> 从 BrowseComp-Plus 的解密问题中，按固定种子的哈希规则选择 100 个不同问题。对每个问题，将官方 gold documents 与 evidence documents 去重后作为正例，再加入官方 hard negatives。正常长度版本以约 10 篇文档为目标，并至少加入 3 篇负例；正例较多时保留全部正例，因此最终每题包含 <strong>10 至 16 篇文档</strong>，平均 <strong>10.7 篇</strong>。文档按确定性顺序混排，使用 <code>D01</code>、<code>D02</code> 等编号，末尾附上原始问题。</p>
-<p>单篇文档采用约 4096-token 的裁剪预算。正例过长且能找到答案字符串时，围绕答案所在位置保留窗口；其余超长文档保留开头。最终 100 题共包含 1070 个来源文档片段，其中 647 个正例、423 个负例，213 个片段经过裁剪。这些片段拼接后，文档缓存长度为 <strong>5,442 至 43,686 token</strong>，平均 <strong>20,039 token</strong>。实验读取这组预先构建好的上下文，并输出证据编号与最终答案。</p>
-<p><strong>不同保留率下的问答表现。</strong> 原实验按标准答案字符串是否出现在完整输出中统计成功率；同一份逐题记录也保存了对最终 <code>Answer:</code> 行的解析结果。下面同时列出两种命中口径，以及按各题实际文档长度计算的平均保留率：</p>
+<h3 data-number="2.2" class="anchored" data-anchor-id="sec-v32-results"><span class="header-section-number">2.2</span> 压缩实验结果</h3>
+<p>为了验证上述压缩方案的有效性，我们首先使用 <a href="https://huggingface.co/deepseek-ai/DeepSeek-V3.2"><strong>DeepSeek-V3.2-671B</strong></a> 模型进行初步实验。实验加载官方 FP8 权重，模型全部 61 个 DSA 层均参与压缩，主注意力使用原始逻辑坐标维护因果掩码。推理时关闭模型 Thinking 模式，采用贪婪解码，最大生成长度设定为 192 Tokens。在上下文压缩完成后清除参考查询 <span class="math inline">R</span>，将真实用户问题 <span class="math inline">U</span> 拼回压缩后的 Cache 之后，模型再执行正式回答。</p>
+<p>我们选择 <a href="https://texttron.github.io/BrowseComp-Plus/"><strong>BrowseComp-Plus</strong></a> 数据集作为初步实验的切入点，该数据集是面向复杂信息检索与多跳证据推理的高难度基准，其原始基准 <a href="https://openai.com/index/browsecomp/">BrowseComp</a> 也是 <a href="https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/main/assets/paper.pdf">DeepSeek-V3.2 模型技术报告</a> 中评测的 Agent 基准。在该基准中，<span class="intro-mechanism-blue">每个问题都需要模型在混杂了大量强干扰项的多篇长文档中</span>，精准定位支撑事实并给出答案。这使得其较为适合作为检验上下文压缩质量的评测集：<span class="intro-mechanism-red">如果关键证据所在的 Cache 在压缩时被误删，模型就会答错；</span><span class="intro-mechanism-green">反之，若在压缩下准确率依然稳定，就说明压缩确实保留了关键信息。</span></p>
+<p><strong>由于只是初步验证压缩方法的效果，我们采取较为简单的方式构建测试集：</strong>从数据集中按固定随机种子抽取 100 道题，对每道题将包含真实证据的<span class="intro-mechanism-green">正例文档（Evidence Documents）</span>与强干扰<span class="intro-mechanism-red">负例文档（Hard Negatives）</span>混合编排，每题包含约 10 篇文档，平均上下文缓存长度约为 20k Tokens。</p>
+<p>我们在该测试集上对比了未压缩基线以及 80%、60%、40% 和 20% 四档压缩保留率下的性能，并同时统计了压缩场景下 Indexer Top-k 候选和未压缩基线的重合率，结果如下所示：</p>
 <div class="fingerprint-baseline compact-result-table compact-wide-table">
 <div class="table-responsive v32-results-table">
 <table class="caption-top table">
 <thead>
 <tr class="header">
-<th style="text-align: right;">目标保留率</th>
-<th style="text-align: right;">平均实际保留率</th>
-<th style="text-align: right;">完整输出答案命中</th>
-<th style="text-align: right;">最终 Answer 命中</th>
+<th style="text-align: center;"><strong>压缩保留率</strong></th>
+<th style="text-align: right;"><strong>成功率</strong></th>
+<th style="text-align: right;"><strong>Indexer Top-k 候选重合率</strong></th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: right;">100%，完整缓存</td>
+<td style="text-align: center;">100%（<strong>未压缩</strong>）</td>
+<td style="text-align: right;"><strong>87%</strong></td>
 <td style="text-align: right;">100%</td>
-<td style="text-align: right;">87 / 100</td>
-<td style="text-align: right;">84 / 100</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">80%</td>
-<td style="text-align: right;">79.98%</td>
-<td style="text-align: right;">85 / 100</td>
-<td style="text-align: right;">81 / 100</td>
+<td style="text-align: center;">80%</td>
+<td style="text-align: right;"><strong>86%</strong></td>
+<td style="text-align: right;">97.68%</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">60%</td>
-<td style="text-align: right;">59.96%</td>
-<td style="text-align: right;"><strong>87 / 100</strong></td>
-<td style="text-align: right;"><strong>83 / 100</strong></td>
+<td style="text-align: center;">60%</td>
+<td style="text-align: right;"><strong>87%</strong></td>
+<td style="text-align: right;">93.50%</td>
 </tr>
 <tr class="even">
-<td style="text-align: right;">40%</td>
-<td style="text-align: right;">40.04%</td>
-<td style="text-align: right;">86 / 100</td>
-<td style="text-align: right;"><strong>83 / 100</strong></td>
+<td style="text-align: center;">40%</td>
+<td style="text-align: right;"><strong>86%</strong></td>
+<td style="text-align: right;">83.12%</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right;">20%</td>
-<td style="text-align: right;">20.02%</td>
-<td style="text-align: right;">83 / 100</td>
-<td style="text-align: right;">80 / 100</td>
+<td style="text-align: center;">20%</td>
+<td style="text-align: right;"><strong>83%</strong></td>
+<td style="text-align: right;">65.14%</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<p>在 60% 保留率下，完整输出答案命中与全量基线同为 <strong>87/100</strong>；最终 Answer 命中为 <strong>83/100</strong>，比基线少 1 题。继续降至 40% 时，最终 Answer 命中仍为 83/100；降至 20% 时为 80/100。也就是说，在这组已知问题的文档问答中，保留约六成缓存即可维持接近完整缓存的任务表现，进一步减小预算后仍能保留相当一部分有效信息。</p>
-<p>参考前向中的候选重合情况也能解释这一结果。60% 保留率下，压缩后候选与原始 Indexer Top-k 候选的平均重合比例为 <strong>92.50%</strong>；80% 时为 97.68%，20% 时为 65.14%。高价值选择使较小的物理缓存仍然覆盖了大部分原有路由访问。</p>
-<div id="fig-v32-quality" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-v32-quality-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="../../../assets/figures/dsa-auto-compact/v32-quality-zh.svg" class="img-fluid figure-img" style="width:100.0%">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-v32-quality-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-图&nbsp;1: DeepSeek-V3.2 在 BrowseComp-Plus normal100 上的保留率对照。左图分别展示完整输出答案命中和最终 Answer 命中，虚线为对应的完整缓存基线；右图展示参考前向中的 Indexer Top-k 候选重合比例。
-</figcaption>
-</figure>
-</div>
-<p><strong>参考预算与运行时间。</strong> 不同保留率使用各自的参考 Q 预算；下面的压缩时间包含参考前向、逐层评分和缓存选择，生成时间包含正式短后缀前向及后续 decode：</p>
-<div class="fingerprint-baseline compact-result-table compact-wide-table">
-<div class="table-responsive v32-results-table">
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th style="text-align: right;">目标保留率</th>
-<th style="text-align: right;">每个 MLA Head 的参考 Q 数</th>
-<th style="text-align: right;">平均压缩时间</th>
-<th style="text-align: right;">平均生成时间</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">100%，完整缓存</td>
-<td style="text-align: right;">—</td>
-<td style="text-align: right;">0 s</td>
-<td style="text-align: right;">9.48 s</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">80%</td>
-<td style="text-align: right;">2048</td>
-<td style="text-align: right;">8.08 s</td>
-<td style="text-align: right;">9.68 s</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">60%</td>
-<td style="text-align: right;">1535</td>
-<td style="text-align: right;">6.18 s</td>
-<td style="text-align: right;">9.95 s</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">40%</td>
-<td style="text-align: right;">1025</td>
-<td style="text-align: right;">4.35 s</td>
-<td style="text-align: right;">10.13 s</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">20%</td>
-<td style="text-align: right;">513</td>
-<td style="text-align: right;">2.56 s</td>
-<td style="text-align: right;">9.63 s</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>原始 prefill 平均耗时 <strong>40.95 s</strong>，每题计算一次，供各保留率设置复用。随着目标保留率降低，参考 Q 数量也同步减少，参考前向与选择阶段的耗时随之下降。各设置的平均生成时间接近，主要收益体现在文档缓存占用的减少。这里分别记录 prefill、压缩和生成阶段，参考 token 拼接与部分缓存准备操作未计入压缩计时。</p>
-<p>这组实验确立了一个可继续扩展的起点：利用真实问题构造参考 Q，将 DSA 路由与主注意力信号结合，可以从历史缓存中选出一组支持当前任务的紧凑状态。面向 auto compact，下一步则是在后续问题尚未到来时构造通用记忆，再利用具体问题恢复局部细节。</p>
+<p><span class="intro-mechanism-green">初步实验结果证明，所提出的方法在 60% 的保留率下，几乎实现了无损的压缩表现，性能与未压缩的基线持平；</span>在 40% 的保留率下也仅比未压缩基线少对 1 道题；<span class="intro-mechanism-red">只有在 20% 的保留率下，性能才开始明显下滑。</span>观察压缩场景下 Indexer Top-k 候选和未压缩重合比例，可以看到在 60% 的保留率下，重合率高达 93.50%，正是这种高比例保留，确保了 MLA 主注意力在压缩后依然能读取到关键信息，从而维持了模型的性能。</p>
+<p>尽管这只是一组初步探索实验，所测试的上下文长度也相对有限，但<span class="intro-mechanism-blue"><strong>结果验证了结合 DSA 路由频次与主注意力权重进行压缩的技术路线是切实有效的，具备继续向更长上下文和更贴近真实 Agent 场景泛化的价值。</strong></span></p>
 </section>
 </section>
 <section id="sec-v4-query" class="level2 blue-math" data-number="3">
@@ -791,7 +725,7 @@ S'_\ell=S_\ell\cup R_\ell.
 <img src="../../../assets/figures/dsa-auto-compact/pipeline-zh.svg" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-compact-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-图&nbsp;2: 通用参考先冻结基础选择，真实问题只读取这些存活行并定位窗口，随后从完整缓存源补回缺失内容，完成最终物理压实。
+图&nbsp;1: 通用参考先冻结基础选择，真实问题只读取这些存活行并定位窗口，随后从完整缓存源补回缺失内容，完成最终物理压实。
 </figcaption>
 </figure>
 </div>
@@ -1116,7 +1050,7 @@ S'_\ell=S_\ell\cup R_\ell.
 <img src="../../../assets/figures/dsa-auto-compact/budget-zh.svg" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-compact-budget-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-图&nbsp;3: DeepSeek-V4 无 Query 压缩加恢复的参数对照。左图使用 60% 基础保留率，比较 Reference 长度与 16／24 个恢复窗口；右图使用 50% 基础保留率，比较三种 Reference 长度。
+图&nbsp;2: DeepSeek-V4 无 Query 压缩加恢复的参数对照。左图使用 60% 基础保留率，比较 Reference 长度与 16／24 个恢复窗口；右图使用 50% 基础保留率，比较三种 Reference 长度。
 </figcaption>
 </figure>
 </div>
@@ -1416,7 +1350,7 @@ S'_\ell=S_\ell\cup R_\ell.
 <img src="../../../assets/figures/dsa-auto-compact/glm-quality-zh.svg" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-glm-quality-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-图&nbsp;4: GLM-5.3-Flash 的 LongBench-v2 生成预算对照，以及 InfiniteBench 五类任务的原生指标。灰色为完整缓存，绿色为提出的压缩方法加恢复；不同任务的指标分别解释。
+图&nbsp;3: GLM-5.3-Flash 的 LongBench-v2 生成预算对照，以及 InfiniteBench 五类任务的原生指标。灰色为完整缓存，绿色为提出的压缩方法加恢复；不同任务的指标分别解释。
 </figcaption>
 </figure>
 </div>
