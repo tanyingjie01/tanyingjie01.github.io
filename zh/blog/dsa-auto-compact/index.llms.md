@@ -78,7 +78,7 @@ p\_\theta(y \mid C(H),\\ U) \approx p\_\theta(y \mid R(H,U),\\ U).
 - **驱逐式压缩（Eviction-based Compression）**：从模型注意力的角度出发，剪裁掉那些对后续注意力计算（Q, K, V, O）贡献微小的 Cache，就能在不显著改变输出的前提下，实现上下文压缩。
 - **合并式压缩（Merging-based Compression）**：从表征的角度出发，不彻底丢弃信息，而是将键值向量表征按权重融合到保留的代表 Token 上，让合并后的 Cache 贴近原始的全量输出。
 
-那么对于 DSA 架构，哪一种压缩理念更为契合呢？我们回忆一下，在传统的稠密注意力计算中，需要与全部历史位置交互，此时驱逐任何 Cache 都难以避免地造成注意力分布被截断；而对于 DSA 架构，其本身就类似于对稠密注意力做了解耦和剪裁，即使历史上下文累积到了 1M 长度，Indexer 也会在每一层裁掉绝大部分位置，仅保留固定的 k 个进行 MLA 主注意力交互，未被选中的位置对输出的贡献严格为零。
+那么对于 DSA 架构，哪一种压缩理念更为契合呢？我们回忆一下，在传统的稠密注意力计算中，需要与全部历史位置交互，此时驱逐任何 Cache 都难以避免地造成注意力分布被截断；而对于 DSA 架构，其本身就类似于对稠密注意力做了解耦和剪裁，即使历史上下文累积到了 **1M** 长度，Indexer 也会在每一层裁掉绝大部分位置，仅保留固定的 k 个进行 MLA 主注意力交互，未被选中的位置对输出的贡献严格为零。
 
 这一结构特性意味着 DSA 其实天然适合**驱逐式压缩**，既然主注意力本身就只读取少量的 Cache，那么在压缩时，如果能够保留那些在未压缩情况下会被主注意力交互的关键 Cache，那么压缩后的注意力输出在理论上也是完全无损的。
 
@@ -186,36 +186,104 @@ t_b = \max\\\left(1,\\ \operatorname{round}(\rho \|\mathcal{H}\_b\|)\right), \qq
 
 尽管这只是一组初步探索实验，所测试的上下文长度也相对有限，但**结果验证了结合 DSA 路由频次与主注意力权重进行压缩的技术路线是切实有效的，具备继续向更长上下文和更贴近真实 Agent 场景泛化的价值。**
 
-## 3 从 V3.2 到 V4：带 Query 的长上下文压缩
+## 3 1M 长上下文压缩
 
-V3.2 采用了首代 DSA 设计，为验证驱逐式压缩提供了一个清晰的起点。不过，V3.2 已是较早的一代模型，其[技术报告](https://huggingface.co/deepseek-ai/DeepSeek-V3.2/resolve/main/assets/paper.pdf)给出的最大上下文长度为 **128K**。随着 Agent 持续读取文件、执行工具和积累中间结果，这个窗口很容易被填满；要进一步考察更长历史中的压缩效果，我们需要一个支持更大上下文的模型。
+在 [**Sec 2**](#sec-eviction-compaction) 中，我们基于 [**DeepSeek-V3.2**](https://huggingface.co/deepseek-ai/DeepSeek-V3.2) 验证了所提出压缩方法的初步有效性。不过，**V3.2** 作为第一代采用 DSA 架构的模型，其支持的最大上下文长度仅有 **128K**。在真实的 Agent 工作流中，这 **128K** 的上下文窗口很快就会捉襟见肘，与当前主流大模型动辄 **512K** 甚至 **1M** 的上下文能力存在明显差距。
 
-因此，我们将压缩方案迁移到 [DeepSeek-V4-Flash-0731](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731)，把实验范围扩展到 **1M 上下文**。这一阶段继续沿用第 2 节的任务设定：真实 Query 已经明确，参与参考 Q 的构造，再根据参考前向的访问情况选择并驱逐缓存。
+为了检验压缩算法在更贴近真实使用的长上下文场景下的表现，我们将实验迁移至支持 **1M** 上下文的 [**DeepSeek-V4-Flash-0731-284B**](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731) 模型。相比于 **V3.2** 逐 Token 维护 Cache 的设计，**V4** 在架构上做了一定演进，将历史上下文按不同步幅聚合成多粒度的 Cache 行。因此，本节我们首先针对 **V4** 的架构特性对压缩方法进行适配迁移，随后在最高 **1M** 的长上下文的基准上，考察其压缩效果。
 
 ### 3.1 V4 的注意力架构与压缩适配（暂未完成）
 
-[V4 的注意力架构](https://arxiv.org/html/2606.19348v1#S2.SS3)将长程记忆分为两种交替使用的路径：
+**V4 的原生注意力结构。** **V4** 在生成历史 Cache 时就已经进行了序列压缩。其[官方实现](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731/blob/main/inference/model.py#L442)仍将注意力模块称为带滑动窗口和 KV 压缩的 MLA；[技术报告](https://arxiv.org/html/2606.19348v1#S2.SS3)则用共享 Key-Value 的 MQA 描述核心注意力计算：多个 Query Heads 共享同一组 Cache，每个缓存向量同时作为 Key 和 Value。
 
-- **压缩稀疏注意力（Compressed Sparse Attention，CSA）**：按 4 个原始 token 的步幅生成一行长期缓存，再由 Indexer 选择相关的压缩行参与主注意力。Flash 模型的原生 Top-k 为 **512 行**，实现中将这类缓存标记为 **C4**。
-- **高压缩注意力（Heavily Compressed Attention，HCA）**：每 128 个原始 token 生成一行长期缓存，并在这些高度压缩的行上计算稠密注意力，实现中标记为 **C128**。
+本文使用的 Flash 模型共有 **43 层**，前两层仅使用滑动窗口，后续 **41 层**交替采用以下两种长期缓存路径。两种路径均额外读取最近 **128 个 Token** 的未压缩滑动窗口，以保留局部细节；具体参数见[官方模型配置](https://arxiv.org/html/2606.19348v1#S4.SS2.SSS1)。
 
-两种路径还结合 **128-token 滑动窗口**，保存近期细节。主注意力使用共享 Key-Value 表示的 MQA。这样，V4 已经在构建长期记忆时减少了缓存行数，我们的驱逐操作进一步在这些原生缓存行中选择保留内容。
+| 注意力路径 | 长期 Cache 的原生单位 | 长期 Cache 的访问方式 |
+|:---|:---|:---|
+| **CSA：压缩稀疏注意力** | 每 **4 个 Token** 生成一行，记为 **C4** | Indexer 选择最多 **512 行**参与主注意力 |
+| **HCA：高压缩注意力** | 每 **128 个 Token** 生成一行，记为 **C128** | 对此前已经生成的压缩行计算稠密注意力 |
 
-**将 Token 选择改为原生缓存行选择。** 参考后缀仍包含真实 Query、42-token 任务感知学习指令、聊天模板尾部和等距抽取的文档 token。对于每个原生缓存行 j，在参考 Q 上累计其主注意力质量 m\_{\ell,j}；对 CSA，再统计 Indexer 路由命中次数 r\_{\ell,j}。分别归一化后，CSA 的保留分数为：
+原生压缩由可学习的加权聚合完成。CSA 的相邻压缩分组存在重叠，因此 **4** 表示生成缓存行的步幅，一行的内容还可能来自前一个分组；HCA 使用不重叠的 **128-Token** 分组。这与从原始历史中直接挑选一个 Token 作为代表不同，我们后续驱逐的是模型已经生成的完整压缩行。
 
-g\_{\ell,j}^{\mathrm{CSA}}= \frac{m\_{\ell,j}}{\max\\\left(\sum_u m\_{\ell,u},\epsilon\right)} +\frac{r\_{\ell,j}}{\max\\\left(\sum_u r\_{\ell,u},\epsilon\right)}.
+两种路径的主注意力都保留 **64 个 Query Heads**，共享的 KV 向量为 **512 维**，其中最后 **64 维**参与 RoPE。计算注意力后，输出的对应维度还执行逆向 RoPE，再经过分组输出投影。对一个 Query，模型把可访问的长期缓存行与滑动窗口条目一起归一化，并在分母中加入可学习的 attention sink。因此，原生主注意力概率可统一写为
 
-HCA 直接读取其压缩历史，因此使用主注意力质量评分：
+\alpha\_{\ell,t,v}^{(i)} =\frac{\exp z\_{\ell,t,v}^{(i)}} {\exp z\_{\ell,\mathrm{sink}}^{(i)} +\sum\_{u\in\mathcal A\_{\ell,t}}\exp z\_{\ell,t,u}^{(i)}}, \qquad z\_{\ell,t,v}^{(i)}=\gamma\_\ell\mathbf q\_{\ell,t,i}^{\top}\mathbf c\_{\ell,v}.
 
-g\_{\ell,j}^{\mathrm{HCA}}= \frac{m\_{\ell,j}}{\max\\\left(\sum_u m\_{\ell,u},\epsilon\right)}.
+这里 \mathcal A\_{\ell,t} 包含长期缓存与滑动窗口两类条目；CSA 的长期条目来自原生 Indexer 的 Top-k，HCA 则包含所有因果可见的长期压缩行。\mathbf q 与 \mathbf c 均已包含模型规定的位置变换，\gamma\_\ell 是原生缩放系数。由此，V4 的压缩适配需要同时考虑原生缓存行、局部窗口以及不同层的缓存粒度。
 
-这里的求和均针对参与选择的文档缓存行，\epsilon=10^{-12}。V4 使用累积注意力质量和路由计数来适配其原生路径；第 2 节 V3.2 中对应的两个分量则是注意力 RMS 与路由频率的平方根。
+下面按照 [**Sec 2.1**](#sec-method-selection) 的顺序，说明各个环节的沿用与修改。
 
-**在统一的原始 Token 预算下处理异构缓存。** 文档仍按 B=1024 个原始 token 分配预算；一个完整预算块分别对应 1024/4=256 行 CSA 缓存和 1024/128=8 行 HCA 缓存。各层按自身的评分，在每个块内保留高分行。跨越文档边界的原生行保留，以保护指令等文档外内容。
+**参考查询的构造。** 这一步与 [**Sec 2.1**](#sec-method-selection) 一致：参考后缀仍由真实问题 U、学习指令 P\_{\text{study}}、模型对话模板尾部 T\_{\text{chat}} 和从原始历史 Token ID 中等距抽取的内容组成。采样对象仍是原始文本 Token，后续评分与驱逐的对象才变为原生压缩行。本节仍属于问题已知的任务感知压缩，未知后续问题时的处理见 [**Sec 4**](#sec-recovery)。
 
-同一次压缩还需要给调度器提供统一的前缀长度。实现将释放的原始 token 数对齐到 **256 的整数倍**，再换算成 C4 与 C128 各自的行数。选中行按原始顺序搬入紧凑地址，CSA 的主 Cache 与 Indexer Cache 同步搬移，HCA 则搬移其主缓存。随后更新 vLLM 的请求长度和 block table，并将尾部空闲页面归还缓存池。
+**参考前向与注意力分布。** 仍通过一次参考前向收集各层 Query，但需要区分模型的原生注意力分布与基础选择器实际使用的评分代理。设第 \ell 层的原生压缩倍率为 c\_\ell\in\\4,128\\，参与驱逐评分的文档行集合为 \mathcal J\_\ell，采样得到的参考 Query 数为 n。
 
-保留行继续使用原始位置坐标进行 RoPE 计算，后续 token 按缩短后的物理布局写入。参考后缀的临时状态在正式回答前回退，再在压缩后的缓存上处理真实 Query 并生成答案。
+对 CSA，记 \mathcal C\_{\ell,q} 为第 q 个参考位置的原生 Indexer 候选集。当前基础选择器仅在这些有效长期候选上重新归一化；对 HCA，则仅在 \mathcal J\_\ell 上重新归一化。将这一评分用分布记为 \beta：
+
+\begin{aligned} \mathcal D\_{\ell,q} &=\begin{cases} \mathcal C\_{\ell,q}, & c\_\ell=4,\\ \mathcal J\_\ell, & c\_\ell=128, \end{cases}\\\[4pt\] \beta\_{\ell,q,j}^{(i)} &=\begin{cases} \displaystyle\frac{\exp\\\left(\gamma\_\ell\tilde{\mathbf q}\_{\ell,q,i}^{\top}\mathbf c\_{\ell,j}\right)} {\sum\_{u\in\mathcal D\_{\ell,q}}\exp\\\left(\gamma\_\ell\tilde{\mathbf q}\_{\ell,q,i}^{\top}\mathbf c\_{\ell,u}\right)}, & j\in\mathcal D\_{\ell,q},\\\[10pt\] 0, & j\notin\mathcal D\_{\ell,q}. \end{cases} \end{aligned}
+
+CSA 的候选集可以包含文档之外的长期行，但最终仅对 j\in\mathcal J\_\ell 累计重要性。上述 \beta 不包含滑动窗口与 attention sink 的归一化项，HCA 还排除了非文档长期行，因而是用于选择的局部代理分布，与前面包含全部原生分支的 \alpha 有区别。
+
+**重要性得分。** 保留“主注意力贡献与路由命中共同评分”的思路，但当前 V4 实现将 [**Sec 2.1**](#sec-method-selection) 的注意力 RMS 与路由频率平方根，改为注意力质量的直接累加与路由命中计数。设主注意力 Head 数为 H_m=64，则
+
+m\_{\ell,j}=\sum\_{q=1}^{n}\sum\_{i=1}^{H_m}\beta\_{\ell,q,j}^{(i)}, \qquad r\_{\ell,j}=\sum\_{q=1}^{n}\mathbb 1\\\left\[j\in\mathcal C\_{\ell,q}\right\].
+
+CSA 的两个分量分别归一化后等权相加；HCA 不使用 Indexer 筛选长期缓存，因此只保留主注意力质量一项：
+
+\begin{aligned} g\_{\ell,j}^{\mathrm{CSA}} &=\frac{m\_{\ell,j}}{\max\\\left(\sum\_{u\in\mathcal J\_\ell}m\_{\ell,u},\epsilon\right)} +\frac{r\_{\ell,j}}{\max\\\left(\sum\_{u\in\mathcal J\_\ell}r\_{\ell,u},\epsilon\right)},\\\[6pt\] g\_{\ell,j}^{\mathrm{HCA}} &=\frac{m\_{\ell,j}}{\max\\\left(\sum\_{u\in\mathcal J\_\ell}m\_{\ell,u},\epsilon\right)}, \qquad \epsilon=10^{-12}. \end{aligned}
+
+这里没有对路由计数取平方根，因为与之相加的主注意力项也改成了直接累加。这是当前 V4 基础选择器的评分口径，并非将 V3.2 的 RMS 公式仅替换下标后直接使用。
+
+**分块选择与保留配额。** 各层独立选择、同一层所有主注意力 Heads 共享保留集合的原则不变。需要修改的是计量单位：预算块仍对应 B=1024 个原始 Token，而每块的原生行数变为 B/c\_\ell，即 CSA 的 **256 行**或 HCA 的 **8 行**。
+
+设压缩前、追加参考后缀之前的物理前缀长度为 L，文档在原始 Token 坐标中的区间为 \[d_0,d_1)。实现只将原生分组区间完整落在文档内的行纳入可选集合，跨文档边界的行继续保留：
+
+\mathcal J\_\ell= \left\\j\\\middle\|\\ \left\lceil\frac{d_0}{c\_\ell}\right\rceil \le j\<\left\lfloor\frac{d_1}{c\_\ell}\right\rfloor\right\\, \qquad N\_\ell=\|\mathcal J\_\ell\|.
+
+与 V3.2 各层保留相同行数不同，V4 需要让不同粒度的缓存共同对应一个调度器可见的原始 Token 长度。为此，先按目标保留率 \rho 计算驱逐量，再将其对齐到 A=256 个 Token：
+
+\begin{aligned} D\_{\mathrm{req}}&=\operatorname{round}\\\left((1-\rho)(d_1-d_0)\right),\\ D&=\min\\\left(D\_{\max},\\ A\max\\\left(1,\left\lfloor\frac{D\_{\mathrm{req}}}{A}\right\rfloor\right)\right),\\ \widehat L&=L-D. \end{aligned}
+
+其中 D\_{\max} 是不超过文档长度、且两类缓存均至少保留一行可选文档行的最大可行对齐驱逐量；没有可行计划时不执行此次压缩。由于 256 同时是 4 和 128 的整数倍，各层文档行的精确保留目标为
+
+T\_\ell=N\_\ell-\frac{D}{c\_\ell}, \qquad \widehat N\_\ell^{\mathrm{long}}=\left\lfloor\frac{\widehat L}{c\_\ell}\right\rfloor.
+
+接着从首个可选行开始，将 \mathcal J\_\ell 划分为连续分块 \mathcal J\_{\ell,1},\dots,\mathcal J\_{\ell,M\_\ell}，每个完整块包含 B/c\_\ell 行。块内 Top-K 规则与前文一致，但配额需要使用对齐后的目标 T\_\ell。记 e\_{\ell,b}=\sum\_{v=1}^{b}\|\mathcal J\_{\ell,v}\|，采用累计比例取整计算当前块的初始配额：
+
+t\_{\ell,b}^{(0)}= \operatorname{round}\\\left(\frac{e\_{\ell,b}T\_\ell}{N\_\ell}\right) -\sum\_{v\<b}t\_{\ell,v}.
+
+实现再将初始配额裁剪到下列约束允许的范围，既为每块至少保留一行，也为后续分块留下足够配额和可用行：
+
+\begin{aligned} 1&\le t\_{\ell,b}\le\|\mathcal J\_{\ell,b}\|,\\ M\_\ell-b&\le T\_\ell-\sum\_{v\le b}t\_{\ell,v} \le N\_\ell-e\_{\ell,b}. \end{aligned}
+
+这样可以处理短尾块，并保证 \sum_b t\_{\ell,b}=T\_\ell。随后选择
+
+S\_{\ell,b}=\operatorname{TopK}\_{j\in\mathcal J\_{\ell,b}} \\\left(g\_{\ell,j},t\_{\ell,b}\right), \qquad S\_\ell=\bigcup\_{b=1}^{M\_\ell}S\_{\ell,b}.
+
+因此，相同原生倍率的层保留相同行数，不同原生倍率的层保留不同行数，但都对应同一个 \widehat L。实际文档保留率会因边界保护与对齐而出现小幅偏差。
+
+**参考查询预算。** 预算与块内保留量挂钩的原则沿用前文，仍以原始 Token 预算块 B 为尺度。本节实验将过采样倍率设为 **2.5**，因此
+
+t=\max\\\left(1,\operatorname{round}(\rho B)\right), \qquad n=\left\lceil2.5t\right\rceil.
+
+这与 [**Sec 2.1**](#sec-method-selection) 示例中的倍率 **2** 不同，属于实验超参数的调整，并非 V4 架构强制要求。以 **60%** 保留率为例，t=614、n=1535；不再分别按 CSA 的 256 行或 HCA 的 8 行缩小参考预算。这里 n 指每个 Head 实际参与评分的参考位置数。默认后缀抽取 n 个文档 Token，再加入真实问题、**42-Token** 学习指令与 **2-Token** 模板尾部，因此 \|R\|=\|U\|+42+2+n；评分时再从整个后缀中等距选出 n 个 Query 位置，n 与后缀总长并不相同。
+
+**受保护缓存、物理搬移与位置编码。** 保留非文档指令、保持原值并按原始顺序搬移的原则与前文一致。设 P\_\ell 为该层原始前缀中不属于 \mathcal J\_\ell 的长期行，包括跨文档边界的原生分组，令
+
+\begin{aligned} I\_\ell&=\operatorname{sort}(P\_\ell\cup S\_\ell),\\ \widehat C\_\ell^{\mathrm{main}}&=C\_\ell^{\mathrm{main}}\[I\_\ell\],\\ \widehat K\_\ell^{I}&=K\_\ell^{I}\[I\_\ell\]\qquad\text{（仅 CSA）}. \end{aligned}
+
+V4 的主缓存行直接包含共享 KV 表示及其位置编码维度，搬移时保留完整行与量化信息；CSA 的 Indexer Cache 必须同步采用相同的 I\_\ell，HCA 则没有对应的 Indexer Cache。滑动窗口与压缩器尚未完成分组的尾部状态单独保存，不参与长期行的 Top-K 驱逐。前两层纯滑动窗口也不应用上述长期行选择。
+
+位置编码仍需保持原始逻辑坐标。已有行携带的 RoPE 相位随原值一起保留；对后续新 Token，原始位置与紧凑存储位置满足
+
+p\_{\mathrm{logical}}=p\_{\mathrm{physical}}+D.
+
+主注意力的 Query 旋转以及输出的逆向 RoPE 使用 p\_{\mathrm{logical}}；原生压缩器写入缓存时使用 p\_{\mathrm{physical}} 寻址，同时通过偏移后的 RoPE 查找表保持原始相位。两种原生倍率共用同一个对齐偏移量 D，使新缓存仍写入紧凑的正确分组。最后同步更新 scheduler 与 Model Runner 的请求长度和 block table，并将不再使用的尾部页归还缓存池。
+
+**逐层执行、清除参考状态与继续生成。** 当前 V4 实现仍在一次参考前向中逐层完成评分与缓存搬移，但执行时序与 [**Sec 2.1**](#sec-method-selection) 描述的“筛选后重选候选并重算当前层输出”不同：它先按原生注意力算出当前层的参考输出，再利用该层 Query 和路由结果评分、选择并改写历史缓存，随后将已经算好的输出传给下一层。同一次参考前向不会基于刚压缩的缓存重算当前层输出，因此也不能将其理解为深层参考 Query 已接收到浅层驱逐后的注意力输出。
+
+所有长期缓存层完成搬移后，系统清除 R 对应的临时缓存，并将滑动窗口、主缓存压缩器与 Indexer 压缩器的尾部状态恢复到参考前向之前，再在缩短后的物理前缀后拼回真实问题 U，执行正式回答。这些状态需要一起回退，否则仅删除参考 Token 仍可能把参考过程留下的局部状态带入回答。
+
+之后，CSA 从保留及新增的原生长期行中动态选择最多 **512 行**，并与滑动窗口一起计算注意力；HCA 读取保留及新增的全部因果可见长期压缩行，同样结合滑动窗口。模型据此接入后续输入并继续生成。
 
 ### 3.2 实验设定与结果（暂未完成）
 
@@ -602,34 +670,5 @@ Reference 与 probe 结束后，原生滑动窗口、压缩器状态及 Engram �
 1024 与 2048 两组还优化了 Reference 信号采集：将评分 Q 批量处理，并让页面寻址表常驻 GPU。默认实现的 Reference 前向平均耗时为 **12.17 s**，两组优化实现分别为 **0.60 s**和 **1.14 s**；Query probe 分别约为 **6.09 s、3.17 s 和 3.12 s**。因此，表中的时间变化同时包含实现优化与 Reference 长度变化，不能全部归因于后缀长度。当前全流程仍慢于完整缓存基线。
 
 GLM 的结果表明，这套方法可以迁移到含 KDA 状态的混合架构，并在物理压实后维持任务质量；V4.1 则验证了逐层筛选与局部恢复在跨层共享 KV 下的质量表现。两者都需要适配原生状态和路由关系，并重新选择定位 head。本节表格的重算数据与来源校验值可见[跨模型实验数据](../../../assets/figures/dsa-auto-compact/generalization-evidence.json)。
-
-## 7 超过窗口之后：多轮流式压缩
-
-### 7.1 边读边压，保留追加空间（暂未完成）
-
-为了接近持续增长的历史，我们还测试了另外 30 道超出单次容量的 LongBench-v2 题。完整文档长度约为 **110 万至 464 万 token**，平均约 **200 万 token**。
-
-流式实现先预留 reference、真实 query、生成和安全余量；当前物理前缀达到容量阈值时，按 60% 目标保留率执行一次提出的压缩方法，归还页面，再继续读取尚未处理的原始 token。最后不足阈值的尾段直接保留，不额外增加一次终末压缩。
-
-这组记录每题触发 **1 至 9 次**压缩。每个原始文档 token 只做一次文档前向；后面的 token 读取的是前面各轮形成的记忆，因此这组缓存与一次性完整长前向产生的缓存也不完全相同。
-
-### 7.2 用 CPU 归档提供最后的恢复来源（暂未完成）
-
-中间各轮产生的原生缓存行按原始坐标归档到 CPU。真实 query 只在文档读完后进入 probe，读取当前 GPU 上的物理记忆；选出 24 个窗口后，再从 CPU 归档中补入对应缺失行。
-
-因此，这个系统限制的是 GPU 上的活动缓存容量，CPU 归档仍随已读历史增长。它探索了分层记忆中的一种取舍：较小的活动记忆配合较大的可恢复历史。
-
-### 7.3 30题的效果与时间（暂未完成）
-
-对照采用保留等长头尾、删除文档中间部分的截断方式，并完整保留 query。两种方式的结果如下：
-
-| 设置               | 读取文档方式           | 答对题数 | 准确率 | 平均全流程时间 |
-|:-------------------|:-----------------------|---------:|-------:|---------------:|
-| 头尾截断           | 单次容量内的头部与尾部 |  17 / 30 | 56.67% |       124.52 s |
-| 多轮压缩＋最终恢复 | 完整文档流式读取       |  16 / 30 | 53.33% |       352.83 s |
-
-多轮压缩证明了这套实现可以在受限活动缓存下消费完整超长输入，但这 30 题上，答案质量没有超过头尾截断，耗时也明显增加。流式方法读取了更多内容，两行处理的信息量不同，因此这组时间同时包含额外阅读与压缩维护成本。
-
-平均每题的 CPU 归档拷贝约 9.92 s，中间物理压实约 59.44 s，最终缓存恢复约 3.09 s。原始位置查找容量也做了显式扩展。对 agent 来说，这些测量说明：多轮可运行、记忆质量与长期吞吐量，需要分别优化和验证。
 
 返回顶部
