@@ -172,8 +172,9 @@ window.Quarto = {
   </ul></li>
   <li><a href="#sec-v4-query" id="toc-sec-v4-query" class="nav-link" data-scroll-target="#sec-v4-query"><span class="header-section-number">3</span> 1M 长上下文压缩</a>
   <ul class="collapse">
-  <li><a href="#sec-v4-query-method" id="toc-sec-v4-query-method" class="nav-link" data-scroll-target="#sec-v4-query-method"><span class="header-section-number">3.1</span> V4 的注意力架构与压缩适配（暂未完成）</a></li>
-  <li><a href="#sec-v4-query-results" id="toc-sec-v4-query-results" class="nav-link" data-scroll-target="#sec-v4-query-results"><span class="header-section-number">3.2</span> 实验设定与结果（暂未完成）</a></li>
+  <li><a href="#sec-v4-arch" id="toc-sec-v4-arch" class="nav-link" data-scroll-target="#sec-v4-arch"><span class="header-section-number">3.1</span> DeepSeek-V4 模型架构</a></li>
+  <li><a href="#sec-v4-query-method" id="toc-sec-v4-query-method" class="nav-link" data-scroll-target="#sec-v4-query-method"><span class="header-section-number">3.2</span> V4 的注意力架构与压缩适配（暂未完成）</a></li>
+  <li><a href="#sec-v4-query-results" id="toc-sec-v4-query-results" class="nav-link" data-scroll-target="#sec-v4-query-results"><span class="header-section-number">3.3</span> 实验设定与结果（暂未完成）</a></li>
   </ul></li>
   <li><a href="#sec-recovery" id="toc-sec-recovery" class="nav-link" data-scroll-target="#sec-recovery"><span class="header-section-number">4</span> 面向未知 Query：通用压缩与信号引导恢复</a>
   <ul class="collapse">
@@ -265,7 +266,7 @@ I_{t,s} = \sum_{j=1}^{H^I} w_{t,j}^{I} \cdot \operatorname{ReLU}\!\left(\mathbf{
 <p><span class="math display">
 \mathcal{C}_t = \operatorname{TopK}_{s \le t}\!\left(I_{t,s},\, k\right).
 </span></p>
-<p>在确定候选集 <span class="math inline">\mathcal{C}_t</span> 后，由主注意力层的 <span class="math inline">H_m</span> 个 MLA Heads 仅该候选集上执行注意力计算并生成后续 Token。MLA 将每个位置 <span class="math inline">s</span> 的隐状态 <span class="math inline">\mathbf{h}_s</span> 投影为一个低维的键值潜向量 <span class="math inline">\mathbf{c}_s^{KV} \in \mathbb{R}^{d_c}</span>（<span class="math inline">d_c \ll d</span>），并辅以一个携带 ROPE 的共享键分量 <span class="math inline">\mathbf{k}_s^{R} \in \mathbb{R}^{d_r}</span>：</p>
+<p>在确定候选集 <span class="math inline">\mathcal{C}_t</span> 后，由主注意力层的 <span class="math inline">H_m</span> 个 MLA Heads 仅该候选集上执行注意力计算并生成后续 Token。MLA 将每个位置 <span class="math inline">s</span> 的隐状态 <span class="math inline">\mathbf{h}_s</span> 投影为一个低维的键值潜向量 <span class="math inline">\mathbf{c}_s^{KV} \in \mathbb{R}^{d_c}</span>（<span class="math inline">d_c \ll d</span>），并辅以一个携带 RoPE 的共享键分量 <span class="math inline">\mathbf{k}_s^{R} \in \mathbb{R}^{d_r}</span>：</p>
 <p><span class="math display">
 \mathbf{c}_s^{KV} = W^{DKV} \mathbf{h}_s, \qquad \mathbf{k}_s^{R} = \operatorname{RoPE}\!\left(W^{KR} \mathbf{h}_s\right).
 </span></p>
@@ -424,56 +425,63 @@ t_b = \max\!\left(1,\, \operatorname{round}(\rho |\mathcal{H}_b|)\right), \qquad
 <p>尽管这只是一组初步探索实验，所测试的上下文长度也相对有限，但<span class="intro-mechanism-blue"><strong>结果验证了结合 DSA 路由频次与主注意力权重进行压缩的技术路线是切实有效的，具备继续向更长上下文和更贴近真实 Agent 场景泛化的价值。</strong></span></p>
 </section>
 </section>
-<section id="sec-v4-query" class="level2 blue-math" data-number="3">
+<section id="sec-v4-query" class="level2 blue-math page-columns page-full" data-number="3">
 <h2 class="blue-math anchored" data-number="3" data-anchor-id="sec-v4-query"><span class="header-section-number">3</span> 1M 长上下文压缩</h2>
 <p>在 <a href="#sec-eviction-compaction" class="no-external section-ref" target="_self"><strong>Sec 2</strong></a> 中，我们基于 <a href="https://huggingface.co/deepseek-ai/DeepSeek-V3.2"><strong>DeepSeek-V3.2</strong></a> 验证了所提出压缩方法的初步有效性。不过，<span class="intro-mechanism-blue"><strong>V3.2</strong></span> 作为第一代采用 DSA 架构的模型，其支持的最大上下文长度仅有 <strong>128K</strong>。在真实的 Agent 工作流中，这 <strong>128K</strong> 的上下文窗口很快就会捉襟见肘，与当前主流大模型动辄 <strong>512K</strong> 甚至 <strong>1M</strong> 的上下文能力存在明显差距。</p>
 <p>为了检验压缩算法在更贴近真实使用的长上下文场景下的表现，我们将实验迁移至支持 <strong>1M</strong> 上下文的 <a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731"><strong>DeepSeek-V4-Flash-0731-284B</strong></a> 模型。相比于 <span class="intro-mechanism-blue"><strong>V3.2</strong></span> 逐 Token 维护 Cache 的设计，<span class="intro-mechanism-blue"><strong>V4</strong></span> 在架构上做了一定演进，将历史上下文按不同步幅聚合成多粒度的 Cache 行。因此，本节我们首先针对 <span class="intro-mechanism-blue"><strong>V4</strong></span> 的架构特性对压缩方法进行适配迁移，随后在最高 <strong>1M</strong> 的长上下文的基准上，考察其压缩效果。</p>
-<section id="sec-v4-query-method" class="level3" data-number="3.1">
-<h3 data-number="3.1" class="anchored" data-anchor-id="sec-v4-query-method"><span class="header-section-number">3.1</span> V4 的注意力架构与压缩适配（暂未完成）</h3>
-<p><strong>V4 的原生注意力结构。</strong> <span class="intro-mechanism-blue"><strong>V4</strong></span> 在生成历史 Cache 时就已经进行了序列压缩。其<a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731/blob/main/inference/model.py#L442">官方实现</a>仍将注意力模块称为带滑动窗口和 KV 压缩的 MLA；<a href="https://arxiv.org/html/2606.19348v1#S2.SS3">技术报告</a>则用共享 Key-Value 的 MQA 描述核心注意力计算：多个 Query Heads 共享同一组 Cache，每个缓存向量同时作为 Key 和 Value。</p>
-<p>本文使用的 Flash 模型共有 <strong>43 层</strong>，前两层仅使用滑动窗口，后续 <strong>41 层</strong>交替采用以下两种长期缓存路径。两种路径均额外读取最近 <strong>128 个 Token</strong> 的未压缩滑动窗口，以保留局部细节；具体参数见<a href="https://arxiv.org/html/2606.19348v1#S4.SS2.SSS1">官方模型配置</a>。</p>
-<div class="fingerprint-baseline compact-result-table compact-wide-table">
-<div class="table-responsive">
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">注意力路径</th>
-<th style="text-align: left;">长期 Cache 的原生单位</th>
-<th style="text-align: left;">长期 Cache 的访问方式</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;"><strong>CSA：压缩稀疏注意力</strong></td>
-<td style="text-align: left;">每 <strong>4 个 Token</strong> 生成一行，记为 <strong>C4</strong></td>
-<td style="text-align: left;">Indexer 选择最多 <strong>512 行</strong>参与主注意力</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><strong>HCA：高压缩注意力</strong></td>
-<td style="text-align: left;">每 <strong>128 个 Token</strong> 生成一行，记为 <strong>C128</strong></td>
-<td style="text-align: left;">对此前已经生成的压缩行计算稠密注意力</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>原生压缩由可学习的加权聚合完成。CSA 的相邻压缩分组存在重叠，因此 <strong>4</strong> 表示生成缓存行的步幅，一行的内容还可能来自前一个分组；HCA 使用不重叠的 <strong>128-Token</strong> 分组。这与从原始历史中直接挑选一个 Token 作为代表不同，我们后续驱逐的是模型已经生成的完整压缩行。</p>
-<p>两种路径的主注意力都保留 <strong>64 个 Query Heads</strong>，共享的 KV 向量为 <strong>512 维</strong>，其中最后 <strong>64 维</strong>参与 RoPE。计算注意力后，输出的对应维度还执行逆向 RoPE，再经过分组输出投影。对一个 Query，模型把可访问的长期缓存行与滑动窗口条目一起归一化，并在分母中加入可学习的 attention sink。因此，原生主注意力概率可统一写为</p>
+<section id="sec-v4-arch" class="level3 page-columns page-full" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="sec-v4-arch"><span class="header-section-number">3.1</span> DeepSeek-V4 模型架构</h3>
+<p>我们首先介绍 <a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731"><strong>DeepSeek-V4-Flash-0731</strong></a> 的注意力架构，为了高效支撑 1M 的上下文窗口，<strong><span class="intro-mechanism-blue">V4</span></strong> 在序列维度上对历史上下文进行可学习的加权聚合，将连续的多个历史 Token 聚合为单个 Cache 行。</p>
+<p>设输入隐状态序列为 <span class="math inline">\mathbf{H}_{1:t} = \left(\mathbf{h}_1, \dots, \mathbf{h}_t\right)</span>，<a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731"><strong>DeepSeek-V4-Flash-0731</strong></a> 的文本主干共包含 43 层，其中前 2 层仅采用局部滑动窗口注意力，而后 41 层则采用长程注意力路径，在序列维度上按步幅 <span class="math inline">c</span> 将历史 Token 隐状态聚合成 Cache 行 <span class="math inline">\mathbf{c}_j \in \mathbb{R}^{d_c}</span>（这里 <span class="math inline">j = 1, \dots, \lfloor t / c \rfloor</span>），在这 41 层的不同层中，模型交替按照如下两种不同的粒度进行聚合：</p>
+<ul>
+<li><p><span class="intro-mechanism-blue"><strong>压缩稀疏注意力（Compressed Sparse Attention, CSA）</strong></span>：采用细粒度步幅 <span class="math inline">c_{\mathrm{CSA}} = 4</span>，通过带有相邻分组重叠的可学习加权压缩器 <span class="math inline">\Phi_{\mathrm{CSA}}</span>，每 4 个原始 Token 聚合生成一行缓存 <span class="math inline">\mathbf{c}_j^{CSA} \in \mathbb{R}^{d_c}</span> 以及对应的低维 Indexer 路由键向量 <span class="math inline">\mathbf{k}_j^I \in \mathbb{R}^{d^I}</span>：</p>
 <p><span class="math display">
-\alpha_{\ell,t,v}^{(i)}
-=\frac{\exp z_{\ell,t,v}^{(i)}}
-{\exp z_{\ell,\mathrm{sink}}^{(i)}
-+\sum_{u\in\mathcal A_{\ell,t}}\exp z_{\ell,t,u}^{(i)}},
-\qquad
-z_{\ell,t,v}^{(i)}=\gamma_\ell\mathbf q_{\ell,t,i}^{\top}\mathbf c_{\ell,v}.
+\mathbf{c}_j^{CSA},\, \mathbf{k}_j^I = \Phi_{\mathrm{CSA}}\!\left(\mathbf{H}_{\mathcal{G}_j^{CSA}}\right), \qquad j = 1, \dots, \left\lfloor \frac{t}{4} \right\rfloor,
 </span></p>
-<p>这里 <span class="math inline">\mathcal A_{\ell,t}</span> 包含长期缓存与滑动窗口两类条目；CSA 的长期条目来自原生 Indexer 的 Top-k，HCA 则包含所有因果可见的长期压缩行。<span class="math inline">\mathbf q</span> 与 <span class="math inline">\mathbf c</span> 均已包含模型规定的位置变换，<span class="math inline">\gamma_\ell</span> 是原生缩放系数。由此，V4 的压缩适配需要同时考虑原生缓存行、局部窗口以及不同层的缓存粒度。</p>
-<p>下面按照 <a href="#sec-method-selection" class="no-external section-ref" target="_self"><strong>Sec 2.1</strong></a> 的顺序，说明各个环节的沿用与修改。</p>
+<p>其中 <span class="math inline">\mathcal{G}_j^{CSA}</span> 表示第 <span class="math inline">j</span> 个步幅分组及其相邻重叠窗口的原始位置区间。当查询位置 <span class="math inline">t</span> 到达时，模型的 Indexer 机制计算当前查询与第 <span class="math inline">j</span> 个 CSA 缓存行的路由得分 <span class="math inline">I_{t,j}</span>，并从中筛选出得分最高的 Top-k 行，构成当前位置的稀疏候选集：</p>
+<p><span class="math display">
+\mathcal{C}_t^{CSA} = \operatorname{TopK}_{1 \le j \le \lfloor t/4 \rfloor}\!\left(I_{t,j},\, k\right).
+</span></p></li>
+<li><p><span class="intro-mechanism-blue"><strong>高度压缩注意力（Heavily Compressed Attention, HCA）</strong></span>：采用粗粒度步幅 <span class="math inline">c_{\mathrm{HCA}} = 128</span>，通过互不重叠的可学习加权压缩器 <span class="math inline">\Phi_{\mathrm{HCA}}</span>，每 128 个原始 Token 聚合生成一行高度压缩的缓存 <span class="math inline">\mathbf{c}_j^{HCA} \in \mathbb{R}^{d_c}</span>：</p>
+<p><span class="math display">
+\mathbf{c}_j^{HCA} = \Phi_{\mathrm{HCA}}\!\left(\mathbf{H}_{(j-1)\cdot 128 + 1 \,:\, j\cdot 128}\right), \qquad j = 1, \dots, \left\lfloor \frac{t}{128} \right\rfloor.
+</span></p>
+<p>由于 Cache 行数已大幅缩减至原始序列长度的 <span class="math inline">1/128</span>，HCA 层不再设置 Indexer 路由，所有 Cache 行均可见，共同构成其长期注意力读取集合：</p>
+<p><span class="math display">
+\mathcal{C}_t^{HCA} = \left\{1, 2, \dots, \left\lfloor \frac{t}{128} \right\rfloor\right\}.
+</span></p></li>
+</ul>
+<p>由于 CSA 与 HCA 均在序列维度上对历史信息做了聚合，为了防止上下文的细粒度信息在聚合中丢失，这两条路径均并行结合了<span class="intro-mechanism-blue"><strong>滑动窗口注意力（Sliding Window Attention, SWA）</strong></span>。滑动窗口大小为 <span class="math inline">W = 128</span>，模型对最近 <span class="math inline">W</span> 个原始位置维护未聚合的逐 Token 缓存，构成近期窗口集合 <span class="math inline">\mathcal{W}_t</span>:</p>
+<p><span class="math display">
+\mathcal{W}_t = \left\{\max(1, t - W + 1), \dots, t\right\}.
+</span></p>
+<p>而末尾尚未凑齐一个完整步幅 <span class="math inline">c</span> 的原始 Token，则暂存于原生压缩器 <span class="math inline">\Phi</span> 的尾部状态中，待后续 Token 到达后再触发聚合。</p>
+<p>主注意力模块在完整可见集合 <span class="math inline">\mathcal{C}_t \cup \mathcal{W}_t</span> 上计算键值表征，并执行注意力交互。<strong><span class="intro-mechanism-blue">V4</span></strong> 的主注意力延续了跨头共享键值表示的 MLA 架构<sup class="margin-note-ref" aria-label="参见右侧注 8">8</sup>：对于任意可见 Cache 位置 <span class="math inline">u \in \mathcal{C}_t \cup \mathcal{W}_t</span>，模型不再单独拆分键向量与值向量，而是直接维护单个低维潜向量 <span class="math inline">\mathbf{c}_u \in \mathbb{R}^{d_c}</span>，使其跨全部 <span class="math inline">H_m = 64</span> 个主注意力 Heads 共享，并在注意力计算中同时充当键与值。</p>
+<p>为了向该共享表征注入位置信息，模型不再额外维护解耦的旋转键分支，而是直接将 <span class="math inline">\mathbf{c}_u</span> 拆分为前 <span class="math inline">d_c - d_r = 448</span> 维的内容子空间 <span class="math inline">\mathbf{c}_u^{content}</span> 与最后 <span class="math inline">d_r = 64</span> 维的位置子空间 <span class="math inline">\mathbf{c}_u^{pos}</span>，在生成缓存向量时直接对末尾 <span class="math inline">d_r = 64</span> 维施加对应位置 <span class="math inline">p_u</span> 的 RoPE，并直接将其同时作为键向量 <span class="math inline">\mathbf{k}_u</span> 与值向量 <span class="math inline">\mathbf{v}_u</span>：</p>
+<p><span class="math display">
+\mathbf{k}_u = \mathbf{v}_u = \mathbf{c}_u = \left[\mathbf{c}_u^{content};\, \operatorname{RoPE}_{p_u}\!\left(\mathbf{c}_u^{pos}\right)\right] \in \mathbb{R}^{d_c}.
+</span></p>
+
+<div class="no-row-height column-margin column-container"><div id="note-mla-mqa-naming" class="">
+<p><span class="margin-label">注 8</span></p>
+<p><a href="https://arxiv.org/html/2606.19348v1#S2.SS3.SSS1">DeepSeek-V4 技术报告</a>将其称为<span class="intro-mechanism-blue">共享键值的多查询注意力（Shared Key-Value MQA）</span>，而<a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731/blob/main/inference/model.py#L442">官方推理代码库</a>仍将整个注意力模块命名为带有滑动窗口与 KV 压缩的 MLA。</p>
+</div></div><p>对当前查询位置 <span class="math inline">t</span>，第 <span class="math inline">i</span> 个主注意力 Head（<span class="math inline">1 \le i \le H_m</span>）由隐藏状态 <span class="math inline">\mathbf{h}_t</span> 投影归一化得到 <span class="math inline">\tilde{\mathbf{q}}_{t,i} = \operatorname{Norm}\!\left(W_i^Q \mathbf{h}_t\right) = \left[\tilde{\mathbf{q}}_{t,i}^{content};\, \tilde{\mathbf{q}}_{t,i}^{pos}\right]</span>，并在末尾 <span class="math inline">d_r</span> 维施加 <span class="math inline">\operatorname{RoPE}_t</span> 后，得到查询向量 <span class="math inline">\mathbf{q}_{t,i} \in \mathbb{R}^{d_c}</span>：</p>
+<p><span class="math display">
+\mathbf{q}_{t,i} = \left[\tilde{\mathbf{q}}_{t,i}^{content};\, \operatorname{RoPE}_t\!\left(\tilde{\mathbf{q}}_{t,i}^{pos}\right)\right] \in \mathbb{R}^{d_c}.
+</span></p>
+<p>随后，模型通过内积 <span class="math inline">\mathbf{q}_{t,i}^\top \mathbf{c}_u</span> 计算对各候选位置 <span class="math inline">u \in \mathcal{C}_t \cup \mathcal{W}_t</span> 的注意力分数，在计算注意力权重 <span class="math inline">\alpha_{t,u}^{(i)}</span> 时，除了纳入候选集 <span class="math inline">\mathcal{C}_t</span> 与近期滑动窗口 <span class="math inline">\mathcal{W}_t</span> 外，<strong><span class="intro-mechanism-blue">V4</span></strong> 还在 Softmax 分母中额外引入了一组可学习的 Sink 偏置 <span class="math inline">s_{\mathrm{sink}}^{(i)} \in \mathbb{R}</span>，用于吸收冗余的注意力概率质量：</p>
+<p><span class="math display">
+\alpha_{t,u}^{(i)} = \frac{\exp\!\left(\gamma \, \mathbf{q}_{t,i}^\top \mathbf{c}_u\right)}{\displaystyle\sum_{j \in \mathcal{C}_t} \exp\!\left(\gamma \, \mathbf{q}_{t,i}^\top \mathbf{c}_j\right) + \sum_{w \in \mathcal{W}_t} \exp\!\left(\gamma \, \mathbf{q}_{t,i}^\top \mathbf{c}_w\right) + \exp\!\left(s_{\mathrm{sink}}^{(i)}\right)}, \qquad u \in \mathcal{C}_t \cup \mathcal{W}_t,
+</span></p>
+<p>其中 <span class="math inline">\gamma</span> 为模型的注意力缩放系数。得到注意力权重 <span class="math inline">\alpha_{t,u}^{(i)}</span> 后，第 <span class="math inline">i</span> 个 Head 直接对同一共享缓存向量 <span class="math inline">\mathbf{c}_u</span> 进行加权求和。由于 <span class="math inline">\mathbf{c}_u</span> 在作为值向量被读取时，其末尾 <span class="math inline">d_r = 64</span> 维依然携带着历史位置 <span class="math inline">p_u</span> 的旋转相位，模型在完成加权求和后，还需对输出向量的对应维度执行一次当前位置 <span class="math inline">t</span> 的 Inverse RoPE 以消解绝对位置相位，最后再经由分组输出投影生成当前层的注意力输出：</p>
+<p><span class="math display">
+\mathbf{o}_{t,i} = \operatorname{InvRoPE}_t\!\left(\sum_{u \in \mathcal{C}_t \cup \mathcal{W}_t} \alpha_{t,u}^{(i)} \mathbf{c}_u\right).
+</span></p>
+<p>因此，在 <strong><span class="intro-mechanism-blue">V4</span></strong> 的推理过程中，系统并行维护着<span class="intro-mechanism-red">多粒度的长程注意力缓存序列 <span class="math inline">\left\{\left(\mathbf{c}_j^{CSA}, \mathbf{k}_j^I\right)\right\}</span> 与 <span class="math inline">\left\{\mathbf{c}_j^{HCA}\right\}</span>，</span><span class="intro-mechanism-green">局部的滑动窗口缓存 <span class="math inline">\left\{\mathbf{c}_w^{SWA}\right\}</span> ，以及原生压缩器尾部状态。</span></p>
+<p><strong><span class="intro-mechanism-blue">V4</span></strong> 还引入了如 <strong>mHC 残差连接</strong>、<strong>Muon 优化器</strong>等新设计。不过，这些变化与压缩实现基本无关，因此本文不过多赘述。</p>
+</section>
+<section id="sec-v4-query-method" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="sec-v4-query-method"><span class="header-section-number">3.2</span> V4 的注意力架构与压缩适配（暂未完成）</h3>
 <p><strong>参考查询的构造。</strong> 这一步与 <a href="#sec-method-selection" class="no-external section-ref" target="_self"><strong>Sec 2.1</strong></a> 一致：参考后缀仍由真实问题 <span class="math inline">U</span>、学习指令 <span class="math inline">P_{\text{study}}</span>、模型对话模板尾部 <span class="math inline">T_{\text{chat}}</span> 和从原始历史 Token ID 中等距抽取的内容组成。采样对象仍是原始文本 Token，后续评分与驱逐的对象才变为原生压缩行。本节仍属于问题已知的任务感知压缩，未知后续问题时的处理见 <a href="#sec-recovery" class="no-external section-ref" target="_self"><strong>Sec 4</strong></a>。</p>
 <p><strong>参考前向与注意力分布。</strong> 仍通过一次参考前向收集各层 Query，但需要区分模型的原生注意力分布与基础选择器实际使用的评分代理。设第 <span class="math inline">\ell</span> 层的原生压缩倍率为 <span class="math inline">c_\ell\in\{4,128\}</span>，参与驱逐评分的文档行集合为 <span class="math inline">\mathcal J_\ell</span>，采样得到的参考 Query 数为 <span class="math inline">n</span>。</p>
 <p>对 CSA，记 <span class="math inline">\mathcal C_{\ell,q}</span> 为第 <span class="math inline">q</span> 个参考位置的原生 Indexer 候选集。当前基础选择器仅在这些有效长期候选上重新归一化；对 HCA，则仅在 <span class="math inline">\mathcal J_\ell</span> 上重新归一化。将这一评分用分布记为 <span class="math inline">\beta</span>：</p>
@@ -581,8 +589,8 @@ p_{\mathrm{logical}}=p_{\mathrm{physical}}+D.
 <p>所有长期缓存层完成搬移后，系统清除 <span class="math inline">R</span> 对应的临时缓存，并将滑动窗口、主缓存压缩器与 Indexer 压缩器的尾部状态恢复到参考前向之前，再在缩短后的物理前缀后拼回真实问题 <span class="math inline">U</span>，执行正式回答。这些状态需要一起回退，否则仅删除参考 Token 仍可能把参考过程留下的局部状态带入回答。</p>
 <p>之后，CSA 从保留及新增的原生长期行中动态选择最多 <strong>512 行</strong>，并与滑动窗口一起计算注意力；HCA 读取保留及新增的全部因果可见长期压缩行，同样结合滑动窗口。模型据此接入后续输入并继续生成。</p>
 </section>
-<section id="sec-v4-query-results" class="level3" data-number="3.2">
-<h3 data-number="3.2" class="anchored" data-anchor-id="sec-v4-query-results"><span class="header-section-number">3.2</span> 实验设定与结果（暂未完成）</h3>
+<section id="sec-v4-query-results" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="sec-v4-query-results"><span class="header-section-number">3.3</span> 实验设定与结果（暂未完成）</h3>
 <p><strong>统一的推理设置。</strong> 三组实验均采用 DeepSeek-V4-Flash-0731，通过 vLLM 进行 TP4 推理，关闭 thinking，使用 greedy decoding，最多生成 192 token。目标文档保留率为 80%、60%、40% 与 20%，参考 Q 预算沿用 <span class="math inline">n/t=2.5</span>；60% 档仍使用每个 head 1535 个参考 Q。各保留率独立执行带真实 Query 的参考前向，完成缓存筛选后直接回答问题。</p>
 <p><strong>从正常长度到百万 Token，再到自然长文档。</strong> 我们依次考察三组输入：</p>
 <ul>
@@ -785,10 +793,10 @@ o_{h,q}=\sum_j\alpha_{h,q,j}v_j.
 \texttt{L20-H5},\ \texttt{L20-H30},\
 \texttt{L20-H31},\ \texttt{L26-H58}\}.
 </span></p>
-<p>层号与全局 head 号均从 0 开始。这组 head 由 LongBench 的定位排名选出，随后固定用于完整 LongBench-v2 与 InfiniteBench 实验<sup class="margin-note-ref" aria-label="参见右侧注 8">8</sup>。</p>
+<p>层号与全局 head 号均从 0 开始。这组 head 由 LongBench 的定位排名选出，随后固定用于完整 LongBench-v2 与 InfiniteBench 实验<sup class="margin-note-ref" aria-label="参见右侧注 9">9</sup>。</p>
 
 <div class="no-row-height column-margin column-container"><div class="">
-<p><span class="margin-label">注 8</span></p>
+<p><span class="margin-label">注 9</span></p>
 <p>发现集中的 68 道 LongBench-v2 题来自后文同一批 473 题，包含早期压缩退化案例。InfiniteBench 直接复用选定的 head 与恢复预算，没有重新选 head。证据标注用于离线排名和定位评估；逐题恢复只使用问题与模型信号。</p>
 </div></div><p><strong>把问题的读取转成窗口分数。</strong> 将原始位置划分为 128-token 窗口。对 head <span class="math inline">h</span> 所在层 <span class="math inline">\ell(h)</span>、问题后缀位置 <span class="math inline">q</span> 和窗口 <span class="math inline">w</span>，累加该窗口中存活行的注意力概率：</p>
 <p><span class="math display">
