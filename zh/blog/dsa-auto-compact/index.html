@@ -173,7 +173,7 @@ window.Quarto = {
   <li><a href="#sec-v4-query" id="toc-sec-v4-query" class="nav-link" data-scroll-target="#sec-v4-query"><span class="header-section-number">3</span> 1M 长上下文压缩</a>
   <ul class="collapse">
   <li><a href="#sec-v4-arch" id="toc-sec-v4-arch" class="nav-link" data-scroll-target="#sec-v4-arch"><span class="header-section-number">3.1</span> DeepSeek-V4 模型架构</a></li>
-  <li><a href="#sec-v4-query-method" id="toc-sec-v4-query-method" class="nav-link" data-scroll-target="#sec-v4-query-method"><span class="header-section-number">3.2</span> V4 的注意力架构与压缩适配（暂未完成）</a></li>
+  <li><a href="#sec-v4-query-method" id="toc-sec-v4-query-method" class="nav-link" data-scroll-target="#sec-v4-query-method"><span class="header-section-number">3.2</span> 适配 DeepSeek-V4 架构的上下文压缩方法</a></li>
   <li><a href="#sec-v4-query-results" id="toc-sec-v4-query-results" class="nav-link" data-scroll-target="#sec-v4-query-results"><span class="header-section-number">3.3</span> 实验设定与结果（暂未完成）</a></li>
   </ul></li>
   <li><a href="#sec-recovery" id="toc-sec-recovery" class="nav-link" data-scroll-target="#sec-recovery"><span class="header-section-number">4</span> 面向未知 Query：通用压缩与信号引导恢复</a>
@@ -446,7 +446,7 @@ t_b = \max\!\left(1,\, \operatorname{round}(\rho |\mathcal{H}_b|)\right), \qquad
 <p><span class="math display">
 \mathbf{c}_j^{HCA} = \Phi_{\mathrm{HCA}}\!\left(\mathbf{H}_{(j-1)\cdot 128 + 1 \,:\, j\cdot 128}\right), \qquad j = 1, \dots, \left\lfloor \frac{t}{128} \right\rfloor.
 </span></p>
-<p>由于 Cache 行数已大幅缩减至原始序列长度的 <span class="math inline">1/128</span>，HCA 层不再设置 Indexer 路由，所有 Cache 行均可见，共同构成其长期注意力读取集合：</p>
+<p>由于 Cache 行数已大幅缩减至原始序列长度的 <span class="math inline">1/128</span>，HCA 层不再设置 Indexer 路由，所有 Cache 行均可见，共同构成其注意力读取集合：</p>
 <p><span class="math display">
 \mathcal{C}_t^{HCA} = \left\{1, 2, \dots, \left\lfloor \frac{t}{128} \right\rfloor\right\}.
 </span></p></li>
@@ -481,8 +481,8 @@ t_b = \max\!\left(1,\, \operatorname{round}(\rho |\mathcal{H}_b|)\right), \qquad
 <p><strong><span class="intro-mechanism-blue">V4</span></strong> 还引入了如 <strong>mHC 残差连接</strong>、<strong>Muon 优化器</strong>等新设计。不过，这些变化与压缩实现基本无关，因此本文不过多赘述。</p>
 </section>
 <section id="sec-v4-query-method" class="level3" data-number="3.2">
-<h3 data-number="3.2" class="anchored" data-anchor-id="sec-v4-query-method"><span class="header-section-number">3.2</span> V4 的注意力架构与压缩适配（暂未完成）</h3>
-<p><strong>参考查询的构造。</strong> 这一步与 <a href="#sec-method-selection" class="no-external section-ref" target="_self"><strong>Sec 2.1</strong></a> 一致：参考后缀仍由真实问题 <span class="math inline">U</span>、学习指令 <span class="math inline">P_{\text{study}}</span>、模型对话模板尾部 <span class="math inline">T_{\text{chat}}</span> 和从原始历史 Token ID 中等距抽取的内容组成。采样对象仍是原始文本 Token，后续评分与驱逐的对象才变为原生压缩行。本节仍属于问题已知的任务感知压缩，未知后续问题时的处理见 <a href="#sec-recovery" class="no-external section-ref" target="_self"><strong>Sec 4</strong></a>。</p>
+<h3 data-number="3.2" class="anchored" data-anchor-id="sec-v4-query-method"><span class="header-section-number">3.2</span> 适配 DeepSeek-V4 架构的上下文压缩方法</h3>
+<p>接下来我们将 <a href="#sec-method-selection" class="no-external section-ref" target="_self"><strong>Sec 2.1</strong></a> 所提出的压缩方案适配至 <strong><span class="intro-mechanism-blue">V4</span></strong> 架构。在 <strong><span class="intro-mechanism-blue">V3.2</span></strong> 中，历史 Cache 逐 Token 维护，各层结构完全相同；而在 <strong><span class="intro-mechanism-blue">V4</span></strong> 中，模型在序列维度上按步幅 <span class="math inline">c_\ell \in \{4, 128\}</span> 将历史 Token 聚合为多粒度的 Cache 行，交替采用包含 Indexer 路由的 CSA 层与无路由稠密读取的 HCA 层，且并行设计了滑动窗口 <span class="math inline">\mathcal{W}_t</span>、可学习的 Attention Sink 以及包含输出逆向旋转的原位 RoPE 编码。因此，压缩方案需要<span class="intro-mechanism-blue"><strong>面向异构多粒度原生 Cache 行进行筛选</strong></span>，并在整个流程中<span class="intro-mechanism-blue"><strong>妥善处理局部窗口状态、共享潜向量表征与位置坐标映射。</strong></span></p>
 <p><strong>参考前向与注意力分布。</strong> 仍通过一次参考前向收集各层 Query，但需要区分模型的原生注意力分布与基础选择器实际使用的评分代理。设第 <span class="math inline">\ell</span> 层的原生压缩倍率为 <span class="math inline">c_\ell\in\{4,128\}</span>，参与驱逐评分的文档行集合为 <span class="math inline">\mathcal J_\ell</span>，采样得到的参考 Query 数为 <span class="math inline">n</span>。</p>
 <p>对 CSA，记 <span class="math inline">\mathcal C_{\ell,q}</span> 为第 <span class="math inline">q</span> 个参考位置的原生 Indexer 候选集。当前基础选择器仅在这些有效长期候选上重新归一化；对 HCA，则仅在 <span class="math inline">\mathcal J_\ell</span> 上重新归一化。将这一评分用分布记为 <span class="math inline">\beta</span>：</p>
 <p><span class="math display">

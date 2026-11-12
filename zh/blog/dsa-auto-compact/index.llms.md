@@ -210,7 +210,7 @@ t_b = \max\\\left(1,\\ \operatorname{round}(\rho \|\mathcal{H}\_b\|)\right), \qq
 
   \mathbf{c}\_j^{HCA} = \Phi\_{\mathrm{HCA}}\\\left(\mathbf{H}\_{(j-1)\cdot 128 + 1 \\:\\ j\cdot 128}\right), \qquad j = 1, \dots, \left\lfloor \frac{t}{128} \right\rfloor.
 
-  由于 Cache 行数已大幅缩减至原始序列长度的 1/128，HCA 层不再设置 Indexer 路由，所有 Cache 行均可见，共同构成其长期注意力读取集合：
+  由于 Cache 行数已大幅缩减至原始序列长度的 1/128，HCA 层不再设置 Indexer 路由，所有 Cache 行均可见，共同构成其注意力读取集合：
 
   \mathcal{C}\_t^{HCA} = \left\\1, 2, \dots, \left\lfloor \frac{t}{128} \right\rfloor\right\\.
 
@@ -246,9 +246,9 @@ t_b = \max\\\left(1,\\ \operatorname{round}(\rho \|\mathcal{H}\_b\|)\right), \qq
 
 **V4** 还引入了如 **mHC 残差连接**、**Muon 优化器**等新设计。不过，这些变化与压缩实现基本无关，因此本文不过多赘述。
 
-### 3.2 V4 的注意力架构与压缩适配（暂未完成）
+### 3.2 适配 DeepSeek-V4 架构的上下文压缩方法
 
-**参考查询的构造。** 这一步与 [**Sec 2.1**](#sec-method-selection) 一致：参考后缀仍由真实问题 U、学习指令 P\_{\text{study}}、模型对话模板尾部 T\_{\text{chat}} 和从原始历史 Token ID 中等距抽取的内容组成。采样对象仍是原始文本 Token，后续评分与驱逐的对象才变为原生压缩行。本节仍属于问题已知的任务感知压缩，未知后续问题时的处理见 [**Sec 4**](#sec-recovery)。
+接下来我们将 [**Sec 2.1**](#sec-method-selection) 所提出的压缩方案适配至 **V4** 架构。在 **V3.2** 中，历史 Cache 逐 Token 维护，各层结构完全相同；而在 **V4** 中，模型在序列维度上按步幅 c\_\ell \in \\4, 128\\ 将历史 Token 聚合为多粒度的 Cache 行，交替采用包含 Indexer 路由的 CSA 层与无路由稠密读取的 HCA 层，且并行设计了滑动窗口 \mathcal{W}\_t、可学习的 Attention Sink 以及包含输出逆向旋转的原位 RoPE 编码。因此，压缩方案需要**面向异构多粒度原生 Cache 行进行筛选**，并在整个流程中**妥善处理局部窗口状态、共享潜向量表征与位置坐标映射。**
 
 **参考前向与注意力分布。** 仍通过一次参考前向收集各层 Query，但需要区分模型的原生注意力分布与基础选择器实际使用的评分代理。设第 \ell 层的原生压缩倍率为 c\_\ell\in\\4,128\\，参与驱逐评分的文档行集合为 \mathcal J\_\ell，采样得到的参考 Query 数为 n。
 
