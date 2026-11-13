@@ -198,7 +198,7 @@ $$
 
 该分块预算机制保证了上下文的各个区间都能保留信息，模型不同层 $\ell$ 根据各自的访问模式独立选出 $S_\ell$，而在同一层内部，所有 MLA Heads 共享同一组保留位置 $S_\ell$，从而适配 MLA 跨头共享的潜空间缓存结构。
 
-从监督信号的密度来看，我们在每个分块 $B$ 内需要挑选并保留的 Cache 数量 $t = \operatorname{round}(\rho B)$ 越多，就越需要更更多的参考查询来提供监督。因此，我们将参考查询预算 $n$ 与保留量 $t$ 挂钩，维持固定倍率的过采样监督：
+从监督信号的密度来看，在每个分块 $B$ 内需要挑选并保留的 Cache 数量 $t = \operatorname{round}(\rho B)$ 越多，就越需要更更多的参考查询来提供监督。因此，我们将参考查询预算 $n$ 与保留量 $t$ 挂钩，维持固定倍率的过采样监督：
 $$
 \qquad t = \max\!\left(1,\, \operatorname{round}(\rho B)\right), \qquad n = \lceil 2t \rceil.
 $$
@@ -339,145 +339,94 @@ $$
 
 接下来我们将 [**Sec 2.1**](#sec-method-selection){.no-external .section-ref target="_self"} 所提出的压缩方案适配至 **[V4]{.intro-mechanism-blue}** 架构。在 **[V3.2]{.intro-mechanism-blue}** 中，历史 Cache 逐 Token 维护，各层结构完全相同；而在 **[V4]{.intro-mechanism-blue}** 中，模型在序列维度上按步幅 $c_\ell \in \{4, 128\}$ 将历史 Token 聚合为多粒度的 Cache 行，交替采用包含 Indexer 路由的 CSA 层与无路由稠密读取的 HCA 层，且并行设计了滑动窗口 $\mathcal{W}_t$、可学习的 Attention Sink 以及包含输出逆向旋转的原位 RoPE 编码。因此，压缩方案需要[**面向异构多粒度原生 Cache 行进行筛选**]{.intro-mechanism-blue}，并在整个流程中[**妥善处理局部窗口状态、共享潜向量表征与位置坐标映射。**]{.intro-mechanism-blue}
 
-**参考前向与注意力分布。** 仍通过一次参考前向收集各层 Query，但需要区分模型的原生注意力分布与基础选择器实际使用的评分代理。设第 $\ell$ 层的原生压缩倍率为 $c_\ell\in\{4,128\}$，参与驱逐评分的文档行集合为 $\mathcal J_\ell$，采样得到的参考 Query 数为 $n$。
-
-对 CSA，记 $\mathcal C_{\ell,q}$ 为第 $q$ 个参考位置的原生 Indexer 候选集。当前基础选择器仅在这些有效长期候选上重新归一化；对 HCA，则仅在 $\mathcal J_\ell$ 上重新归一化。将这一评分用分布记为 $\beta$：
+对于参考查询 $R$，我们沿用先前的设计，将真实用户输入 $U$、学习指令 $P_{\text{study}}$、对话模板尾部 $T_{\text{chat}}$ 以及从历史上下文 $H$ 的原始文本 Token 中等距抽取的序列拼接为参考查询：
 
 $$
-\begin{aligned}
-\mathcal D_{\ell,q}
-&=\begin{cases}
-\mathcal C_{\ell,q}, & c_\ell=4,\\
-\mathcal J_\ell, & c_\ell=128,
-\end{cases}\\[4pt]
-\beta_{\ell,q,j}^{(i)}
-&=\begin{cases}
-\displaystyle\frac{\exp\!\left(\gamma_\ell\tilde{\mathbf q}_{\ell,q,i}^{\top}\mathbf c_{\ell,j}\right)}
-{\sum_{u\in\mathcal D_{\ell,q}}\exp\!\left(\gamma_\ell\tilde{\mathbf q}_{\ell,q,i}^{\top}\mathbf c_{\ell,u}\right)},
-& j\in\mathcal D_{\ell,q},\\[10pt]
-0, & j\notin\mathcal D_{\ell,q}.
+R = U \;\|\; P_{\text{study}} \;\|\; T_{\text{chat}} \;\|\; \operatorname{Sample}_n(H).
+$$
+
+在将 $R$ 追加到历史上下文之后做前向传播时，需要处理 V4 的滑动窗口与原生压缩器机制带来的状态污染问题：模型的前 2 层为滑动窗口层，后 41 层的 CSA 与 HCA 路径也都维护着最近 $W = 128$ 个原始 Token 的未聚合滑动窗口缓存 $\mathcal{W}_t$，同时主缓存与 Indexer 的原生压缩器 $\Phi$ 中还暂存着末尾尚未凑齐一个完整分组步幅 $c_\ell$ 的尾部状态。[如果直接追加 $R$ 执行前向传播，这些局部窗口与尾部状态就会被参考查询的 Token 覆盖改写。]{.intro-mechanism-red}
+
+为此，我们在前向传播开始前，[预先对上述缓存以及尾部状态进行完整保存]{.intro-mechanism-green}，这些局部状态不参与 Cache 行的压缩，待后续完成上下文压缩后，系统将清除后缀对应的临时 Cache，并将上述局部状态回退至参考前向之前的状态。
+
+在后 41 个长程注意力层（$3 \le \ell \le 43$）中，压缩基本单元从单个 Token 改为各层按步幅 $c_\ell \in \{4, 128\}$ 聚合生成的原生 Cache 行。对于待压缩的历史上下文 $H$，我们将第 $\ell$ 层中完全落入待压缩区间内的 Cache 行集合记为 $\mathcal{H}_\ell$（一共有 $N_\ell = |\mathcal{H}_\ell| = 41$ 行），仅对 $\mathcal{H}_\ell$ 内部的行执行重要性评估与驱逐式压缩。系统提示词、指令以及跨越文档边界的原生聚合 Cache 行，则归入受保护集合 $P_\ell$ 予以完整保留。
+
+而后我们追加参考查询 $R$ 并执行前向传播，并获取 $\mathcal{H}_\ell$ 中各各 Cache 行 $u$ 的注意力分布。由于 V4 原生主注意力的 Softmax 分母同时包含了候选集 $\mathcal{C}_t$、滑动窗口 $\mathcal{W}_t$ 与可学习的 Sink 偏置 $s_{\mathrm{sink}}^{(i)}$。为了排除局部窗口和 Sink 分支的干扰，衡量 Cache 行之间的相对重要性，我们在计算第 $q$ 个参考位置（$1 \le q \le n$）、第 $i$ 个主注意力 Head 在长期 Cache 行 $u$ 上的注意力分布 $\tilde{\alpha}_{\ell,q,u}^{(i)}$ 时，仅在有效候选集 $\mathcal{D}_{\ell,q}$ 内部进行重新归一化：
+
+$$
+\tilde{\alpha}_{\ell,q,u}^{(i)} = \begin{cases}
+\displaystyle\frac{\exp\!\left(\gamma_\ell \, \mathbf{q}_{\ell,q,i}^\top \mathbf{c}_{\ell,u}\right)}{\sum_{v \in \mathcal{D}_{\ell,q}} \exp\!\left(\gamma_\ell \, \mathbf{q}_{\ell,q,i}^\top \mathbf{c}_{\ell,v}\right)}, & u \in \mathcal{D}_{\ell,q}, \\[12pt]
+0, & u \notin \mathcal{D}_{\ell,q}.
 \end{cases}
-\end{aligned}
 $$
 
-CSA 的候选集可以包含文档之外的长期行，但最终仅对 $j\in\mathcal J_\ell$ 累计重要性。上述 $\beta$ 不包含滑动窗口与 attention sink 的归一化项，HCA 还排除了非文档长期行，因而是用于选择的局部代理分布，与前面包含全部原生分支的 $\alpha$ 有区别。
+对于 CSA 层，$\mathcal{D}_{\ell,q} = \mathcal{C}_{\ell,q}^{CSA}$ 为 Indexer 选出的候选集；对于 HCA 层，由于没有 Indexer 路由，则令 $\mathcal{D}_{\ell,q} = \mathcal{H}_\ell$
 
-**重要性得分。** 保留“主注意力贡献与路由命中共同评分”的思路，但当前 V4 实现将 [**Sec 2.1**](#sec-method-selection){.no-external .section-ref target="_self"} 的注意力 RMS 与路由频率平方根，改为注意力质量的直接累加与路由命中计数。设主注意力 Head 数为 $H_m=64$，则
+基于注意力分布 $\tilde{\alpha}_{\ell,q,u}^{(i)}$，我们评估每个 Cache 行 $u \in \mathcal{H}_\ell$ 的重要性，仍然延续 [**Sec 2.1**](#sec-method-selection){.no-external .section-ref target="_self"} 的思路，[**综合考虑 Indexer 路由命中率以及 MLA 主注意力贡献并加以评分**]{.intro-mechanism-blue}。在所有 $n$ 个参考查询位置与 $H_m = 64$ 个主注意力 Heads 上，计算位置 $u$ 的累积主注意力质量 $m_{\ell,u}$，同时对于带有 Indexer 路由的 CSA 层，统计位置 $u$ 在 $n$ 个参考位置中被选入稀疏候选集 $\mathcal{C}_{\ell,q}^{CSA}$ 的命中次数 $r_{\ell,u}$<sup class="margin-note-ref" aria-label="参见右侧注 9">9</sup>：
 
-$$
-m_{\ell,j}=\sum_{q=1}^{n}\sum_{i=1}^{H_m}\beta_{\ell,q,j}^{(i)},
-\qquad
-r_{\ell,j}=\sum_{q=1}^{n}\mathbb 1\!\left[j\in\mathcal C_{\ell,q}\right].
-$$
+::: {#note-v4-linear-scoring .column-margin}
+<span class="margin-label">注 9</span>
 
-CSA 的两个分量分别归一化后等权相加；HCA 不使用 Indexer 筛选长期缓存，因此只保留主注意力质量一项：
+相比于 [**Sec 2.1**](#sec-method-selection){.no-external .section-ref target="_self"} 中 **[V3.2]{.intro-mechanism-blue}** 使用的注意力 RMS $a_{\ell,s}$ 与路由频率平方根 $\sqrt{f_{\ell,s}}$，我们在 **[V4]{.intro-mechanism-blue}** 中采用更简洁的实现方法，将主注意力的贡献评估调整为注意力质量的直接累加 $m_{\ell,u}$ 。由于 MLA 主注意力项改为了线性累加，Indexer 路由项也相应保持线性计数 $r_{\ell,u}$，而不再取平均，使两项依然在命中次数尺度上保持一致的齐次化。实验结果表明，这样的修改不会使得压缩效果明显下降。
+:::
 
 $$
-\begin{aligned}
-g_{\ell,j}^{\mathrm{CSA}}
-&=\frac{m_{\ell,j}}{\max\!\left(\sum_{u\in\mathcal J_\ell}m_{\ell,u},\epsilon\right)}
-+\frac{r_{\ell,j}}{\max\!\left(\sum_{u\in\mathcal J_\ell}r_{\ell,u},\epsilon\right)},\\[6pt]
-g_{\ell,j}^{\mathrm{HCA}}
-&=\frac{m_{\ell,j}}{\max\!\left(\sum_{u\in\mathcal J_\ell}m_{\ell,u},\epsilon\right)},
-\qquad \epsilon=10^{-12}.
-\end{aligned}
+m_{\ell,u} = \sum_{q=1}^{n} \sum_{i=1}^{H_m} \tilde{\alpha}_{\ell,q,u}^{(i)}, \qquad r_{\ell,u} = \sum_{q=1}^{n} \mathbb{1}\!\left[u \in \mathcal{C}_{\ell,q}^{CSA}\right].
 $$
 
-这里没有对路由计数取平方根，因为与之相加的主注意力项也改成了直接累加。这是当前 V4 基础选择器的评分口径，并非将 V3.2 的 RMS 公式仅替换下标后直接使用。
-
-**分块选择与保留配额。** 各层独立选择、同一层所有主注意力 Heads 共享保留集合的原则不变。需要修改的是计量单位：预算块仍对应 $B=1024$ 个原始 Token，而每块的原生行数变为 $B/c_\ell$，即 CSA 的 **256 行**或 HCA 的 **8 行**。
-
-设压缩前、追加参考后缀之前的物理前缀长度为 $L$，文档在原始 Token 坐标中的区间为 $[d_0,d_1)$。实现只将原生分组区间完整落在文档内的行纳入可选集合，跨文档边界的行继续保留：
+现在计算最终的评估位置 $u$ 的重要性指标 $g_{\ell,u}$，对于 CSA 层，其同时包含 Indexer 路由与主注意力计算，因此将 $m_{\ell,u}$ 与 $r_{\ell,u}$ 在历史上下文集合 $\mathcal{H}_\ell$ 上分别归一化后等权相加；对于 HCA 层，其直接稠密读取长期 Cache 行，不含 Indexer 路由信号，因此仅使用主注意力质量 $m_{\ell,u}$ 计算重要性得分：
 
 $$
-\mathcal J_\ell=
-\left\{j\;\middle|\;
-\left\lceil\frac{d_0}{c_\ell}\right\rceil
-\le j<\left\lfloor\frac{d_1}{c_\ell}\right\rfloor\right\},
-\qquad N_\ell=|\mathcal J_\ell|.
+\begin{gathered}
+g_{\ell,u}^{CSA} = \frac{m_{\ell,u}}{\max\!\left(\sum_{v \in \mathcal{H}_\ell} m_{\ell,v},\, \epsilon\right)} + \frac{r_{\ell,u}}{\max\!\left(\sum_{v \in \mathcal{H}_\ell} r_{\ell,v},\, \epsilon\right)}, \\[12pt]
+g_{\ell,u}^{HCA} = \frac{m_{\ell,u}}{\max\!\left(\sum_{v \in \mathcal{H}_\ell} m_{\ell,v},\, \epsilon\right)},
+\end{gathered}
 $$
 
-与 V3.2 各层保留相同行数不同，V4 需要让不同粒度的缓存共同对应一个调度器可见的原始 Token 长度。为此，先按目标保留率 $\rho$ 计算驱逐量，再将其对齐到 $A=256$ 个 Token：
+这里同样取 $\epsilon = 10^{-12}$ 用于处理分母为零的情况。
+
+接下来需要根据重要性得分 $g_{\ell,s}$ 选择 Top-$K$ 保留行。在 V4 中，由于 CSA 层和 HCA 层的 Cache 粒度相差 $32$ 倍，为了保证压缩后不同粒度的层删掉相同数量的原始 Token，且在各自层内都能恰好折算为整数个 Cache 行，我们引入共同驱逐量 $D$ 来表示各层需要驱逐的原始 Token 总数，并在计算 $D$ 时将其对齐至 128 的倍数。设压缩前的完整原始 Token 长度为 $L$，历史上下文对应的原始 Token 长度为 $L_H$，给定目标保留率 $\rho$，对齐后的驱逐量 $D$ 与压缩后的总长度 $\widehat{L}$ 为：
 
 $$
-\begin{aligned}
-D_{\mathrm{req}}&=\operatorname{round}\!\left((1-\rho)(d_1-d_0)\right),\\
-D&=\min\!\left(D_{\max},\;
-A\max\!\left(1,\left\lfloor\frac{D_{\mathrm{req}}}{A}\right\rfloor\right)\right),\\
-\widehat L&=L-D.
-\end{aligned}
+D_{\mathrm{req}} = \operatorname{round}\!\left((1 - \rho) L_H\right), \qquad D = 128 \cdot \max\!\left(1,\, \left\lfloor \frac{D_{\mathrm{req}}}{128} \right\rfloor\right), \qquad \widehat{L} = L - D.
 $$
 
-其中 $D_{\max}$ 是不超过文档长度、且两类缓存均至少保留一行可选文档行的最大可行对齐驱逐量；没有可行计划时不执行此次压缩。由于 $256$ 同时是 $4$ 和 $128$ 的整数倍，各层文档行的精确保留目标为
+此时 $D$ 同时是 $4$ 和 $128$ 的整数倍，各层需要驱逐的 Cache 行数即可精确折算为整数 $D / c_\ell$，进而得到第 $\ell$ 层在历史集合 $\mathcal{H}_\ell$ 中需要保留的总 Cache 行数 $T_\ell = N_\ell - D / c_\ell$。
+
+在此配额下，我们继续沿用分块 Top-$K$ 筛选策略以避免高分行局部扎堆。分块大小仍固定为 $B = 1024$ 个原始 Token，折算到各层的原生 Cache 行粒度，每个完整预算块在 CSA 层对应 $B / 4 = 256$ 行缓存，在 HCA 层则对应 $B / 128 = 8$ 行缓存。我们将第 $\ell$ 层的历史上下文集合 $\mathcal{H}_\ell$ 划分为互不重叠的连续分块 $\mathcal{H}_{\ell,1}, \dots, \mathcal{H}_{\ell,M}$，按各分块的实际长度 $|\mathcal{H}_{\ell,b}|$ 占总行数 $N_\ell$ 的比例分配块内保留行数 $t_{\ell,b}$：
 
 $$
-T_\ell=N_\ell-\frac{D}{c_\ell},
-\qquad
-\widehat N_\ell^{\mathrm{long}}=\left\lfloor\frac{\widehat L}{c_\ell}\right\rfloor.
+t_{\ell,b} \approx \max\!\left(1,\, \operatorname{round}\!\left(\frac{|\mathcal{H}_{\ell,b}|}{N_\ell} T_\ell\right)\right),
 $$
 
-接着从首个可选行开始，将 $\mathcal J_\ell$ 划分为连续分块 $\mathcal J_{\ell,1},\dots,\mathcal J_{\ell,M_\ell}$，每个完整块包含 $B/c_\ell$ 行。块内 Top-K 规则与前文一致，但配额需要使用对齐后的目标 $T_\ell$。记 $e_{\ell,b}=\sum_{v=1}^{b}|\mathcal J_{\ell,v}|$，采用累计比例取整计算当前块的初始配额：
+而后通过累计取整消除舍入误差，并在各块内独立选出得分最高的 Cache 行 $S_{\ell,b}$，汇总构成第 $\ell$ 层的保留集合 $S_\ell$：
 
 $$
-t_{\ell,b}^{(0)}=
-\operatorname{round}\!\left(\frac{e_{\ell,b}T_\ell}{N_\ell}\right)
--\sum_{v<b}t_{\ell,v}.
+S_{\ell,b} = \operatorname{TopK}_{u \in \mathcal{H}_{\ell,b}}\!\left(g_{\ell,u},\, t_{\ell,b}\right), \qquad S_\ell = \bigcup_{b=1}^{M} S_{\ell,b}.
 $$
 
-实现再将初始配额裁剪到下列约束允许的范围，既为每块至少保留一行，也为后续分块留下足够配额和可用行：
+在得到保留集合后，系统将受保护集合 $P_\ell$ 与保留集合 $S_\ell$ 按原始出现顺序排列，执行物理缓存搬移。由于 **[V4]{.intro-mechanism-blue}** 的主缓存向量 $\mathbf{c}_{\ell,u}$ 同时充当跨头共享的 Key 与 Value，搬移时维持原值与量化格式不变，我们在搬移时完整保留选中原生行的原始数值。对 CSA 层，搬移主缓存向量 $\mathbf{c}_{\ell,u}^{CSA}$ 与对应的 Indexer 键向量 $\mathbf{k}_{\ell,u}^I$；对 HCA 层，则直接搬移主缓存向量 $\mathbf{c}_{\ell,u}^{HCA}$：
 
 $$
-\begin{aligned}
-1&\le t_{\ell,b}\le|\mathcal J_{\ell,b}|,\\
-M_\ell-b&\le T_\ell-\sum_{v\le b}t_{\ell,v}
-\le N_\ell-e_{\ell,b}.
-\end{aligned}
+\begin{gathered}
+\widehat{C}_\ell^{CSA} = \left\{\, \left(\mathbf{c}_{\ell,u}^{CSA},\, \mathbf{k}_{\ell,u}^I,\, p_u\right) \;\middle|\; u \in P_\ell \cup S_\ell \,\right\}_{\text{原始排序}}, \\[12pt]
+\widehat{C}_\ell^{HCA} = \left\{\, \mathbf{c}_{\ell,u}^{HCA},\, p_u \;\middle|\; u \in P_\ell \cup S_\ell \,\right\}_{\text{原始排序}}.
+\end{gathered}
 $$
 
-这样可以处理短尾块，并保证 $\sum_b t_{\ell,b}=T_\ell$。随后选择
+在位置编码的处理上，由于在 **[V4]{.intro-mechanism-blue}** 中，保留下来的 Cache 行在生成时已将原始逻辑位置 $p_u$ 的旋转相位原位编码至末尾 $d_r = 64$ 维，因此搬移后其原本的历史相位得以天然保留。而对于压缩完成后新进入模型的后续 Token，由于物理前缀已缩短了 $D$ 个原始 Token，其在紧凑 Cache 中的物理写入位置 $t_{\mathrm{phy}}$ 与未压缩时的原始逻辑位置 $t_{\mathrm{log}}$ 之间相差固定偏移量 $D$：
 
 $$
-S_{\ell,b}=\operatorname{TopK}_{j\in\mathcal J_{\ell,b}}
-\!\left(g_{\ell,j},t_{\ell,b}\right),
-\qquad S_\ell=\bigcup_{b=1}^{M_\ell}S_{\ell,b}.
+t_{\mathrm{log}} = t_{\mathrm{phy}} + D.
 $$
 
-因此，相同原生倍率的层保留相同行数，不同原生倍率的层保留不同行数，但都对应同一个 $\widehat L$。实际文档保留率会因边界保护与对齐而出现小幅偏差。
-
-**参考查询预算。** 预算与块内保留量挂钩的原则沿用前文，仍以原始 Token 预算块 $B$ 为尺度。本节实验将过采样倍率设为 **2.5**，因此
+为了使新 Token 与保留旧 Cache 行中的历史相位 $p_u$ 保持正确的相对位置距离，并正确处理后续输出的位置变换，我们将两套坐标解耦。当原生压缩器 $\Phi$ 在向缓存池写入新生成的 Cache 行时，使用物理坐标 $t_{\mathrm{phy}}$ 寻址。而在执行主注意力计算时，第 $i$ 个主注意力 Head 的查询向量旋转以及加权求和后的输出 Inverse RoPE，则统一代入原始逻辑位置 $t_{\mathrm{log}}$ 计算：
 
 $$
-t=\max\!\left(1,\operatorname{round}(\rho B)\right),
-\qquad n=\left\lceil2.5t\right\rceil.
+\mathbf{q}_{t,i} = \left[\tilde{\mathbf{q}}_{t,i}^{content};\, \operatorname{RoPE}_{t_{\mathrm{log}}}\!\left(\tilde{\mathbf{q}}_{t,i}^{pos}\right)\right], \qquad \mathbf{o}_{t,i} = \operatorname{InvRoPE}_{t_{\mathrm{log}}}\!\left(\sum_{u \in \widehat{\mathcal{C}}_t \cup \mathcal{W}_t} \alpha_{t,u}^{(i)} \mathbf{c}_{\ell,u}\right).
 $$
 
-这与 [**Sec 2.1**](#sec-method-selection){.no-external .section-ref target="_self"} 示例中的倍率 **2** 不同，属于实验超参数的调整，并非 V4 架构强制要求。以 **60%** 保留率为例，$t=614$、$n=1535$；不再分别按 CSA 的 256 行或 HCA 的 8 行缩小参考预算。这里 $n$ 指每个 Head 实际参与评分的参考位置数。默认后缀抽取 $n$ 个文档 Token，再加入真实问题、**42-Token** 学习指令与 **2-Token** 模板尾部，因此 $|R|=|U|+42+2+n$；评分时再从整个后缀中等距选出 $n$ 个 Query 位置，$n$ 与后缀总长并不相同。
-
-**受保护缓存、物理搬移与位置编码。** 保留非文档指令、保持原值并按原始顺序搬移的原则与前文一致。设 $P_\ell$ 为该层原始前缀中不属于 $\mathcal J_\ell$ 的长期行，包括跨文档边界的原生分组，令
-
-$$
-\begin{aligned}
-I_\ell&=\operatorname{sort}(P_\ell\cup S_\ell),\\
-\widehat C_\ell^{\mathrm{main}}&=C_\ell^{\mathrm{main}}[I_\ell],\\
-\widehat K_\ell^{I}&=K_\ell^{I}[I_\ell]\qquad\text{（仅 CSA）}.
-\end{aligned}
-$$
-
-V4 的主缓存行直接包含共享 KV 表示及其位置编码维度，搬移时保留完整行与量化信息；CSA 的 Indexer Cache 必须同步采用相同的 $I_\ell$，HCA 则没有对应的 Indexer Cache。滑动窗口与压缩器尚未完成分组的尾部状态单独保存，不参与长期行的 Top-K 驱逐。前两层纯滑动窗口也不应用上述长期行选择。
-
-位置编码仍需保持原始逻辑坐标。已有行携带的 RoPE 相位随原值一起保留；对后续新 Token，原始位置与紧凑存储位置满足
-
-$$
-p_{\mathrm{logical}}=p_{\mathrm{physical}}+D.
-$$
-
-主注意力的 Query 旋转以及输出的逆向 RoPE 使用 $p_{\mathrm{logical}}$；原生压缩器写入缓存时使用 $p_{\mathrm{physical}}$ 寻址，同时通过偏移后的 RoPE 查找表保持原始相位。两种原生倍率共用同一个对齐偏移量 $D$，使新缓存仍写入紧凑的正确分组。最后同步更新 scheduler 与 Model Runner 的请求长度和 block table，并将不再使用的尾部页归还缓存池。
-
-**逐层执行、清除参考状态与继续生成。** 当前 V4 实现仍在一次参考前向中逐层完成评分与缓存搬移，但执行时序与 [**Sec 2.1**](#sec-method-selection){.no-external .section-ref target="_self"} 描述的“筛选后重选候选并重算当前层输出”不同：它先按原生注意力算出当前层的参考输出，再利用该层 Query 和路由结果评分、选择并改写历史缓存，随后将已经算好的输出传给下一层。同一次参考前向不会基于刚压缩的缓存重算当前层输出，因此也不能将其理解为深层参考 Query 已接收到浅层驱逐后的注意力输出。
-
-所有长期缓存层完成搬移后，系统清除 $R$ 对应的临时缓存，并将滑动窗口、主缓存压缩器与 Indexer 压缩器的尾部状态恢复到参考前向之前，再在缩短后的物理前缀后拼回真实问题 $U$，执行正式回答。这些状态需要一起回退，否则仅删除参考 Token 仍可能把参考过程留下的局部状态带入回答。
-
-之后，CSA 从保留及新增的原生长期行中动态选择最多 **512 行**，并与滑动窗口一起计算注意力；HCA 读取保留及新增的全部因果可见长期压缩行，同样结合滑动窗口。模型据此接入后续输入并继续生成。
+当所有长程注意力层完成压缩并得到缓存 $\widehat{C}_\ell^{CSA}$ 与 $\widehat{C}_\ell^{HCA}$ 后，系统清除参考查询 $R$ 的临时缓存，将先前保存的滑动窗口 $\mathcal{W}_t$ 与原生压缩器尾部状态回退至参考前向之前的状态，同步更新底层调度器的请求长度 $\widehat{L}$ 与物理块表，并将尾部空闲页面归还缓存池。此后，模型拼回真实用户问题 $U$ 执行正式生成，CSA 层继续从保留及新增的长期行中动态路由 $k = 512$ 个候选，HCA 层继续读取全部可见 Cache 行，并各自结合滑动窗口完成后续生成。
 
 ### 实验设定与结果（暂未完成） {#sec-v4-query-results}
 
@@ -593,10 +542,10 @@ $$
 \texttt{L20-H31},\ \texttt{L26-H58}\}.
 $$
 
-层号与全局 head 号均从 0 开始。这组 head 由 LongBench 的定位排名选出，随后固定用于完整 LongBench-v2 与 InfiniteBench 实验<sup class="margin-note-ref" aria-label="参见右侧注 9">9</sup>。
+层号与全局 head 号均从 0 开始。这组 head 由 LongBench 的定位排名选出，随后固定用于完整 LongBench-v2 与 InfiniteBench 实验<sup class="margin-note-ref" aria-label="参见右侧注 10">10</sup>。
 
 ::: {.column-margin}
-<span class="margin-label">注 9</span>
+<span class="margin-label">注 10</span>
 
 发现集中的 68 道 LongBench-v2 题来自后文同一批 473 题，包含早期压缩退化案例。InfiniteBench 直接复用选定的 head 与恢复预算，没有重新选 head。证据标注用于离线排名和定位评估；逐题恢复只使用问题与模型信号。
 :::
