@@ -3398,6 +3398,120 @@ code:not(pre code) {
   min-inline-size: 36rem;
 }
 
+#sec-v4-compression-overhead .compact-wide-table table.table th,
+#sec-v4-compression-overhead .compact-wide-table table.table td {
+  padding: 0.7rem 0.4rem;
+}
+
+#sec-v4-compression-overhead .compact-wide-table table.table thead th {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+#sec-v4-compression-overhead .compact-wide-table table.table tbody td:nth-child(2) {
+  color: #247a62;
+}
+
+#sec-v4-compression-overhead .compact-wide-table table.table tbody td:nth-child(3) {
+  color: #b56632;
+}
+
+#sec-v4-compression-overhead .compact-wide-table table.table tbody td:nth-child(4) {
+  color: #8054a1;
+}
+
+#sec-v4-compression-overhead .compact-wide-table table.table tbody td:nth-child(5) {
+  color: #b84949;
+}
+
+#sec-v4-compression-overhead .compact-wide-table table.table tbody td:nth-child(6) {
+  color: #80652d;
+}
+
+#sec-v4-compression-overhead .compact-wide-table table.table tbody td:nth-child(7) {
+  color: var(--research-deep);
+}
+
+// Keep the LongBench subtask results within the article width.
+body.post-research .fingerprint-baseline.longbench-subtask-results,
+body.post-research .longbench-subtask-results > .table-responsive {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow: visible;
+}
+
+.post-research .longbench-subtask-results table.table {
+  table-layout: fixed;
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+// Pandoc emits inline col widths; override them only for this table.
+.post-research .longbench-subtask-results table.table col:first-child {
+  width: 18% !important;
+}
+
+.post-research .longbench-subtask-results table.table col:not(:first-child) {
+  width: 16.4% !important;
+}
+
+.post-research .longbench-subtask-results table.table th,
+.post-research .longbench-subtask-results table.table td {
+  padding: 0.65rem 0.35rem;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.longbench-subtask-results .longbench-count {
+  color: #696d78;
+  font-size: 0.78em;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.longbench-subtask-results .longbench-baseline-label,
+.fingerprint-baseline .retention-baseline-note {
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+
+@media (max-width: 575.98px) {
+  .post-research .longbench-subtask-results table.table th,
+  .post-research .longbench-subtask-results table.table td {
+    padding: 0.55rem 0.12rem;
+    font-size: 0.82rem;
+  }
+
+  .post-research .longbench-subtask-results table.table tr > :first-child {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 359.98px) {
+  body.post-research .fingerprint-baseline.longbench-subtask-results {
+    inline-size: calc(100% + 2rem);
+    max-inline-size: none;
+    margin-inline: -1rem;
+  }
+
+  .post-research .longbench-subtask-results table.table th,
+  .post-research .longbench-subtask-results table.table td {
+    font-size: 0.76rem;
+  }
+
+  .post-research .longbench-subtask-results table.table tr > :first-child {
+    font-size: 0.66rem;
+  }
+}
+
+@media (max-width: 399.98px) {
+  .post-research .longbench-subtask-results table.table tbody td:not(:first-child) > strong {
+    font-size: 0.68rem;
+  }
+}
+
 #sec-v32-results .compact-result-table tbody tr > :first-child {
   background-color: rgba(83, 99, 238, 0.05);
   color: var(--research-deep);
