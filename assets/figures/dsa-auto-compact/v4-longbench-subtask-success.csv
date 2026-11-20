@@ -1,0 +1,36 @@
+﻿target_retention,task,task_zh,correct,total,success_rate_pct
+1.0,Single-Document QA,单文档问答,85,175,48.57142857142857
+1.0,Multi-Document QA,多文档问答,59,124,47.58064516129032
+1.0,Long In-context Learning,长上下文样本学习,51,74,68.91891891891892
+1.0,Long-dialogue History Understanding,长对话历史理解,17,39,43.58974358974359
+1.0,Code Repository Understanding,代码仓库理解,17,31,54.83870967741935
+1.0,Long Structured Data Understanding,长结构化数据理解,17,30,56.666666666666664
+1.0,TOTAL,合计,246,473,52.00845665961945
+0.8,Single-Document QA,单文档问答,89,175,50.857142857142854
+0.8,Multi-Document QA,多文档问答,54,124,43.54838709677419
+0.8,Long In-context Learning,长上下文样本学习,47,74,63.513513513513516
+0.8,Long-dialogue History Understanding,长对话历史理解,18,39,46.15384615384615
+0.8,Code Repository Understanding,代码仓库理解,20,31,64.51612903225806
+0.8,Long Structured Data Understanding,长结构化数据理解,16,30,53.333333333333336
+0.8,TOTAL,合计,244,473,51.58562367864693
+0.6,Single-Document QA,单文档问答,88,175,50.285714285714285
+0.6,Multi-Document QA,多文档问答,58,124,46.774193548387096
+0.6,Long In-context Learning,长上下文样本学习,51,74,68.91891891891892
+0.6,Long-dialogue History Understanding,长对话历史理解,16,39,41.02564102564103
+0.6,Code Repository Understanding,代码仓库理解,17,31,54.83870967741935
+0.6,Long Structured Data Understanding,长结构化数据理解,17,30,56.666666666666664
+0.6,TOTAL,合计,247,473,52.219873150105705
+0.4,Single-Document QA,单文档问答,88,175,50.285714285714285
+0.4,Multi-Document QA,多文档问答,62,124,50.0
+0.4,Long In-context Learning,长上下文样本学习,45,74,60.810810810810814
+0.4,Long-dialogue History Understanding,长对话历史理解,19,39,48.717948717948715
+0.4,Code Repository Understanding,代码仓库理解,19,31,61.29032258064516
+0.4,Long Structured Data Understanding,长结构化数据理解,15,30,50.0
+0.4,TOTAL,合计,248,473,52.43128964059196
+0.2,Single-Document QA,单文档问答,91,175,52.0
+0.2,Multi-Document QA,多文档问答,57,124,45.96774193548387
+0.2,Long In-context Learning,长上下文样本学习,41,74,55.4054054054054
+0.2,Long-dialogue History Understanding,长对话历史理解,17,39,43.58974358974359
+0.2,Code Repository Understanding,代码仓库理解,17,31,54.83870967741935
+0.2,Long Structured Data Understanding,长结构化数据理解,15,30,50.0
+0.2,TOTAL,合计,238,473,50.31712473572939
